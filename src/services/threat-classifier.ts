@@ -333,7 +333,7 @@ export function classifyByKeyword(title: string, variant = 'full'): ThreatClassi
     return { level: 'info', category: 'general', confidence: 0.3, source: 'keyword' };
   }
 
-  const isTech = variant === 'tech';
+  const isTech = variant === 'tech' || variant === 'startup';
 
   // Priority cascade: critical → high → medium → low → info
   let match = matchKeywords(lower, CRITICAL_KEYWORDS);

@@ -69,7 +69,7 @@ export async function fetchPredictions(opts?: { region?: string }): Promise<Pred
   const markets = await breaker.execute(async () => {
     const hydrated = getHydratedData('predictions') as BootstrapPredictionData | undefined;
     if (hydrated?.fetchedAt && Date.now() - hydrated.fetchedAt < 40 * 60 * 1000) {
-      const variant = SITE_VARIANT === 'tech' ? hydrated.tech
+      const variant = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup' ? hydrated.tech
         : SITE_VARIANT === 'finance' ? (hydrated.finance ?? hydrated.geopolitical)
         : hydrated.geopolitical;
       if (variant && variant.length > 0) {
@@ -80,7 +80,7 @@ export async function fetchPredictions(opts?: { region?: string }): Promise<Pred
       }
     }
 
-    const tags = SITE_VARIANT === 'tech' ? TECH_TAGS
+    const tags = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup' ? TECH_TAGS
       : SITE_VARIANT === 'finance' ? FINANCE_TAGS
       : GEOPOLITICAL_TAGS;
     const rpcResults = await client.listPredictionMarkets({

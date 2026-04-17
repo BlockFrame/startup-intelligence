@@ -3,7 +3,7 @@ import type { MapLayers } from '@/types';
 import { isDesktopRuntime } from '@/services/runtime';
 
 export type MapRenderer = 'flat' | 'globe';
-export type MapVariant = 'full' | 'tech' | 'finance' | 'happy' | 'commodity';
+export type MapVariant = 'full' | 'tech' | 'startup' | 'finance' | 'happy' | 'commodity';
 
 const _desktop = isDesktopRuntime();
 
@@ -100,6 +100,10 @@ const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
     'startupHubs', 'techHQs', 'accelerators', 'cloudRegions',
     'datacenters', 'cables', 'outages', 'cyberThreats',
     'techEvents', 'resilienceScore', 'natural', 'fires', 'dayNight',
+  ],
+  startup: [
+    'datacenters', 'cloudRegions', 'startupHubs',
+    'techHQs', 'accelerators', 'techEvents',
   ],
   finance: [
     'stockExchanges', 'financialCenters', 'centralBanks', 'commodityHubs',

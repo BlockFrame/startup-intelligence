@@ -1,10 +1,10 @@
 import type { AppContext, AppModule } from '@/app/app-context';
 import type { SearchResult } from '@/components/SearchModal';
 import type { NewsItem, MapLayers } from '@/types';
-import type { MapView } from '@/components';
+import type { MapView, TimeRange } from '@/components/MapContainer';
 import type { Command } from '@/config/commands';
-import { SearchModal } from '@/components';
-import { CIIPanel } from '@/components';
+import { CIIPanel } from '@/components/CIIPanel';
+import { SearchModal } from '@/components/SearchModal';
 import { SITE_VARIANT, STORAGE_KEYS } from '@/config';
 import { getAllowedLayerKeys } from '@/config/map-layer-definitions';
 import type { MapVariant } from '@/config/map-layer-definitions';
@@ -24,7 +24,7 @@ import { STOCK_EXCHANGES, FINANCIAL_CENTERS, CENTRAL_BANKS, COMMODITY_HUBS } fro
 import { trackSearchResultSelected, trackCountrySelected } from '@/services/analytics';
 import { t } from '@/services/i18n';
 import { saveToStorage, setTheme } from '@/utils';
-import { CountryIntelManager } from '@/app/country-intel';
+import { CountryIntelManager } from '@/app/startup-country-intel';
 import type { PositionSample } from '@/services/aviation';
 import { fetchAircraftPositions } from '@/services/aviation';
 import type { MilitaryFlight } from '@/types';
@@ -58,7 +58,8 @@ export class SearchManager implements AppModule {
   }
 
   private setupSearchModal(): void {
-    const searchOptions = SITE_VARIANT === 'tech'
+    const isStartupOrTech = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup';
+    const searchOptions = isStartupOrTech
       ? { placeholder: t('modals.search.placeholderTech') }
       : SITE_VARIANT === 'happy'
         ? { placeholder: 'Search or type a command...' }
@@ -69,7 +70,7 @@ export class SearchManager implements AppModule {
 
     if (SITE_VARIANT === 'happy') {
       // Happy variant: no geopolitical/military/infrastructure sources
-    } else if (SITE_VARIANT === 'tech') {
+    } else if (isStartupOrTech) {
       this.ctx.searchModal.registerSource('techcompany', TECH_COMPANIES.map(c => ({
         id: c.id,
         title: c.name,
@@ -549,7 +550,7 @@ export class SearchManager implements AppModule {
         break;
 
       case 'time':
-        this.ctx.map?.setTimeRange(action as import('@/components').TimeRange);
+        this.ctx.map?.setTimeRange(action as TimeRange);
         break;
 
       case 'country': {

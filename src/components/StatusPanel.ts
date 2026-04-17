@@ -58,8 +58,8 @@ export class StatusPanel extends Panel {
   }
 
   private init(): void {
-    this.allowedFeeds = SITE_VARIANT === 'tech' ? TECH_FEEDS : WORLD_FEEDS;
-    this.allowedApis = SITE_VARIANT === 'tech' ? TECH_APIS : WORLD_APIS;
+    this.allowedFeeds = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup' ? TECH_FEEDS : WORLD_FEEDS;
+    this.allowedApis = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup' ? TECH_APIS : WORLD_APIS;
 
     this.element = h('div', { className: 'status-panel-container' });
     this.initDefaultStatuses();

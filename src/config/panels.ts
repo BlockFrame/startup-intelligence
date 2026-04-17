@@ -408,6 +408,77 @@ const TECH_MOBILE_MAP_LAYERS: MapLayers = {
 };
 
 // ============================================
+// STARTUP VARIANT (VC/Investor Intelligence)
+// ============================================
+const STARTUP_PANELS: Record<string, PanelConfig> = {
+  map: { name: 'Startup Intelligence Map', enabled: true, priority: 1 },
+  'live-news': { name: 'Dealflow Headlines', enabled: true, priority: 1 },
+  insights: { name: 'AI Investor Brief', enabled: true, priority: 1 },
+  startups: { name: 'Startups & VC', enabled: true, priority: 1 },
+  funding: { name: 'Funding & VC', enabled: true, priority: 1 },
+  regionalStartups: { name: 'Global Startup News', enabled: true, priority: 1 },
+  unicorns: { name: 'Unicorn Tracker', enabled: true, priority: 1 },
+  accelerators: { name: 'Accelerators & Demo Days', enabled: true, priority: 1 },
+  vcblogs: { name: 'VC Insights & Essays', enabled: true, priority: 1 },
+  producthunt: { name: 'Product Hunt', enabled: true, priority: 1 },
+  ai: { name: 'AI/ML News', enabled: true, priority: 1 },
+  tech: { name: 'Technology', enabled: true, priority: 1 },
+  fintech: { name: 'Fintech', enabled: true, priority: 1 },
+  ipo: { name: 'IPO & M&A Signals', enabled: true, priority: 1 },
+  layoffs: { name: 'Layoffs Tracker', enabled: true, priority: 2 },
+  policy: { name: 'AI Policy & Regulation', enabled: true, priority: 2 },
+  security: { name: 'Cybersecurity', enabled: true, priority: 2 },
+  markets: { name: 'Public Market Comps', enabled: true, priority: 2 },
+  finance: { name: 'Market Context', enabled: true, priority: 2 },
+  'macro-signals': { name: 'Market Regime', enabled: true, priority: 2 },
+  'tech-readiness': { name: 'Tech Readiness Index', enabled: true, priority: 2 },
+  events: { name: 'Tech Events', enabled: true, priority: 2 },
+  monitors: { name: 'My Monitors', enabled: true, priority: 2 },
+};
+
+const STARTUP_MAP_LAYERS: MapLayers = {
+  ...TECH_MAP_LAYERS,
+  hotspots: false,
+  conflicts: false,
+  cables: false,
+  outages: false,
+  cyberThreats: false,
+  natural: false,
+  fires: false,
+  resilienceScore: false,
+  dayNight: false,
+  datacenters: true,
+  startupHubs: true,
+  cloudRegions: true,
+  accelerators: true,
+  techHQs: true,
+  techEvents: true,
+  financialCenters: false,
+  stockExchanges: false,
+};
+
+const STARTUP_MOBILE_MAP_LAYERS: MapLayers = {
+  ...TECH_MOBILE_MAP_LAYERS,
+  hotspots: false,
+  conflicts: false,
+  cables: false,
+  outages: false,
+  cyberThreats: false,
+  natural: false,
+  fires: false,
+  resilienceScore: false,
+  dayNight: false,
+  datacenters: true,
+  startupHubs: true,
+  cloudRegions: true,
+  accelerators: true,
+  techHQs: true,
+  techEvents: true,
+  financialCenters: false,
+  stockExchanges: false,
+};
+
+// ============================================
 // FINANCE VARIANT (Markets/Trading)
 // ============================================
 const FINANCE_PANELS: Record<string, PanelConfig> = {
@@ -904,6 +975,7 @@ const COMMODITY_MOBILE_MAP_LAYERS: MapLayers = {
 export const ALL_PANELS: Record<string, PanelConfig> = {
   ...HAPPY_PANELS,
   ...COMMODITY_PANELS,
+  ...STARTUP_PANELS,
   ...TECH_PANELS,
   ...FINANCE_PANELS,
   ...FULL_PANELS,
@@ -913,6 +985,7 @@ export const ALL_PANELS: Record<string, PanelConfig> = {
 export const VARIANT_DEFAULTS: Record<string, string[]> = {
   full:      Object.keys(FULL_PANELS),
   tech:      Object.keys(TECH_PANELS),
+  startup:   Object.keys(STARTUP_PANELS),
   finance:   Object.keys(FINANCE_PANELS),
   commodity: Object.keys(COMMODITY_PANELS),
   happy:     Object.keys(HAPPY_PANELS),
@@ -932,6 +1005,11 @@ export const VARIANT_PANEL_OVERRIDES: Partial<Record<string, Partial<Record<stri
     map:         { name: 'Global Tech Map' },
     'live-news': { name: 'Tech Headlines' },
     insights:    { name: 'AI Insights' },
+  },
+  startup: {
+    map:         { name: 'Startup Intelligence Map' },
+    'live-news': { name: 'Dealflow Headlines' },
+    insights:    { name: 'AI Investor Brief' },
   },
   commodity: {
     map:         { name: 'Commodity Map' },
@@ -986,6 +1064,8 @@ export const DEFAULT_PANELS: Record<string, PanelConfig> = Object.fromEntries(
 
 export const DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy' 
   ? HAPPY_MAP_LAYERS 
+  : SITE_VARIANT === 'startup'
+    ? STARTUP_MAP_LAYERS
   : SITE_VARIANT === 'tech' 
     ? TECH_MAP_LAYERS 
     : SITE_VARIANT === 'finance' 
@@ -996,6 +1076,8 @@ export const DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy'
 
 export const MOBILE_DEFAULT_MAP_LAYERS = SITE_VARIANT === 'happy' 
   ? HAPPY_MOBILE_MAP_LAYERS 
+  : SITE_VARIANT === 'startup'
+    ? STARTUP_MOBILE_MAP_LAYERS
   : SITE_VARIANT === 'tech' 
     ? TECH_MOBILE_MAP_LAYERS 
     : SITE_VARIANT === 'finance' 
@@ -1065,7 +1147,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   startupsVc: {
     labelKey: 'header.panelCatStartupsVc',
-    panelKeys: ['startups', 'vcblogs', 'regionalStartups', 'unicorns', 'accelerators', 'funding', 'ipo'],
+    panelKeys: ['startups', 'funding', 'regionalStartups', 'unicorns', 'accelerators', 'vcblogs', 'producthunt', 'ipo'],
   },
   securityPolicy: {
     labelKey: 'header.panelCatSecurityPolicy',
@@ -1073,7 +1155,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   techMarkets: {
     labelKey: 'header.panelCatMarkets',
-    panelKeys: ['markets', 'finance', 'crypto', 'economic', 'sanctions-pressure', 'polymarket', 'macro-signals', 'etf-flows', 'stablecoins', 'layoffs', 'monitors', 'world-clock'],
+    panelKeys: ['markets', 'finance', 'fintech', 'macro-signals', 'tech-readiness', 'layoffs', 'monitors', 'world-clock'],
   },
 
   // Finance variant

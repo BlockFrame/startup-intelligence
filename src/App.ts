@@ -16,14 +16,18 @@ import {
 } from '@/config';
 import { sanitizeLayersForVariant } from '@/config/map-layer-definitions';
 import type { MapVariant } from '@/config/map-layer-definitions';
-import { initDB, cleanOldSnapshots, isAisConfigured, initAisStream, isOutagesConfigured, disconnectAisStream } from '@/services';
+import { cleanOldSnapshots, initDB } from '@/services/storage';
+import { disconnectAisStream, initAisStream, isAisConfigured } from '@/services/maritime';
+import { isOutagesConfigured } from '@/services/infrastructure';
 import { isProUser } from '@/services/widget-store';
 import { mlWorker } from '@/services/ml-worker';
 import { getAiFlowSettings, subscribeAiFlowChange, isHeadlineMemoryEnabled } from '@/services/ai-flow-settings';
 import { startLearning } from '@/services/country-instability';
 import { loadFromStorage, parseMapUrlState, saveToStorage, isMobileDevice } from '@/utils';
 import type { ParsedMapUrlState } from '@/utils';
-import { SignalModal, IntelligenceGapBadge, BreakingNewsBanner } from '@/components';
+import { BreakingNewsBanner } from '@/components/BreakingNewsBanner';
+import { IntelligenceGapBadge } from '@/components/IntelligenceGapBadge';
+import { SignalModal } from '@/components/SignalModal';
 import { initBreakingNewsAlerts, destroyBreakingNewsAlerts } from '@/services/breaking-news-alerts';
 import type { ServiceStatusPanel } from '@/components/ServiceStatusPanel';
 import type { StablecoinPanel } from '@/components/StablecoinPanel';
@@ -63,14 +67,13 @@ import { computeDefaultDisabledSources, getLocaleBoostedSources, getTotalFeedCou
 import { fetchBootstrapData, getBootstrapHydrationState, markBootstrapAsLive, type BootstrapHydrationState } from '@/services/bootstrap';
 import { describeFreshness } from '@/services/persistent-cache';
 import { DesktopUpdater } from '@/app/desktop-updater';
-import { CountryIntelManager } from '@/app/country-intel';
+import { CountryIntelManager } from '@/app/startup-country-intel';
 import { SearchManager } from '@/app/search-manager';
 import { RefreshScheduler } from '@/app/refresh-scheduler';
 import { PanelLayoutManager } from '@/app/panel-layout';
-import { DataLoaderManager } from '@/app/data-loader';
+import { DataLoaderManager } from '@/app/startup-data-loader';
 import { EventHandlerManager } from '@/app/event-handlers';
 import { resolveUserRegion, resolvePreciseUserCoordinates, type PreciseCoordinates } from '@/utils/user-location';
-import { showProBanner } from '@/components/ProBanner';
 import { initAuthState, subscribeAuthState } from '@/services/auth-state';
 import { install as installCloudPrefsSync, onSignIn as cloudPrefsSignIn, onSignOut as cloudPrefsSignOut } from '@/utils/cloud-prefs-sync';
 import { getConvexClient, getConvexApi, waitForConvexAuth } from '@/services/convex-client';
@@ -250,6 +253,21 @@ export class App {
 
     const shouldPrime = (id: string): boolean => forceAll || this.isPanelNearViewport(id);
     const shouldPrimeAny = (ids: string[]): boolean => forceAll || this.isAnyPanelNearViewport(ids);
+
+    if (SITE_VARIANT === 'startup') {
+      if (shouldPrime('macro-signals')) {
+        const panel = this.state.panels['macro-signals'] as MacroSignalsPanel | undefined;
+        if (panel) primeTask('macro-signals', () => panel.fetchData());
+      }
+      if (shouldPrime('markets')) {
+        primeTask('markets', () => this.dataLoader.loadMarkets());
+      }
+
+      if (tasks.length > 0) {
+        await Promise.allSettled(tasks);
+      }
+      return;
+    }
 
     if (shouldPrime('service-status')) {
       const panel = this.state.panels['service-status'] as ServiceStatusPanel | undefined;
@@ -920,7 +938,6 @@ export class App {
 
     // Phase 1: Layout (creates map + panels — they'll find hydrated data)
     this.panelLayout.init();
-    showProBanner(this.state.container);
     this.updateConnectivityUi();
     window.addEventListener('online', this.handleConnectivityChange);
     window.addEventListener('offline', this.handleConnectivityChange);
@@ -1185,6 +1202,22 @@ export class App {
   private setupRefreshIntervals(): void {
     // Always refresh news for all variants
     this.refreshScheduler.scheduleRefresh('news', () => this.dataLoader.loadNews(), REFRESH_INTERVALS.feeds);
+
+    if (SITE_VARIANT === 'startup') {
+      this.refreshScheduler.scheduleRefresh(
+        'markets',
+        () => this.dataLoader.loadMarkets(),
+        REFRESH_INTERVALS.markets,
+        () => this.isPanelNearViewport('markets'),
+      );
+      this.refreshScheduler.scheduleRefresh(
+        'macro-signals',
+        () => (this.state.panels['macro-signals'] as MacroSignalsPanel).fetchData(),
+        REFRESH_INTERVALS.macroSignals,
+        () => this.isPanelNearViewport('macro-signals'),
+      );
+      return;
+    }
 
     // Happy variant only refreshes news -- skip all geopolitical/financial/military refreshes
     if (SITE_VARIANT !== 'happy') {

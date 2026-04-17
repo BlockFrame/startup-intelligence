@@ -8,18 +8,16 @@ import type { McpDataPanel } from '@/components/McpDataPanel';
 import { openMcpConnectModal } from '@/components/McpConnectModal';
 import { deleteMcpPanel, getMcpPanel, saveMcpPanel } from '@/services/mcp-store';
 import type { PanelConfig, MapLayers, MilitaryFlight } from '@/types';
-import type { MapView } from '@/components';
+import type { MapView } from '@/components/MapContainer';
 import type { PositionSample } from '@/services/aviation';
 import type { ClusteredEvent } from '@/types';
 import type { DashboardSnapshot } from '@/services/storage';
-import {
-  PlaybackControl,
-  StatusPanel,
-  PizzIntIndicator,
-  LlmStatusIndicator,
-  CIIPanel,
-  PredictionPanel,
-} from '@/components';
+import { CIIPanel } from '@/components/CIIPanel';
+import { LlmStatusIndicator } from '@/components/LlmStatusIndicator';
+import { PizzIntIndicator } from '@/components/PizzIntIndicator';
+import { PlaybackControl } from '@/components/PlaybackControl';
+import { PredictionPanel } from '@/components/PredictionPanel';
+import { StatusPanel } from '@/components/StatusPanel';
 import {
   buildMapUrl,
   debounce,
@@ -38,11 +36,8 @@ import {
 } from '@/config';
 import { VARIANT_META } from '@/config/variant-meta';
 import { isDesktopRuntime } from '@/services/runtime';
-import {
-  saveSnapshot,
-  initAisStream,
-  disconnectAisStream,
-} from '@/services';
+import { initAisStream, disconnectAisStream } from '@/services/maritime';
+import { saveSnapshot } from '@/services/storage';
 import {
   track,
   trackPanelView,

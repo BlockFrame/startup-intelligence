@@ -1257,8 +1257,9 @@ export class DeckGLMap {
     const boundsKey = `${bbox[0].toFixed(4)}:${bbox[1].toFixed(4)}:${bbox[2].toFixed(4)}:${bbox[3].toFixed(4)}`;
     const layers = this.state.layers;
     const useProtests = layers.protests && this.protestSuperclusterSource.length > 0;
-    const useTechHQ = SITE_VARIANT === 'tech' && layers.techHQs;
-    const useTechEvents = SITE_VARIANT === 'tech' && layers.techEvents && this.techEvents.length > 0;
+    const isStartupOrTech = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup';
+    const useTechHQ = isStartupOrTech && layers.techHQs;
+    const useTechEvents = isStartupOrTech && layers.techEvents && this.techEvents.length > 0;
     const useDatacenterClusters = layers.datacenters && zoom < 5;
     const layerMask = `${Number(useProtests)}${Number(useTechHQ)}${Number(useTechEvents)}${Number(useDatacenterClusters)}`;
     if (zoom === this.lastSCZoom && boundsKey === this.lastSCBoundsKey && layerMask === this.lastSCMask) return;
@@ -1757,8 +1758,8 @@ export class DeckGLMap {
       this.layerCache.delete('bypass-arcs-layer');
     }
 
-    // Tech variant layers (Supercluster-based deck.gl layers for HQs and events)
-    if (SITE_VARIANT === 'tech') {
+    // Tech/startup variant layers (Supercluster-based deck.gl layers for HQs and events)
+    if (SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup') {
       if (mapLayers.startupHubs) {
         layers.push(this.createStartupHubsLayer());
       }
@@ -4715,7 +4716,7 @@ export class DeckGLMap {
       { shape: shapes.square('rgb(132, 204, 22)'), label: 'Resilience: High', layerKey: 'resilienceScore' },
       { shape: shapes.square('rgb(34, 197, 94)'), label: 'Resilience: Very High', layerKey: 'resilienceScore' },
     ];
-    const legendItems: { shape: string; label: string; layerKey: keyof MapLayers }[] = SITE_VARIANT === 'tech'
+    const legendItems: { shape: string; label: string; layerKey: keyof MapLayers }[] = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup'
       ? [
         { shape: shapes.circle(isLight ? 'rgb(22, 163, 74)' : 'rgb(0, 255, 150)'), label: t('components.deckgl.legend.startupHub'), layerKey: 'startupHubs' },
         { shape: shapes.circle('rgb(100, 200, 255)'), label: t('components.deckgl.legend.techHQ'), layerKey: 'techHQs' },

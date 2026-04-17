@@ -26,7 +26,7 @@ jobs:
           fi
           FILES=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.number }}/files" \
             --paginate --jq '.[].filename')
-          CODE=$(echo "$FILES" | grep -vcE '\.md$|^docs/|^src-tauri/|^CHANGELOG\.md$|^LICENSE$|\.github/workflows/(build-desktop|docker-publish)\.yml$' || echo 0)
+          CODE=$(echo "$FILES" | grep -vcE '\.md$|^CHANGELOG\.md$|^LICENSE$|\.github/workflows/docker-publish\.yml$' || echo 0)
           echo "code=$( [ "$CODE" -gt 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
 
   biome:

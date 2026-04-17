@@ -4,7 +4,11 @@ import type { NewsItem, ClusteredEvent, DeviationLevel, RelatedAsset, RelatedAss
 import { THREAT_PRIORITY } from '@/services/threat-classifier';
 import { formatTime, getCSSColor } from '@/utils';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
-import { analysisWorker, enrichWithVelocityML, getClusterAssetContext, MAX_DISTANCE_KM, activityTracker, generateSummary, translateText } from '@/services';
+import { activityTracker } from '@/services/activity-tracker';
+import { analysisWorker } from '@/services/analysis-worker';
+import { getClusterAssetContext, MAX_DISTANCE_KM } from '@/services/related-assets';
+import { generateSummary, translateText } from '@/services/summarization';
+import { enrichWithVelocityML } from '@/services/velocity';
 import { getSourcePropagandaRisk, getSourceTier, getSourceType } from '@/config/feeds';
 import { SITE_VARIANT } from '@/config';
 import { t, getCurrentLanguage } from '@/services/i18n';

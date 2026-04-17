@@ -3,7 +3,7 @@ import { getRpcBaseUrl } from '@/services/rpc-client';
 import { enqueuePanelCall } from '@/app/pending-panel-data';
 import type { NewsItem, MapLayers, SocialUnrestEvent } from '@/types';
 import type { MarketData } from '@/types';
-import type { TimeRange } from '@/components';
+import type { TimeRange } from '@/components/MapContainer';
 import {
   FEEDS,
   INTEL_SOURCES,
@@ -15,71 +15,33 @@ import {
 } from '@/config';
 import { INTEL_HOTSPOTS, CONFLICT_ZONES } from '@/config/geo';
 import { tokenizeForMatch, matchKeyword } from '@/utils/keyword-match';
-import {
-  fetchCategoryFeeds,
-  getFeedFailures,
-  fetchMultipleStocks,
-  fetchCommodityQuotes,
-  fetchSectors,
-  warmCommodityCache,
-  warmSectorCache,
-  fetchCrypto,
-  fetchCryptoSectors,
-  fetchDefiTokens,
-  fetchAiTokens,
-  fetchOtherTokens,
-  fetchPredictions,
-  fetchEarthquakes,
-  fetchWeatherAlerts,
-  fetchFredData,
-  fetchInternetOutages,
-  fetchTrafficAnomalies,
-  fetchDdosAttacks,
-  isOutagesConfigured,
-  fetchAisSignals,
-  getAisStatus,
-  isAisConfigured,
-  fetchCableActivity,
-  fetchCableHealth,
-  fetchProtestEvents,
-  getProtestStatus,
-  fetchFlightDelays,
-  fetchMilitaryFlights,
-  fetchMilitaryVessels,
-  initMilitaryVesselStream,
-  isMilitaryVesselTrackingConfigured,
-  fetchUSNIFleetReport,
-  updateBaseline,
-  calculateDeviation,
-  addToSignalHistory,
-  analysisWorker,
-  fetchPizzIntStatus,
-  fetchGdeltTensions,
-  fetchNaturalEvents,
-  fetchRecentAwards,
-  fetchOilAnalytics,
-  fetchCrudeInventoriesRpc,
-  fetchNatGasStorageRpc,
-  getEuGasStorageData,
-  getOilStocksAnalysisData,
-  fetchLngVulnerability,
-  getEcbFxRatesData,
-  fetchBisData,
-  fetchBlsData,
-  fetchCyberThreats,
-  drainTrendingSignals,
-  fetchTradeRestrictions,
-  fetchTariffTrends,
-  fetchTradeFlows,
-  fetchComtradeFlows,
-  fetchTradeBarriers,
-  fetchCustomsRevenue,
-  fetchShippingRates,
-  fetchChokepointStatus,
-  fetchCriticalMinerals,
-  fetchSanctionsPressure,
-  fetchRadiationWatch,
-} from '@/services';
+import { fetchCategoryFeeds, getFeedFailures } from '@/services/rss';
+import { fetchMultipleStocks, fetchCommodityQuotes, fetchSectors, warmCommodityCache, warmSectorCache, fetchCrypto, fetchCryptoSectors, fetchDefiTokens, fetchAiTokens, fetchOtherTokens } from '@/services/market';
+import { fetchPredictions } from '@/services/prediction';
+import { fetchEarthquakes } from '@/services/earthquakes';
+import { fetchWeatherAlerts } from '@/services/weather';
+import { fetchFredData, fetchOilAnalytics, fetchCrudeInventoriesRpc, fetchNatGasStorageRpc, getEuGasStorageData, getOilStocksAnalysisData, fetchLngVulnerability, getEcbFxRatesData, fetchBisData, fetchBlsData } from '@/services/economic';
+import { fetchInternetOutages, fetchTrafficAnomalies, fetchDdosAttacks, isOutagesConfigured } from '@/services/infrastructure';
+import { fetchAisSignals, getAisStatus, isAisConfigured } from '@/services/maritime';
+import { fetchCableActivity } from '@/services/cable-activity';
+import { fetchCableHealth } from '@/services/cable-health';
+import { fetchProtestEvents, getProtestStatus } from '@/services/unrest';
+import { fetchFlightDelays } from '@/services/aviation';
+import { fetchMilitaryFlights } from '@/services/military-flights';
+import { fetchMilitaryVessels, initMilitaryVesselStream, isMilitaryVesselTrackingConfigured } from '@/services/military-vessels';
+import { fetchUSNIFleetReport } from '@/services/usni-fleet';
+import { updateBaseline, calculateDeviation } from '@/services/storage';
+import { addToSignalHistory } from '@/services/correlation';
+import { analysisWorker } from '@/services/analysis-worker';
+import { fetchPizzIntStatus, fetchGdeltTensions } from '@/services/pizzint';
+import { fetchNaturalEvents } from '@/services/eonet';
+import { fetchRecentAwards } from '@/services/usa-spending';
+import { fetchCyberThreats } from '@/services/cyber';
+import { drainTrendingSignals } from '@/services/trending-keywords';
+import { fetchTradeRestrictions, fetchTariffTrends, fetchTradeFlows, fetchComtradeFlows, fetchTradeBarriers, fetchCustomsRevenue } from '@/services/trade';
+import { fetchShippingRates, fetchChokepointStatus, fetchCriticalMinerals } from '@/services/supply-chain';
+import { fetchSanctionsPressure } from '@/services/sanctions-pressure';
+import { fetchRadiationWatch } from '@/services/radiation';
 import { getMarketWatchlistEntries } from '@/services/market-watchlist';
 import { fetchStockAnalysesForTargets, getStockAnalysisTargets, type StockAnalysisResult } from '@/services/stock-analysis';
 import { fetchInsiderTransactions } from '@/services/insider-transactions';
@@ -132,39 +94,39 @@ import { getHydratedData } from '@/services/bootstrap';
 import { ingestHeadlines } from '@/services/trending-keywords';
 import type { ListFeedDigestResponse } from '@/generated/client/worldmonitor/news/v1/service_client';
 import type { GetSectorSummaryResponse, ListMarketQuotesResponse, ListCommodityQuotesResponse } from '@/generated/client/worldmonitor/market/v1/service_client';
-import type { SectorValuation } from '@/components/MarketPanel';
+import type {
+  AiTokensPanel,
+  CommoditiesPanel,
+  CryptoHeatmapPanel,
+  CryptoPanel,
+  DefiTokensPanel,
+  HeatmapPanel,
+  MarketPanel,
+  OtherTokensPanel,
+  SectorValuation,
+} from '@/components/MarketPanel';
 import { mountCommunityWidget } from '@/components/CommunityWidget';
 import { ResearchServiceClient } from '@/generated/client/worldmonitor/research/v1/service_client';
-import {
-  MarketPanel,
-  StockAnalysisPanel,
-  StockBacktestPanel,
-  HeatmapPanel,
-  CommoditiesPanel,
-  CryptoPanel,
-  CryptoHeatmapPanel,
-  DefiTokensPanel,
-  AiTokensPanel,
-  OtherTokensPanel,
-  PredictionPanel,
-  MonitorPanel,
-  InsightsPanel,
-  CIIPanel,
-  InternetDisruptionsPanel,
-  StrategicPosturePanel,
-  EconomicPanel,
-  EnergyComplexPanel,
-  TechReadinessPanel,
-  UcdpEventsPanel,
-  TradePolicyPanel,
-  SupplyChainPanel,
-  DiseaseOutbreaksPanel,
-  SocialVelocityPanel,
-  WsbTickerScannerPanel,
-  AAIISentimentPanel,
-  MarketBreadthPanel,
-} from '@/components';
-import { SatelliteFiresPanel } from '@/components/SatelliteFiresPanel';
+import type { AAIISentimentPanel } from '@/components/AAIISentimentPanel';
+import type { CIIPanel } from '@/components/CIIPanel';
+import type { DiseaseOutbreaksPanel } from '@/components/DiseaseOutbreaksPanel';
+import type { EconomicPanel } from '@/components/EconomicPanel';
+import type { EnergyComplexPanel } from '@/components/EnergyComplexPanel';
+import type { InsightsPanel } from '@/components/InsightsPanel';
+import type { InternetDisruptionsPanel } from '@/components/InternetDisruptionsPanel';
+import type { MarketBreadthPanel } from '@/components/MarketBreadthPanel';
+import type { MonitorPanel } from '@/components/MonitorPanel';
+import type { PredictionPanel } from '@/components/PredictionPanel';
+import type { SatelliteFiresPanel } from '@/components/SatelliteFiresPanel';
+import type { SocialVelocityPanel } from '@/components/SocialVelocityPanel';
+import type { StockAnalysisPanel } from '@/components/StockAnalysisPanel';
+import type { StockBacktestPanel } from '@/components/StockBacktestPanel';
+import type { StrategicPosturePanel } from '@/components/StrategicPosturePanel';
+import type { SupplyChainPanel } from '@/components/SupplyChainPanel';
+import type { TechReadinessPanel } from '@/components/TechReadinessPanel';
+import type { TradePolicyPanel } from '@/components/TradePolicyPanel';
+import type { UcdpEventsPanel } from '@/components/UcdpEventsPanel';
+import type { WsbTickerScannerPanel } from '@/components/WsbTickerScannerPanel';
 import { classifyNewsItem } from '@/services/positive-classifier';
 import { fetchGivingSummary } from '@/services/giving';
 import { fetchProgressData } from '@/services/progress-data';
@@ -439,6 +401,36 @@ export class DataLoaderManager implements AppModule {
       { name: 'news', task: runGuarded('news', () => this.loadNews()) },
     ];
 
+    if (SITE_VARIANT === 'startup') {
+      if (shouldLoad('markets')) {
+        tasks.push({ name: 'markets', task: runGuarded('markets', () => this.loadMarkets()) });
+      }
+      if (shouldLoad('events') || this.ctx.mapLayers.techEvents) {
+        tasks.push({ name: 'techEvents', task: runGuarded('techEvents', () => this.loadTechEvents()) });
+      }
+      if (shouldLoad('tech-readiness')) {
+        tasks.push({ name: 'techReadiness', task: runGuarded('techReadiness', () => (this.ctx.panels['tech-readiness'] as TechReadinessPanel)?.refresh()) });
+      }
+
+      const BATCH_SIZE = 4;
+      const BATCH_DELAY_MS = 300;
+      for (let i = 0; i < tasks.length; i += BATCH_SIZE) {
+        const batch = tasks.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(batch.map(t => t.task));
+        results.forEach((result, idx) => {
+          if (result.status === 'rejected') {
+            console.error(`[App] ${batch[idx]?.name} load failed:`, result.reason);
+          }
+        });
+        if (i + BATCH_SIZE < tasks.length) {
+          await new Promise(r => setTimeout(r, BATCH_DELAY_MS));
+        }
+      }
+
+      this.updateSearchIndex();
+      return;
+    }
+
     // Happy variant only loads news data -- skip all geopolitical/financial/military data
     if (SITE_VARIANT !== 'happy') {
       if (shouldLoadAny(['markets', 'heatmap', 'commodities', 'crypto', 'energy-complex', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens'])) {
@@ -564,7 +556,7 @@ export class DataLoaderManager implements AppModule {
     if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.flights) tasks.push({ name: 'flights', task: runGuarded('flights', () => this.loadFlightDelays()) });
     if (SITE_VARIANT !== 'happy' && CYBER_LAYER_ENABLED && this.ctx.mapLayers.cyberThreats) tasks.push({ name: 'cyberThreats', task: runGuarded('cyberThreats', () => this.loadCyberThreats()) });
     if (SITE_VARIANT !== 'happy' && !isDesktopRuntime() && (this.ctx.mapLayers.iranAttacks || shouldLoadAny(['cii', 'strategic-risk', 'strategic-posture']))) tasks.push({ name: 'iranAttacks', task: runGuarded('iranAttacks', () => this.loadIranEvents()) });
-    if (SITE_VARIANT !== 'happy' && (this.ctx.mapLayers.techEvents || SITE_VARIANT === 'tech')) tasks.push({ name: 'techEvents', task: runGuarded('techEvents', () => this.loadTechEvents()) });
+    if (SITE_VARIANT !== 'happy' && (this.ctx.mapLayers.techEvents || SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup')) tasks.push({ name: 'techEvents', task: runGuarded('techEvents', () => this.loadTechEvents()) });
     if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.satellites && this.ctx.map?.isGlobeMode?.()) tasks.push({ name: 'satellites', task: runGuarded('satellites', () => this.loadSatellites()) });
     if (SITE_VARIANT !== 'happy' && this.ctx.mapLayers.webcams) tasks.push({ name: 'webcams', task: runGuarded('webcams', () => this.loadWebcams()) });
     if (SITE_VARIANT !== 'happy' && (shouldLoad('sanctions-pressure') || this.ctx.mapLayers.sanctions)) {
@@ -1054,7 +1046,7 @@ export class DataLoaderManager implements AppModule {
 
     const digest = await digestPromise;
 
-    const maxCategoryConcurrency = SITE_VARIANT === 'tech' ? 4 : 5;
+    const maxCategoryConcurrency = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup' ? 4 : 5;
     const categoryConcurrency = Math.max(1, Math.min(maxCategoryConcurrency, categories.length));
     const categoryResults: PromiseSettledResult<NewsItem[]>[] = [];
     for (let i = 0; i < categories.length; i += categoryConcurrency) {
@@ -1839,8 +1831,8 @@ export class DataLoaderManager implements AppModule {
 
   async loadTechEvents(): Promise<void> {
     console.log('[loadTechEvents] Called. SITE_VARIANT:', SITE_VARIANT, 'techEvents layer:', this.ctx.mapLayers.techEvents);
-    if (SITE_VARIANT !== 'tech' && !this.ctx.mapLayers.techEvents) {
-      console.log('[loadTechEvents] Skipping - not tech variant and layer disabled');
+    if (SITE_VARIANT !== 'tech' && SITE_VARIANT !== 'startup' && !this.ctx.mapLayers.techEvents) {
+      console.log('[loadTechEvents] Skipping - not tech/startup variant and layer disabled');
       return;
     }
 
@@ -1889,7 +1881,7 @@ export class DataLoaderManager implements AppModule {
       this.ctx.map?.setLayerReady('techEvents', mapEvents.length > 0);
       this.ctx.statusPanel?.updateFeed('Tech Events', { status: 'ok', itemCount: mapEvents.length });
 
-      if (SITE_VARIANT === 'tech' && this.ctx.searchModal) {
+      if ((SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup') && this.ctx.searchModal) {
         this.ctx.searchModal.registerSource('techevent', mapEvents.map((e: { id: string; title: string; location: string; startDate: string }) => ({
           id: e.id,
           title: e.title,

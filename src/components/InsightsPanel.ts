@@ -551,9 +551,16 @@ export class InsightsPanel extends Panel {
   }
 
   private renderWorldBrief(brief: string): string {
+    const title = SITE_VARIANT === 'startup'
+      ? 'INVESTOR BRIEF'
+      : SITE_VARIANT === 'tech'
+        ? 'TECH BRIEF'
+        : SITE_VARIANT === 'commodity'
+          ? 'COMMODITY BRIEF'
+          : 'WORLD BRIEF';
     return `
       <div class="insights-brief">
-        <div class="insights-section-title">${SITE_VARIANT === 'tech' ? '🚀 TECH BRIEF' : SITE_VARIANT === 'commodity' ? '⛏️ COMMODITY BRIEF' : '🌍 WORLD BRIEF'}</div>
+        <div class="insights-section-title">${title}</div>
         <div class="insights-brief-text">${escapeHtml(brief)}</div>
       </div>
     `;

@@ -397,6 +397,14 @@ export class MapComponent {
       'natural', 'weather',                               // natural events
       'economic',                                         // economic/geographic
     ];
+    const startupLayers: (keyof MapLayers)[] = [
+      'datacenters',
+      'cloudRegions',
+      'startupHubs',
+      'techHQs',
+      'accelerators',
+      'techEvents',
+    ];
     const financeLayers: (keyof MapLayers)[] = [
       'stockExchanges', 'financialCenters', 'centralBanks', 'commodityHubs', // finance ecosystem
       'cables', 'pipelines', 'outages',                   // infrastructure
@@ -406,7 +414,15 @@ export class MapComponent {
     const happyLayers: (keyof MapLayers)[] = [
       'positiveEvents', 'kindness', 'happiness', 'speciesRecovery', 'renewableInstallations',
     ];
-    const layers = SITE_VARIANT === 'tech' ? techLayers : SITE_VARIANT === 'finance' ? financeLayers : SITE_VARIANT === 'happy' ? happyLayers : fullLayers;
+    const layers = SITE_VARIANT === 'startup'
+      ? startupLayers
+      : SITE_VARIANT === 'tech'
+        ? techLayers
+        : SITE_VARIANT === 'finance'
+          ? financeLayers
+          : SITE_VARIANT === 'happy'
+            ? happyLayers
+            : fullLayers;
     const layerLabelKeys: Partial<Record<keyof MapLayers, string>> = {
       hotspots: 'components.deckgl.layers.intelHotspots',
       conflicts: 'components.deckgl.layers.conflictZones',
@@ -618,7 +634,7 @@ export class MapComponent {
       </div>
     `;
 
-    popup.innerHTML = SITE_VARIANT === 'tech'
+    popup.innerHTML = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup'
       ? techHelpContent
       : SITE_VARIANT === 'finance'
         ? financeHelpContent
@@ -659,7 +675,7 @@ export class MapComponent {
     const legend = document.createElement('div');
     legend.className = 'map-legend';
 
-    if (SITE_VARIANT === 'tech') {
+    if (SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup') {
       // Tech variant legend
       legend.innerHTML = `
         <div class="map-legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>${escapeHtml(t('components.deckgl.layers.techHQs').toUpperCase())}</div>
