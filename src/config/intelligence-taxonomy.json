@@ -1,0 +1,100 @@
+{
+  "topics": {
+    "agents": {
+      "label": "Agents",
+      "aliases": ["agent", "agents", "autonomous agent", "multi-agent", "agentic", "autogpt"],
+      "sources": ["arxiv", "github"]
+    },
+    "memory": {
+      "label": "Memory",
+      "aliases": ["memory", "long-term memory", "episodic memory", "multi-session", "persistent memory", "mem0", "zep"],
+      "sources": ["arxiv", "github"]
+    },
+    "rag": {
+      "label": "RAG",
+      "aliases": ["rag", "retrieval augmented", "retrieval-augmented", "retriever", "vector retrieval"],
+      "sources": ["arxiv", "github"]
+    },
+    "adaptive_rag": {
+      "label": "Adaptive RAG",
+      "aliases": ["adaptive rag", "dynamic retrieval", "query routing", "adaptive retrieval", "routing retriever"],
+      "sources": ["arxiv", "github"]
+    },
+    "graphrag": {
+      "label": "GraphRAG",
+      "aliases": ["graphrag", "graph rag", "graph retrieval", "graph retrieval augmented"],
+      "sources": ["arxiv", "github"]
+    },
+    "document_intelligence": {
+      "label": "Document Intelligence",
+      "aliases": ["document intelligence", "document ai", "long document", "pageindex", "vectorless", "chunking", "tree index", "document processing"],
+      "sources": ["arxiv", "github"]
+    },
+    "knowledge_layer": {
+      "label": "Knowledge Layer",
+      "aliases": ["knowledge graph", "knowledge-graph", "knowledge base", "knowledge-base", "kb", "entity linking", "entity resolution", "ontology"],
+      "sources": ["arxiv", "github"]
+    },
+    "evaluation": {
+      "label": "Evaluation",
+      "aliases": ["evaluation", "evaluate", "assessment", "eval", "judge", "scoring"],
+      "sources": ["arxiv", "github"]
+    },
+    "benchmark": {
+      "label": "Benchmark",
+      "aliases": ["benchmark", "leaderboard", "benchmark suite", "harness"],
+      "sources": ["arxiv", "github"]
+    },
+    "observability": {
+      "label": "Observability",
+      "aliases": ["observability", "tracing", "monitoring", "telemetry", "analytics"],
+      "sources": ["arxiv", "github"]
+    },
+    "world_models": {
+      "label": "World Models",
+      "aliases": ["world model", "world models", "simulator", "simulation", "environment generation", "environment"],
+      "sources": ["arxiv", "github"]
+    },
+    "planning": {
+      "label": "Planning",
+      "aliases": ["planning", "planner", "reasoning steps", "plan generation", "task decomposition"],
+      "sources": ["arxiv"]
+    },
+    "tool_use": {
+      "label": "Tool Use",
+      "aliases": ["tool use", "tool-use", "tool using", "function calling", "api call", "tool invocation"],
+      "sources": ["arxiv", "github"]
+    },
+    "ai_security": {
+      "label": "AI Security",
+      "aliases": ["ai security", "llm security", "safety", "security", "guardrail", "guardrails", "prompt injection", "jailbreak", "red team", "moderation", "privacy", "pii"],
+      "sources": ["arxiv", "github"]
+    },
+    "llm_gateway": {
+      "label": "LLM / AI Gateway",
+      "aliases": ["llm gateway", "ai gateway", "gateway", "router", "routing", "model routing", "load balancing", "rate limit", "proxy", "openai-compatible"],
+      "sources": ["github"]
+    },
+    "conversational_platform": {
+      "label": "Conversational Platform",
+      "aliases": ["conversational", "chat platform", "chatbot", "assistant platform", "open webui", "lobe chat", "librechat", "anythingllm"],
+      "sources": ["github"]
+    },
+    "ai_dashboard": {
+      "label": "AI Dashboard",
+      "aliases": ["ai dashboard", "dashboard", "llmops", "observability platform", "prompt management", "playground"],
+      "sources": ["github"]
+    }
+  },
+  "clusters": {
+    "agents": ["agents", "planning", "tool_use"],
+    "memory": ["memory", "knowledge_layer"],
+    "rag": ["rag", "adaptive_rag", "graphrag", "document_intelligence", "knowledge_layer"],
+    "conversational": ["conversational_platform", "agents", "rag"],
+    "dashboards": ["ai_dashboard", "observability", "evaluation"],
+    "gateways": ["llm_gateway", "observability", "tool_use"],
+    "security": ["ai_security"],
+    "evaluation": ["evaluation", "benchmark", "observability"],
+    "world_models": ["world_models", "planning", "agents"]
+  }
+}

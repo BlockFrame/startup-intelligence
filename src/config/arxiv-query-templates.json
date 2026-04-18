@@ -1,0 +1,32 @@
+[
+  {
+    "id": "rag-systems",
+    "label": "RAG Systems",
+    "query": "(\"retrieval augmented generation\" OR RAG OR reranking OR \"query routing\")"
+  },
+  {
+    "id": "agent-memory",
+    "label": "Agent Memory",
+    "query": "(\"agent memory\" OR \"long-term memory\" OR \"multi-session\" OR \"memory compression\")"
+  },
+  {
+    "id": "knowledge-layer",
+    "label": "Knowledge Layer",
+    "query": "(\"knowledge graph\" OR \"knowledge base\" OR \"entity linking\" OR \"knowledge layer\")"
+  },
+  {
+    "id": "evaluation",
+    "label": "Evaluation",
+    "query": "(benchmark OR evaluation OR \"evaluation harness\" OR survey)"
+  },
+  {
+    "id": "world-models",
+    "label": "World Models",
+    "query": "(\"world model\" OR simulator OR planning OR \"model-based agent\")"
+  },
+  {
+    "id": "tool-use",
+    "label": "Tool Use",
+    "query": "(\"tool use\" OR \"function calling\" OR \"agent policy\" OR \"tool learning\")"
+  }
+]

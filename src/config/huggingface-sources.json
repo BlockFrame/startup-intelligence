@@ -1,0 +1,56 @@
+{
+  "entityTypes": ["models", "datasets", "spaces", "papers", "collections"],
+  "searchQueries": [
+    "agent memory",
+    "RAG retrieval augmented generation",
+    "GraphRAG knowledge graph",
+    "embedding reranker retrieval",
+    "LLM evaluation benchmark leaderboard",
+    "world model simulation",
+    "LLM observability",
+    "AI safety guardrails"
+  ],
+  "curatedIds": {
+    "models": [
+      "BAAI/bge-large-en-v1.5",
+      "BAAI/bge-reranker-large",
+      "sentence-transformers/all-MiniLM-L6-v2",
+      "mistralai/Mistral-7B-Instruct-v0.3"
+    ],
+    "datasets": [
+      "mteb/leaderboard",
+      "rag-datasets/rag-mini-wikipedia",
+      "hotpotqa/hotpot_qa",
+      "lmsys/chatbot_arena_conversations"
+    ],
+    "spaces": [
+      "lmsys/chatbot-arena-leaderboard",
+      "mteb/leaderboard",
+      "open-llm-leaderboard/open_llm_leaderboard",
+      "HuggingFaceH4/open_llm_leaderboard"
+    ],
+    "papers": [],
+    "collections": []
+  },
+  "roleRules": {
+    "embedding_model": ["embedding", "sentence-transformers", "bge", "e5", "gte"],
+    "reranker": ["rerank", "reranker", "cross-encoder"],
+    "benchmark_dataset": ["benchmark", "leaderboard", "mteb", "arena", "hotpotqa"],
+    "demo_space": ["demo", "chatbot", "gradio", "space", "playground"],
+    "leaderboard_space": ["leaderboard", "arena", "evaluation"],
+    "paper": ["paper", "arxiv"],
+    "collection": ["collection"]
+  },
+  "themeRules": {
+    "agents": ["agent", "agents", "tool use", "function calling", "autonomous"],
+    "memory": ["memory", "long-term", "episodic", "multi-session"],
+    "rag": ["rag", "retrieval augmented", "retrieval", "embedding", "reranker", "vector"],
+    "graphrag": ["graphrag", "graph rag", "knowledge graph"],
+    "knowledge_layer": ["knowledge base", "knowledge graph", "entity", "ontology"],
+    "evaluation": ["evaluation", "eval", "judge", "scoring"],
+    "benchmark": ["benchmark", "leaderboard", "mteb", "arena"],
+    "world_models": ["world model", "simulation", "environment"],
+    "observability": ["observability", "monitoring", "tracing", "analytics"],
+    "ai_security": ["safety", "security", "guardrail", "jailbreak", "prompt injection"]
+  }
+}

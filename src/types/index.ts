@@ -116,6 +116,20 @@ export interface NewsItem {
   happyCategory?: HappyContentCategory;
   imageUrl?: string;
   importanceScore?: number;
+  startupSignal?: {
+    score: number;
+    kind: string;
+    label: string;
+    matchedTags: string[];
+    rationale: string;
+    entities?: {
+      companies: string[];
+      investors: string[];
+      geographies: string[];
+      fundingStage?: string;
+      fundingAmount?: string;
+    };
+  };
   corroborationCount?: number;
   storyMeta?: StoryMeta;
 }

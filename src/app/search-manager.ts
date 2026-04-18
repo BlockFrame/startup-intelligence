@@ -57,6 +57,14 @@ export class SearchManager implements AppModule {
     }
   }
 
+  private enableAllowedLayer(layer: keyof MapLayers): boolean {
+    const allowed = getAllowedLayerKeys((SITE_VARIANT || 'full') as MapVariant);
+    if (!allowed.has(layer)) return false;
+    this.ctx.map?.enableLayer(layer);
+    this.ctx.mapLayers[layer] = true;
+    return true;
+  }
+
   private setupSearchModal(): void {
     const isStartupOrTech = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup';
     const searchOptions = isStartupOrTech
@@ -315,40 +323,35 @@ export class SearchManager implements AppModule {
       case 'pipeline': {
         const pipeline = result.data as typeof PIPELINES[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('pipelines');
-        this.ctx.mapLayers.pipelines = true;
+        if (!this.enableAllowedLayer('pipelines')) break;
         setTimeout(() => { this.ctx.map?.triggerPipelineClick(pipeline.id); }, 300);
         break;
       }
       case 'cable': {
         const cable = result.data as typeof UNDERSEA_CABLES[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('cables');
-        this.ctx.mapLayers.cables = true;
+        if (!this.enableAllowedLayer('cables')) break;
         setTimeout(() => { this.ctx.map?.triggerCableClick(cable.id); }, 300);
         break;
       }
       case 'datacenter': {
         const dc = result.data as typeof AI_DATA_CENTERS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('datacenters');
-        this.ctx.mapLayers.datacenters = true;
+        if (!this.enableAllowedLayer('datacenters')) break;
         setTimeout(() => { this.ctx.map?.triggerDatacenterClick(dc.id); }, 300);
         break;
       }
       case 'nuclear': {
         const nuc = result.data as typeof NUCLEAR_FACILITIES[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('nuclear');
-        this.ctx.mapLayers.nuclear = true;
+        if (!this.enableAllowedLayer('nuclear')) break;
         setTimeout(() => { this.ctx.map?.triggerNuclearClick(nuc.id); }, 300);
         break;
       }
       case 'irradiator': {
         const irr = result.data as typeof GAMMA_IRRADIATORS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('irradiators');
-        this.ctx.mapLayers.irradiators = true;
+        if (!this.enableAllowedLayer('irradiators')) break;
         setTimeout(() => { this.ctx.map?.triggerIrradiatorClick(irr.id); }, 300);
         break;
       }
@@ -359,8 +362,7 @@ export class SearchManager implements AppModule {
       case 'techcompany': {
         const company = result.data as typeof TECH_COMPANIES[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('techHQs');
-        this.ctx.mapLayers.techHQs = true;
+        if (!this.enableAllowedLayer('techHQs')) break;
         setTimeout(() => { this.ctx.map?.setCenter(company.lat, company.lon, 4); }, 300);
         break;
       }
@@ -373,61 +375,53 @@ export class SearchManager implements AppModule {
       case 'startup': {
         const ecosystem = result.data as typeof STARTUP_ECOSYSTEMS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('startupHubs');
-        this.ctx.mapLayers.startupHubs = true;
+        if (!this.enableAllowedLayer('startupHubs')) break;
         setTimeout(() => { this.ctx.map?.setCenter(ecosystem.lat, ecosystem.lon, 4); }, 300);
         break;
       }
       case 'techevent':
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('techEvents');
-        this.ctx.mapLayers.techEvents = true;
+        this.enableAllowedLayer('techEvents');
         break;
       case 'techhq': {
         const hq = result.data as typeof TECH_HQS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('techHQs');
-        this.ctx.mapLayers.techHQs = true;
+        if (!this.enableAllowedLayer('techHQs')) break;
         setTimeout(() => { this.ctx.map?.setCenter(hq.lat, hq.lon, 4); }, 300);
         break;
       }
       case 'accelerator': {
         const acc = result.data as typeof ACCELERATORS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('accelerators');
-        this.ctx.mapLayers.accelerators = true;
+        if (!this.enableAllowedLayer('accelerators')) break;
         setTimeout(() => { this.ctx.map?.setCenter(acc.lat, acc.lon, 4); }, 300);
         break;
       }
       case 'exchange': {
         const exchange = result.data as typeof STOCK_EXCHANGES[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('stockExchanges');
-        this.ctx.mapLayers.stockExchanges = true;
+        if (!this.enableAllowedLayer('stockExchanges')) break;
         setTimeout(() => { this.ctx.map?.setCenter(exchange.lat, exchange.lon, 4); }, 300);
         break;
       }
       case 'financialcenter': {
         const fc = result.data as typeof FINANCIAL_CENTERS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('financialCenters');
-        this.ctx.mapLayers.financialCenters = true;
+        if (!this.enableAllowedLayer('financialCenters')) break;
         setTimeout(() => { this.ctx.map?.setCenter(fc.lat, fc.lon, 4); }, 300);
         break;
       }
       case 'centralbank': {
         const bank = result.data as typeof CENTRAL_BANKS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('centralBanks');
-        this.ctx.mapLayers.centralBanks = true;
+        if (!this.enableAllowedLayer('centralBanks')) break;
         setTimeout(() => { this.ctx.map?.setCenter(bank.lat, bank.lon, 4); }, 300);
         break;
       }
       case 'commodityhub': {
         const hub = result.data as typeof COMMODITY_HUBS[0];
         this.ctx.map?.setView('global');
-        this.ctx.map?.enableLayer('commodityHubs');
-        this.ctx.mapLayers.commodityHubs = true;
+        if (!this.enableAllowedLayer('commodityHubs')) break;
         setTimeout(() => { this.ctx.map?.setCenter(hub.lat, hub.lon, 4); }, 300);
         break;
       }
@@ -439,8 +433,7 @@ export class SearchManager implements AppModule {
       }
       case 'flight': {
         const { lat, lon, layer } = result.data as { kind: string; lat: number; lon: number; layer: keyof MapLayers };
-        this.ctx.map?.enableLayer(layer);
-        this.ctx.mapLayers[layer] = true;
+        if (!this.enableAllowedLayer(layer)) break;
         setTimeout(() => { this.ctx.map?.setCenter(lat, lon, 9); }, 300);
         break;
       }

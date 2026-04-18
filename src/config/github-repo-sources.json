@@ -1,0 +1,182 @@
+{
+  "seedRepositories": [
+    "langchain-ai/langchain",
+    "langchain-ai/langgraph",
+    "run-llama/llama_index",
+    "microsoft/autogen",
+    "crewAIInc/crewAI",
+    "Significant-Gravitas/AutoGPT",
+    "geekan/MetaGPT",
+    "openclaw/openclaw",
+    "mem0ai/mem0",
+    "getzep/zep",
+    "microsoft/graphrag",
+    "VectifyAI/PageIndex",
+    "neo4j/neo4j-graphrag-python",
+    "deepset-ai/haystack",
+    "weaviate/Verba",
+    "langgenius/dify",
+    "open-webui/open-webui",
+    "lobehub/lobe-chat",
+    "ChatGPTNextWeb/NextChat",
+    "LibreChat-AI/librechat",
+    "Mintplex-Labs/anything-llm",
+    "Portkey-AI/gateway",
+    "BerriAI/litellm",
+    "Helicone/helicone",
+    "langgenius/dify",
+    "microsoft/promptflow",
+    "guardrails-ai/guardrails",
+    "NVIDIA/garak",
+    "protectai/rebuff",
+    "letta-ai/letta",
+    "stanfordnlp/dspy",
+    "Arize-ai/phoenix",
+    "langfuse/langfuse",
+    "openai/evals",
+    "EleutherAI/lm-evaluation-harness",
+    "microsoft/promptflow",
+    "Farama-Foundation/Gymnasium",
+    "google-deepmind/open_spiel",
+    "awesome-llm-apps/awesome-llm-apps"
+  ],
+  "searchQueries": [
+    "agent framework llm topic:agents",
+    "agent memory llm vector database",
+    "RAG GraphRAG adaptive retrieval",
+    "vectorless RAG document index reasoning retrieval",
+    "knowledge graph RAG llm",
+    "genai conversational platform llm chat rag",
+    "LLM gateway AI gateway model routing",
+    "AI dashboard LLM observability analytics",
+    "AI security LLM guardrails prompt injection",
+    "llm evaluation benchmark observability",
+    "world model environment generation agent"
+  ],
+  "emergingQueries": [
+    "openclaw agent personal assistant",
+    "\"personal AI assistant\" \"agent\"",
+    "\"local AI agent\" assistant",
+    "\"own your data\" AI agent",
+    "\"agent runtime\" llm",
+    "\"MCP\" \"agent\" \"memory\"",
+    "\"multi-session\" \"agent memory\"",
+    "\"adaptive retrieval\" \"llm\"",
+    "\"vectorless RAG\" \"document index\"",
+    "\"genai conversational platform\"",
+    "\"LLM chat platform\" \"RAG\"",
+    "\"LLM gateway\" \"model routing\"",
+    "\"AI gateway\" \"LLM\"",
+    "\"AI dashboard\" \"LLM\"",
+    "\"prompt injection\" \"LLM security\"",
+    "\"LLM guardrails\" security",
+    "\"GraphRAG\" \"agent\"",
+    "\"evaluation harness\" \"llm agent\"",
+    "\"world model\" \"agent\""
+  ],
+  "discovery": {
+    "minStars": 250,
+    "emergingMinStars": 1000,
+    "establishedMinStars": 5000
+  },
+  "topics": [
+    "llm",
+    "agents",
+    "rag",
+    "graphrag",
+    "document-ai",
+    "conversational-ai",
+    "llm-gateway",
+    "ai-security",
+    "llmops",
+    "knowledge-graph",
+    "evaluation",
+    "benchmark",
+    "observability",
+    "world-models"
+  ],
+  "tagRules": {
+    "agents": ["agent", "agents", "autogpt", "multi-agent", "workflow"],
+    "memory": ["memory", "long-term", "episodic", "zep", "mem0"],
+    "rag": ["rag", "retrieval augmented", "retriever", "vector"],
+    "graphrag": ["graphrag", "graph rag", "graph retrieval"],
+    "document_intelligence": ["document intelligence", "document ai", "long document", "pageindex", "vectorless", "chunking", "tree index"],
+    "conversational_platform": ["conversational", "chat platform", "chatbot", "assistant platform", "open webui", "lobe chat", "librechat", "anythingllm"],
+    "ai_dashboard": ["dashboard", "analytics", "llmops", "observability platform", "prompt management", "playground"],
+    "llm_gateway": ["gateway", "router", "routing", "model routing", "load balancing", "rate limit", "proxy", "openai-compatible"],
+    "ai_security": ["security", "guardrail", "guardrails", "prompt injection", "jailbreak", "red team", "pii", "moderation"],
+    "knowledge_layer": ["knowledge graph", "knowledge-graph", "knowledge base", "entity", "ontology"],
+    "evaluation": ["evaluation", "eval", "judge", "assessment"],
+    "benchmark": ["benchmark", "leaderboard", "harness"],
+    "observability": ["observability", "tracing", "monitoring", "telemetry"],
+    "world_models": ["world model", "simulation", "simulator", "environment"]
+  },
+  "repoTypeRules": {
+    "framework": ["framework", "orchestration", "agent framework", "workflow"],
+    "platform": ["platform", "chat platform", "webui", "workspace", "self-hosted"],
+    "gateway": ["gateway", "proxy", "router", "routing", "load balancing"],
+    "security_tool": ["security", "guardrail", "guardrails", "red team", "scanner", "prompt injection"],
+    "benchmark": ["benchmark", "evaluation", "harness"],
+    "dataset": ["dataset", "corpus"],
+    "awesome_list": ["awesome", "list", "curated"],
+    "demo": ["demo", "example", "app"],
+    "library": ["library", "sdk", "toolkit"],
+    "reference_implementation": ["implementation", "paper", "reference"]
+  },
+  "curatedTagOverrides": {
+    "vectifyai/pageindex": {
+      "themeTags": ["rag", "document_intelligence", "knowledge_layer", "agents"],
+      "repoTypes": ["framework"],
+      "booleans": {
+        "hasDocs": true,
+        "hasMcp": true
+      }
+    },
+    "openclaw/openclaw": {
+      "themeTags": ["agents", "memory"],
+      "repoTypes": ["framework"],
+      "booleans": {
+        "hasDocs": true,
+        "hasMcp": true
+      }
+    }
+  },
+  "clusters": {
+    "agents": {
+      "seedRepositories": ["langchain-ai/langgraph", "microsoft/autogen", "crewAIInc/crewAI", "Significant-Gravitas/AutoGPT", "geekan/MetaGPT", "camel-ai/camel", "agno-agi/agno", "openclaw/openclaw"],
+      "queries": ["agent framework llm topic:agents", "multi-agent framework llm", "agent runtime llm tools memory"]
+    },
+    "memory": {
+      "seedRepositories": ["mem0ai/mem0", "getzep/zep", "openclaw/openclaw"],
+      "queries": ["agent memory llm", "long term memory ai agents", "multi-session agent memory"]
+    },
+    "rag": {
+      "seedRepositories": ["run-llama/llama_index", "microsoft/graphrag", "VectifyAI/PageIndex", "deepset-ai/haystack", "stanfordnlp/dspy", "neo4j/neo4j-graphrag-python"],
+      "queries": ["RAG GraphRAG adaptive retrieval", "vectorless RAG document index reasoning retrieval", "agentic retrieval llm", "long document retrieval reasoning rag"]
+    },
+    "conversational": {
+      "seedRepositories": ["langgenius/dify", "open-webui/open-webui", "lobehub/lobe-chat", "ChatGPTNextWeb/NextChat", "LibreChat-AI/librechat", "Mintplex-Labs/anything-llm", "FlowiseAI/Flowise"],
+      "queries": ["genai conversational platform llm chat rag", "LLM chat platform RAG agents", "open source AI assistant platform", "self-hosted chatgpt platform rag"]
+    },
+    "dashboards": {
+      "seedRepositories": ["langfuse/langfuse", "Helicone/helicone", "Arize-ai/phoenix", "microsoft/promptflow", "langgenius/dify"],
+      "queries": ["AI dashboard LLM observability analytics", "LLMOps dashboard prompt management", "LLM analytics platform observability", "AI application monitoring dashboard"]
+    },
+    "gateways": {
+      "seedRepositories": ["Portkey-AI/gateway", "BerriAI/litellm", "Helicone/helicone"],
+      "queries": ["LLM gateway AI gateway model routing", "OpenAI compatible LLM proxy gateway", "LLM router rate limit fallback", "AI gateway observability model routing"]
+    },
+    "security": {
+      "seedRepositories": ["guardrails-ai/guardrails", "NVIDIA/garak", "protectai/rebuff"],
+      "queries": ["AI security LLM guardrails prompt injection", "LLM security scanner jailbreak", "prompt injection detection guardrails", "AI red teaming LLM security"]
+    },
+    "evaluation": {
+      "seedRepositories": ["Arize-ai/phoenix", "langfuse/langfuse", "openai/evals", "EleutherAI/lm-evaluation-harness", "explodinggradients/ragas", "truera/trulens"],
+      "queries": ["llm evaluation benchmark observability", "RAG evaluation framework", "LLM observability tracing evals"]
+    },
+    "world_models": {
+      "seedRepositories": ["Farama-Foundation/Gymnasium", "google-deepmind/open_spiel"],
+      "queries": ["world model environment generation agent", "simulation environment agent benchmark", "multi-agent environment simulator"]
+    }
+  }
+}

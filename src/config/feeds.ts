@@ -646,6 +646,32 @@ const TECH_FEEDS: Record<string, Feed[]> = {
   ],
 };
 
+const techFeed = (key: keyof typeof TECH_FEEDS): Feed[] => TECH_FEEDS[key] ?? [];
+
+const STARTUP_FEEDS: Record<string, Feed[]> = {
+  startups: techFeed('startups'),
+  funding: techFeed('funding'),
+  regionalStartups: techFeed('regionalStartups'),
+  unicorns: techFeed('unicorns'),
+  accelerators: techFeed('accelerators'),
+  vcblogs: techFeed('vcblogs'),
+  producthunt: techFeed('producthunt'),
+  ipo: techFeed('ipo'),
+  ai: techFeed('ai'),
+  tech: techFeed('tech'),
+  cloud: techFeed('cloud'),
+  hardware: techFeed('hardware'),
+  fintech: [
+    { name: 'Fintech Funding', url: rss('https://news.google.com/rss/search?q=(fintech+startup+funding+OR+neobank+raised+OR+payments+startup+raised)+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Fintech News', url: rss('https://news.google.com/rss/search?q=(fintech+OR+payments+OR+neobank+OR+embedded+finance)+startup+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Digital Assets Infrastructure', url: rss('https://news.google.com/rss/search?q=("digital+assets"+OR+stablecoin+OR+tokenization)+startup+OR+funding+when:7d&hl=en-US&gl=US&ceid=US:en') },
+  ],
+  security: techFeed('security'),
+  policy: techFeed('policy'),
+  finance: techFeed('finance'),
+  layoffs: techFeed('layoffs'),
+};
+
 // Finance/Trading variant feeds (all free RSS / Google News proxies)
 const FINANCE_FEEDS: Record<string, Feed[]> = {
   markets: [
@@ -886,7 +912,7 @@ const COMMODITY_FEEDS: Record<string, Feed[]> = {
 export const FEEDS = SITE_VARIANT === 'tech'
   ? TECH_FEEDS
   : SITE_VARIANT === 'startup'
-    ? TECH_FEEDS
+    ? STARTUP_FEEDS
   : SITE_VARIANT === 'finance'
     ? FINANCE_FEEDS
     : SITE_VARIANT === 'happy'

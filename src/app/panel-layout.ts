@@ -13,6 +13,10 @@ import { MarketPanel } from '@/components/MarketPanel';
 import { MonitorPanel } from '@/components/MonitorPanel';
 import { NewsPanel } from '@/components/NewsPanel';
 import { TechEventsPanel } from '@/components/TechEventsPanel';
+import { TopVCSignalsPanel } from '@/components/TopVCSignalsPanel';
+import { ArxivPapersDashboard } from '@/components/ArxivPapersDashboard';
+import { GithubReposDashboard } from '@/components/GithubReposDashboard';
+import { HuggingFaceDashboard } from '@/components/HuggingFaceDashboard';
 import { debounce, saveToStorage, loadFromStorage } from '@/utils';
 import { escapeHtml } from '@/utils/sanitize';
 import {
@@ -23,6 +27,7 @@ import {
   ALL_PANELS,
   VARIANT_DEFAULTS,
 } from '@/config';
+import { getAllowedLayerKeys, type MapVariant } from '@/config/map-layer-definitions';
 import { BETA_MODE } from '@/config/beta';
 import { t } from '@/services/i18n';
 import { getCurrentTheme } from '@/utils';
@@ -78,6 +83,9 @@ export class PanelLayoutManager implements AppModule {
   private boundWidgetCreatorHandler: ((e: Event) => void) | null = null;
   private unsubscribeEntitlementChange: (() => void) | null = null;
   private unsubscribePaymentFailureBanner: (() => void) | null = null;
+  private arxivDashboard: ArxivPapersDashboard | null = null;
+  private githubReposDashboard: GithubReposDashboard | null = null;
+  private huggingFaceDashboard: HuggingFaceDashboard | null = null;
 
   constructor(ctx: AppContext, callbacks: PanelLayoutManagerCallbacks) {
     this.ctx = ctx;
@@ -244,6 +252,28 @@ export class PanelLayoutManager implements AppModule {
         const inIframe = window.self !== window.top;
         const vHref = (v: string, prod: string) => local || SITE_VARIANT === v ? '#' : prod;
         const vTarget = (v: string) => !local && SITE_VARIANT !== v && inIframe ? 'target="_blank" rel="noopener"' : '';
+        if (SITE_VARIANT === 'startup') {
+          return `
+            <button class="variant-option startup-product-tab active" data-startup-tab="vc-startup" title="VC Startup dashboard">
+              <span class="variant-icon">VC</span>
+              <span class="variant-label">VC Startup</span>
+            </button>
+            <span class="variant-divider"></span>
+            <button class="variant-option startup-product-tab" data-startup-tab="arxiv" title="arXiv papers dashboard">
+              <span class="variant-icon">AI</span>
+              <span class="variant-label">arXiv Papers</span>
+            </button>
+            <span class="variant-divider"></span>
+            <button class="variant-option startup-product-tab" data-startup-tab="github-repos" title="GitHub repositories dashboard">
+              <span class="variant-icon">GH</span>
+              <span class="variant-label">GitHub Repos</span>
+            </button>
+            <span class="variant-divider"></span>
+            <button class="variant-option startup-product-tab" data-startup-tab="huggingface" title="Hugging Face Hub dashboard">
+              <span class="variant-icon">HF</span>
+              <span class="variant-label">Hugging Face</span>
+            </button>`;
+        }
         return `
             <a href="${vHref('full', 'https://worldmonitor.app')}"
                class="variant-option ${SITE_VARIANT === 'full' ? 'active' : ''}"
@@ -350,19 +380,26 @@ export class PanelLayoutManager implements AppModule {
         </div>
         <div class="mobile-menu-divider"></div>
         ${(() => {
-        const variants = [
-          { key: 'full', icon: '🌍', label: t('header.world') },
-          { key: 'tech', icon: '💻', label: t('header.tech') },
-          { key: 'startup', icon: 'VC', label: 'Startup' },
-          { key: 'finance', icon: '📈', label: t('header.finance') },
-          { key: 'commodity', icon: '⛏️', label: t('header.commodity') },
-          { key: 'happy', icon: '☀️', label: 'Good News' },
-        ];
+        const variants = SITE_VARIANT === 'startup'
+          ? [
+            { key: 'vc-startup', icon: 'VC', label: 'VC Startup' },
+            { key: 'arxiv', icon: 'AI', label: 'arXiv Papers' },
+            { key: 'github-repos', icon: 'GH', label: 'GitHub Repos' },
+            { key: 'huggingface', icon: 'HF', label: 'Hugging Face' },
+          ]
+          : [
+            { key: 'full', icon: '🌍', label: t('header.world') },
+            { key: 'tech', icon: '💻', label: t('header.tech') },
+            { key: 'startup', icon: 'VC', label: 'Startup' },
+            { key: 'finance', icon: '📈', label: t('header.finance') },
+            { key: 'commodity', icon: '⛏️', label: t('header.commodity') },
+            { key: 'happy', icon: '☀️', label: 'Good News' },
+          ];
         return variants.map(v =>
-          `<button class="mobile-menu-item mobile-menu-variant ${v.key === SITE_VARIANT ? 'active' : ''}" data-variant="${v.key}">
+          `<button class="mobile-menu-item ${SITE_VARIANT === 'startup' ? 'mobile-menu-startup-tab' : 'mobile-menu-variant'} ${v.key === (SITE_VARIANT === 'startup' ? 'vc-startup' : SITE_VARIANT) ? 'active' : ''}" ${SITE_VARIANT === 'startup' ? `data-startup-tab="${v.key}"` : `data-variant="${v.key}"`}>
             <span class="mobile-menu-item-icon">${v.icon}</span>
             <span class="mobile-menu-item-label">${v.label}</span>
-            ${v.key === SITE_VARIANT ? '<span class="mobile-menu-check">✓</span>' : ''}
+            ${v.key === (SITE_VARIANT === 'startup' ? 'vc-startup' : SITE_VARIANT) ? '<span class="mobile-menu-check">✓</span>' : ''}
           </button>`
         ).join('');
       })()}
@@ -445,6 +482,9 @@ export class PanelLayoutManager implements AppModule {
         <div class="panels-grid" id="panelsGrid"></div>
         <button class="search-mobile-fab" id="searchMobileFab" aria-label="Search">\u{1F50D}</button>
       </div>
+      ${SITE_VARIANT === 'startup' ? '<section class="arxiv-dashboard-view hidden" id="arxivDashboardView"></section>' : ''}
+      ${SITE_VARIANT === 'startup' ? '<section class="github-dashboard-view hidden" id="githubReposDashboardView"></section>' : ''}
+      ${SITE_VARIANT === 'startup' ? '<section class="hf-dashboard-view hidden" id="huggingFaceDashboardView"></section>' : ''}
       <footer class="site-footer">
         <div class="site-footer-brand">
           <img src="/favico/favicon-32x32.png" alt="" width="28" height="28" class="site-footer-icon" />
@@ -468,10 +508,61 @@ export class PanelLayoutManager implements AppModule {
     `;
 
     this.createPanels();
+    this.setupStartupProductTabs();
 
     if (this.ctx.isMobile) {
       this.setupMobileMapToggle();
     }
+  }
+
+  private setupStartupProductTabs(): void {
+    if (SITE_VARIANT !== 'startup') return;
+    const arxivEl = document.getElementById('arxivDashboardView');
+    const githubEl = document.getElementById('githubReposDashboardView');
+    const huggingFaceEl = document.getElementById('huggingFaceDashboardView');
+    const mainEl = this.ctx.container.querySelector<HTMLElement>('.main-content');
+    const footerEl = this.ctx.container.querySelector<HTMLElement>('.site-footer');
+    if (!arxivEl || !githubEl || !mainEl) return;
+
+    const setTab = (tab: string): void => {
+      const showArxiv = tab === 'arxiv';
+      const showGithub = tab === 'github-repos';
+      const showHuggingFace = tab === 'huggingface';
+      mainEl.classList.toggle('hidden', showArxiv || showGithub || showHuggingFace);
+      arxivEl.classList.toggle('hidden', !showArxiv);
+      githubEl.classList.toggle('hidden', !showGithub);
+      huggingFaceEl?.classList.toggle('hidden', !showHuggingFace);
+      footerEl?.classList.toggle('hidden', showArxiv || showGithub || showHuggingFace);
+      this.ctx.container.querySelectorAll<HTMLElement>('[data-startup-tab]').forEach((el) => {
+        const active = el.dataset.startupTab === tab;
+        el.classList.toggle('active', active);
+        const check = el.querySelector('.mobile-menu-check');
+        if (check) check.remove();
+        if (active && el.classList.contains('mobile-menu-startup-tab')) {
+          el.insertAdjacentHTML('beforeend', '<span class="mobile-menu-check">✓</span>');
+        }
+      });
+      if (showArxiv && !this.arxivDashboard) {
+        this.arxivDashboard = new ArxivPapersDashboard(arxivEl);
+      }
+      if (showGithub && !this.githubReposDashboard) {
+        this.githubReposDashboard = new GithubReposDashboard(githubEl);
+      }
+      if (showHuggingFace && huggingFaceEl && !this.huggingFaceDashboard) {
+        this.huggingFaceDashboard = new HuggingFaceDashboard(huggingFaceEl);
+      }
+      localStorage.setItem('startup-active-dashboard-tab', tab);
+    };
+
+    this.ctx.container.querySelectorAll<HTMLElement>('[data-startup-tab]').forEach((el) => {
+      el.addEventListener('click', (event) => {
+        event.preventDefault();
+        setTab(el.dataset.startupTab || 'vc-startup');
+        this.ctx.container.querySelector<HTMLElement>('#mobileMenu')?.classList.remove('open');
+        this.ctx.container.querySelector<HTMLElement>('#mobileMenuOverlay')?.classList.remove('open');
+      });
+    });
+    setTab(localStorage.getItem('startup-active-dashboard-tab') || 'vc-startup');
   }
 
   private setupMobileMapToggle(): void {
@@ -620,7 +711,8 @@ export class PanelLayoutManager implements AppModule {
 
   private createNewsPanel(key: string, labelKey: string): NewsPanel | null {
     if (!this.shouldCreatePanel(key)) return null;
-    const panel = new NewsPanel(key, t(labelKey), PanelLayoutManager.NEWS_PANEL_TOOLTIPS[key]);
+    const label = this.ctx.panelSettings[key]?.name ?? t(labelKey);
+    const panel = new NewsPanel(key, label, PanelLayoutManager.NEWS_PANEL_TOOLTIPS[key]);
     this.attachRelatedAssetHandlers(panel);
     panel.setRiskScoreGetter(PanelLayoutManager.computeEventRisk);
     this.ctx.newsPanels[key] = panel;
@@ -676,6 +768,7 @@ export class PanelLayoutManager implements AppModule {
     this.createNewsPanel('finance', 'panels.finance');
 
     this.createPanel('markets', () => new MarketPanel());
+    this.createPanel('top-vc-signals', () => new TopVCSignalsPanel());
 
     const monitorPanel = this.createPanel('monitors', () => new MonitorPanel(this.ctx.monitors));
     monitorPanel?.onChanged((monitors) => {
@@ -1247,32 +1340,39 @@ export class PanelLayoutManager implements AppModule {
   private handleRelatedAssetClick(asset: RelatedAsset): void {
     if (!this.ctx.map) return;
 
+    const allowedLayers = getAllowedLayerKeys((SITE_VARIANT || 'full') as MapVariant);
+
     switch (asset.type) {
       case 'pipeline':
+        if (!allowedLayers.has('pipelines')) return;
         this.ctx.map.enableLayer('pipelines');
         this.ctx.mapLayers.pipelines = true;
         saveToStorage(STORAGE_KEYS.mapLayers, this.ctx.mapLayers);
         this.ctx.map.triggerPipelineClick(asset.id);
         break;
       case 'cable':
+        if (!allowedLayers.has('cables')) return;
         this.ctx.map.enableLayer('cables');
         this.ctx.mapLayers.cables = true;
         saveToStorage(STORAGE_KEYS.mapLayers, this.ctx.mapLayers);
         this.ctx.map.triggerCableClick(asset.id);
         break;
       case 'datacenter':
+        if (!allowedLayers.has('datacenters')) return;
         this.ctx.map.enableLayer('datacenters');
         this.ctx.mapLayers.datacenters = true;
         saveToStorage(STORAGE_KEYS.mapLayers, this.ctx.mapLayers);
         this.ctx.map.triggerDatacenterClick(asset.id);
         break;
       case 'base':
+        if (!allowedLayers.has('bases')) return;
         this.ctx.map.enableLayer('bases');
         this.ctx.mapLayers.bases = true;
         saveToStorage(STORAGE_KEYS.mapLayers, this.ctx.mapLayers);
         this.ctx.map.triggerBaseClick(asset.id);
         break;
       case 'nuclear':
+        if (!allowedLayers.has('nuclear')) return;
         this.ctx.map.enableLayer('nuclear');
         this.ctx.mapLayers.nuclear = true;
         saveToStorage(STORAGE_KEYS.mapLayers, this.ctx.mapLayers);

@@ -7,11 +7,13 @@ import { getMarketWatchlistEntries } from '@/services/market-watchlist';
 import { getHydratedData } from '@/services/bootstrap';
 import { getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
 import { checkBatchForBreakingAlerts } from '@/services/breaking-news-alerts';
+import { enrichStartupSignals } from '@/services/startup-signal';
 import { t } from '@/services/i18n';
 import { mountCommunityWidget } from '@/components/CommunityWidget';
 import type { MarketPanel } from '@/components/MarketPanel';
 import type { TechReadinessPanel } from '@/components/TechReadinessPanel';
 import type { TechEventsPanel } from '@/components/TechEventsPanel';
+import type { TopVCSignalsPanel } from '@/components/TopVCSignalsPanel';
 import type { ListMarketQuotesResponse } from '@/generated/client/worldmonitor/market/v1/service_client';
 
 export interface DataLoaderCallbacks {
@@ -89,6 +91,7 @@ export class DataLoaderManager implements AppModule {
     }
 
     this.ctx.allNews = collected;
+    (this.ctx.panels['top-vc-signals'] as TopVCSignalsPanel | undefined)?.updateSignals(collected);
     this.ctx.initialLoadComplete = true;
     this.ctx.map?.updateHotspotActivity(this.ctx.allNews);
     this.updateMonitorResults();
@@ -212,14 +215,16 @@ export class DataLoaderManager implements AppModule {
       const items = await fetchCategoryFeeds(enabledFeeds, {
         batchSize: 4,
         onBatch: (partialItems) => {
-          checkBatchForBreakingAlerts(partialItems);
-          this.renderNewsForCategory(category, partialItems);
+          const enriched = enrichStartupSignals(partialItems, category);
+          checkBatchForBreakingAlerts(enriched);
+          this.renderNewsForCategory(category, enriched);
         },
       });
-      this.renderNewsForCategory(category, items);
-      void setPersistentCache(cacheKey, items).catch(() => {});
+      const enrichedItems = enrichStartupSignals(items, category);
+      this.renderNewsForCategory(category, enrichedItems);
+      void setPersistentCache(cacheKey, enrichedItems).catch(() => {});
       this.ctx.statusPanel?.updateFeed(this.labelForCategory(category), { status: 'ok', itemCount: items.length });
-      return items;
+      return enrichedItems;
     } catch (error) {
       const failures = getFeedFailures();
       const failedFeeds = enabledFeeds.filter((feed) => failures.has(feed.name));

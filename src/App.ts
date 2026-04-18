@@ -545,6 +545,39 @@ export class App {
         localStorage.setItem(UNIFIED_MIGRATION_KEY, 'done');
       }
 
+      const STARTUP_PANEL_FOCUS_KEY = 'worldmonitor-startup-panel-focus-v1';
+      if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_PANEL_FOCUS_KEY)) {
+        const startupKeys = new Set(VARIANT_DEFAULTS.startup ?? []);
+        for (const key of startupKeys) {
+          const config = getEffectivePanelConfig(key, 'startup');
+          panelSettings[key] = {
+            ...config,
+            ...panelSettings[key],
+            name: config.name,
+            enabled: panelSettings[key]?.enabled ?? config.enabled,
+          };
+        }
+        for (const key of ['markets', 'macro-signals']) {
+          if (panelSettings[key]) panelSettings[key] = { ...panelSettings[key]!, enabled: false };
+        }
+        try {
+          const rawOrder = localStorage.getItem(PANEL_ORDER_KEY);
+          const order = rawOrder ? JSON.parse(rawOrder) : [];
+          if (Array.isArray(order)) {
+            const withoutVc = order.filter((key) => key !== 'top-vc-signals');
+            const insertAfter = withoutVc.includes('insights')
+              ? withoutVc.indexOf('insights') + 1
+              : withoutVc.includes('live-news')
+                ? withoutVc.indexOf('live-news') + 1
+                : 0;
+            withoutVc.splice(insertAfter, 0, 'top-vc-signals');
+            localStorage.setItem(PANEL_ORDER_KEY, JSON.stringify(withoutVc));
+          }
+        } catch { /* corrupt order, skip */ }
+        saveToStorage(STORAGE_KEYS.panels, panelSettings);
+        localStorage.setItem(STARTUP_PANEL_FOCUS_KEY, 'done');
+      }
+
       // One-time migration: fix happy variant sessions that got cross-variant panels enabled
       // (regression from #1911 unified panel registry which failed to disable non-variant panels on variant switch)
       const HAPPY_PANEL_FIX_KEY = 'worldmonitor-happy-panel-fix-v1';

@@ -601,6 +601,108 @@ function gpsjamDevPlugin(): Plugin {
   };
 }
 
+function githubReposDevPlugin(): Plugin {
+  return {
+    name: 'github-repos-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith('/api/github-repos')) {
+          return next();
+        }
+
+        try {
+          const url = new URL(req.url, 'http://localhost');
+          const repo = url.searchParams.get('repo');
+          const search = url.searchParams.get('search');
+          let upstream = '';
+          if (repo) {
+            if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) {
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Invalid repo' }));
+              return;
+            }
+            upstream = `https://api.github.com/repos/${repo}`;
+          } else if (search) {
+            const perPage = Math.min(Math.max(Number(url.searchParams.get('per_page') || 20), 1), 50);
+            const sort = ['stars', 'updated'].includes(url.searchParams.get('sort') || '') ? url.searchParams.get('sort') : 'stars';
+            const order = url.searchParams.get('order') === 'asc' ? 'asc' : 'desc';
+            upstream = `https://api.github.com/search/repositories?q=${encodeURIComponent(search)}&sort=${sort}&order=${order}&per_page=${perPage}`;
+          } else {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Missing repo or search' }));
+            return;
+          }
+
+          const response = await fetch(upstream, {
+            headers: {
+              Accept: 'application/vnd.github+json',
+              'User-Agent': 'StartupIntelligence/1.0',
+              ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+            },
+          });
+          const json = await response.json();
+          res.statusCode = response.status;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'public, max-age=300');
+          res.end(JSON.stringify(repo ? { repo: json } : json));
+        } catch (error: any) {
+          res.statusCode = 502;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: error?.message || 'GitHub request failed' }));
+        }
+      });
+    },
+  };
+}
+
+function huggingFaceDevPlugin(): Plugin {
+  return {
+    name: 'huggingface-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith('/api/huggingface')) return next();
+        try {
+          const url = new URL(req.url, 'http://localhost');
+          const type = url.searchParams.get('type') || 'models';
+          const id = url.searchParams.get('id');
+          const search = url.searchParams.get('search');
+          const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 20), 1), 50);
+          if (!['models', 'datasets', 'spaces', 'papers', 'collections'].includes(type)) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Invalid type' }));
+            return;
+          }
+          if (type === 'papers' || type === 'collections') {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ items: [] }));
+            return;
+          }
+          const encodedId = id ? encodeURIComponent(id).replace(/%2F/g, '/') : '';
+          const params = new URLSearchParams({ limit: String(limit), full: 'true' });
+          if (search) params.set('search', search);
+          const upstream = id
+            ? `https://huggingface.co/api/${type}/${encodedId}`
+            : `https://huggingface.co/api/${type}?${params}`;
+          const response = await fetch(upstream, { headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' } });
+          const json = await response.json();
+          const items = Array.isArray(json) ? json.map((item) => ({ ...item, entityType: type })) : [{ ...json, entityType: type }];
+          res.statusCode = response.status;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'public, max-age=300');
+          res.end(JSON.stringify({ items }));
+        } catch (error: any) {
+          res.statusCode = 502;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: error?.message || 'Hugging Face request failed' }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Inject environment variables from .env files into process.env.
@@ -623,6 +725,8 @@ export default defineConfig(({ mode }) => {
       rssProxyPlugin(),
       youtubeLivePlugin(),
       gpsjamDevPlugin(),
+      githubReposDevPlugin(),
+      huggingFaceDevPlugin(),
       sebufApiPlugin(),
       brotliPrecompressPlugin(),
       VitePWA({
@@ -862,6 +966,18 @@ export default defineConfig(({ mode }) => {
           target: 'https://query1.finance.yahoo.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/yahoo/, ''),
+        },
+        // arXiv API proxy for the Startup arXiv Papers dashboard.
+        '/api/arxiv': {
+          target: 'https://export.arxiv.org',
+          changeOrigin: true,
+          timeout: 30000,
+          rewrite: (path) => path.replace(/^\/api\/arxiv/, '/api/query'),
+          configure: (proxy) => {
+            proxy.on('error', (err) => {
+              console.log('arXiv proxy error:', err.message);
+            });
+          },
         },
         // Polymarket handled by polymarketPlugin() — no prod proxy needed
         // USGS Earthquake API

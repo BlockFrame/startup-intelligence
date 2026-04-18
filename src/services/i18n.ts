@@ -1,5 +1,6 @@
 import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { SITE_VARIANT } from '@/config/variant';
 
 // English is always needed as fallback — bundle it eagerly.
 import enTranslation from '../locales/en.json';
@@ -18,6 +19,7 @@ const localeModules = import.meta.glob<TranslationDictionary>(
 );
 
 const RTL_LANGUAGES = new Set(['ar']);
+const STARTUP_FORCED_LANGUAGE: SupportedLanguage | null = SITE_VARIANT === 'startup' ? 'en' : null;
 
 function normalizeLanguage(lng: string): SupportedLanguage {
   const base = (lng || 'en').split('-')[0]?.toLowerCase() || 'en';
@@ -64,17 +66,28 @@ async function ensureLanguageLoaded(lng: string): Promise<SupportedLanguage> {
 // Initialize i18n
 export async function initI18n(): Promise<void> {
   if (i18next.isInitialized) {
-    const currentLanguage = normalizeLanguage(i18next.language || 'en');
+    const currentLanguage = STARTUP_FORCED_LANGUAGE ?? normalizeLanguage(i18next.language || 'en');
     await ensureLanguageLoaded(currentLanguage);
-    applyDocumentDirection(i18next.language || currentLanguage);
+    if (STARTUP_FORCED_LANGUAGE && normalizeLanguage(i18next.language || '') !== STARTUP_FORCED_LANGUAGE) {
+      await i18next.changeLanguage(STARTUP_FORCED_LANGUAGE);
+    }
+    applyDocumentDirection(STARTUP_FORCED_LANGUAGE ?? i18next.language ?? currentLanguage);
     return;
   }
 
   loadedLanguages.add('en');
+  if (STARTUP_FORCED_LANGUAGE) {
+    try {
+      localStorage.setItem('i18nextLng', STARTUP_FORCED_LANGUAGE);
+    } catch {
+      /* ignore storage errors */
+    }
+  }
 
   await i18next
     .use(LanguageDetector)
     .init({
+      ...(STARTUP_FORCED_LANGUAGE ? { lng: STARTUP_FORCED_LANGUAGE } : {}),
       resources: {
         en: { translation: enTranslation as TranslationDictionary },
       },
@@ -91,13 +104,13 @@ export async function initI18n(): Promise<void> {
       },
     });
 
-  const detectedLanguage = await ensureLanguageLoaded(i18next.language || 'en');
+  const detectedLanguage = await ensureLanguageLoaded(STARTUP_FORCED_LANGUAGE ?? i18next.language ?? 'en');
   if (detectedLanguage !== 'en') {
     // Re-trigger translation resolution now that the detected bundle is loaded.
     await i18next.changeLanguage(detectedLanguage);
   }
 
-  applyDocumentDirection(i18next.language || detectedLanguage);
+  applyDocumentDirection(STARTUP_FORCED_LANGUAGE ?? i18next.language ?? detectedLanguage);
 }
 
 // Helper to translate
@@ -107,6 +120,9 @@ export function t(key: string, options?: Record<string, unknown>): string {
 
 // Helper to change language
 export async function changeLanguage(lng: string): Promise<void> {
+  if (STARTUP_FORCED_LANGUAGE) {
+    lng = STARTUP_FORCED_LANGUAGE;
+  }
   const normalized = await ensureLanguageLoaded(lng);
   await i18next.changeLanguage(normalized);
   applyDocumentDirection(normalized);

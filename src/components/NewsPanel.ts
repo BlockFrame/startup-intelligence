@@ -460,10 +460,15 @@ export class NewsPanel extends Panel {
 
     const html = sorted
       .map(
-        (item) => `
+        (item) => {
+          const startupScore = SITE_VARIANT === 'startup' && (item.importanceScore ?? 0) >= 45
+            ? `<span class="startup-signal-badge" title="Investor signal score">VC ${Math.round(item.importanceScore ?? 0)}</span>`
+            : '';
+          return `
       <div class="item ${item.isAlert ? 'alert' : ''}" ${item.monitorColor ? `style="border-inline-start-color: ${escapeHtml(item.monitorColor)}"` : ''}>
         <div class="item-source">
           ${escapeHtml(item.source)}
+          ${startupScore}
           ${item.lang && item.lang !== getCurrentLanguage() ? `<span class="lang-badge">${item.lang.toUpperCase()}</span>` : ''}
           ${item.storyMeta?.phase === 'breaking' ? '<span class="phase-badge breaking">BREAKING</span>' : ''}
           ${item.storyMeta?.phase === 'developing' ? `<span class="phase-badge developing">DEVELOPING${item.storyMeta.mentionCount > 1 ? ` ×${item.storyMeta.mentionCount}` : ''}</span>` : ''}
@@ -476,7 +481,8 @@ export class NewsPanel extends Panel {
           ${getCurrentLanguage() !== 'en' ? `<button class="item-translate-btn" title="Translate" data-text="${escapeHtml(item.title)}">文</button>` : ''}
         </div>
       </div>
-    `
+    `;
+        }
       )
       .join('');
 
@@ -672,6 +678,12 @@ export class NewsPanel extends Panel {
     const riskBadge = riskScore !== null && riskScore >= 50
       ? `<span class="risk-score-badge" style="color:${catColor || getCSSColor('--text-dim')};border-color:${catColor ? catColor + '40' : 'var(--border)'};background:${catColor ? catColor + '15' : 'transparent'}" title="Event risk score">${riskScore}</span>`
       : '';
+    const startupSignal = SITE_VARIANT === 'startup'
+      ? Math.max(0, ...cluster.allItems.map(item => item.importanceScore ?? 0))
+      : 0;
+    const startupSignalBadge = startupSignal >= 45
+      ? `<span class="startup-signal-badge" title="Investor signal score">VC ${Math.round(startupSignal)}</span>`
+      : '';
 
     // Build class list for item
     const itemClasses = [
@@ -695,6 +707,7 @@ export class NewsPanel extends Panel {
           ${sentimentBadge}
           ${cluster.isAlert ? '<span class="alert-tag">ALERT</span>' : ''}
           ${categoryBadge}
+          ${startupSignalBadge}
           ${riskBadge}
         </div>
         <a class="item-title" href="${sanitizeUrl(cluster.primaryLink)}" target="_blank" rel="noopener">${escapeHtml(cluster.primaryTitle)}</a>
