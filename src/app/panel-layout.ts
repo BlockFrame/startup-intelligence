@@ -32,8 +32,6 @@ import { BETA_MODE } from '@/config/beta';
 import { t } from '@/services/i18n';
 import { getCurrentTheme } from '@/utils';
 import { trackCriticalBannerAction } from '@/services/analytics';
-import { CustomWidgetPanel } from '@/components/CustomWidgetPanel';
-import { openWidgetChatModal } from '@/components/WidgetChatModal';
 import { loadWidgets, saveWidget } from '@/services/widget-store';
 import type { CustomWidgetSpec } from '@/services/widget-store';
 import { initEntitlementSubscription, destroyEntitlementSubscription, isEntitled, onEntitlementChange } from '@/services/entitlements';
@@ -42,8 +40,6 @@ import { getUserId } from '@/services/user-identity';
 import { initPaymentFailureBanner } from '@/components/payment-failure-banner';
 import { handleCheckoutReturn } from '@/services/checkout-return';
 import { initCheckoutOverlay, destroyCheckoutOverlay, showCheckoutSuccess } from '@/services/checkout';
-import { McpDataPanel } from '@/components/McpDataPanel';
-import { openMcpConnectModal } from '@/components/McpConnectModal';
 import { loadMcpPanels, saveMcpPanel } from '@/services/mcp-store';
 import type { McpPanelSpec } from '@/services/mcp-store';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
@@ -138,11 +134,13 @@ export class PanelLayoutManager implements AppModule {
 
     // Handle analyst action chip "Create chart widget →" click
     this.boundWidgetCreatorHandler = ((e: CustomEvent<{ initialMessage?: string }>) => {
-      openWidgetChatModal({
-        mode: 'create',
-        tier: 'pro',
-        initialMessage: e.detail.initialMessage,
-        onComplete: (spec) => this.addCustomWidget(spec),
+      void import('@/components/WidgetChatModal').then(({ openWidgetChatModal }) => {
+        openWidgetChatModal({
+          mode: 'create',
+          tier: 'pro',
+          initialMessage: e.detail.initialMessage,
+          onComplete: (spec) => { void this.addCustomWidget(spec); },
+        });
       });
     }) as EventListener;
     this.ctx.container.addEventListener('wm:open-widget-creator', this.boundWidgetCreatorHandler);
@@ -858,22 +856,7 @@ export class PanelLayoutManager implements AppModule {
       this.createDefaultVariantPanels();
     }
 
-    // Always load custom widgets — Pro gating is handled reactively by auth state.
-    for (const spec of loadWidgets()) {
-      const panel = new CustomWidgetPanel(spec);
-      this.ctx.panels[spec.id] = panel;
-      if (!this.ctx.panelSettings[spec.id]) {
-        this.ctx.panelSettings[spec.id] = { name: spec.title, enabled: true, priority: 3 };
-      }
-    }
-
-    for (const spec of loadMcpPanels()) {
-      const panel = new McpDataPanel(spec);
-      this.ctx.panels[spec.id] = panel;
-      if (!this.ctx.panelSettings[spec.id]) {
-        this.ctx.panelSettings[spec.id] = { name: spec.title, enabled: true, priority: 3 };
-      }
-    }
+    void this.loadExtensionPanels();
 
     const variantOrder = (VARIANT_DEFAULTS[SITE_VARIANT] ?? VARIANT_DEFAULTS['full'] ?? []).filter(k => k !== 'map');
     const activePanelSet = new Set(Object.keys(this.ctx.panelSettings));
@@ -994,10 +977,12 @@ export class PanelLayoutManager implements AppModule {
     proBlock.appendChild(proLabel);
     proBlock.appendChild(proBadge);
     proBlock.addEventListener('click', () => {
-      openWidgetChatModal({
-        mode: 'create',
-        tier: 'pro',
-        onComplete: (spec) => this.addCustomWidget(spec),
+      void import('@/components/WidgetChatModal').then(({ openWidgetChatModal }) => {
+        openWidgetChatModal({
+          mode: 'create',
+          tier: 'pro',
+          onComplete: (spec) => { void this.addCustomWidget(spec); },
+        });
       });
     });
     panelsGrid.appendChild(proBlock);
@@ -1018,8 +1003,10 @@ export class PanelLayoutManager implements AppModule {
     mcpBlock.appendChild(mcpLabel);
     mcpBlock.appendChild(mcpBadge);
     mcpBlock.addEventListener('click', () => {
-      openMcpConnectModal({
-        onComplete: (spec) => this.addMcpPanel(spec),
+      void import('@/components/McpConnectModal').then(({ openMcpConnectModal }) => {
+        openMcpConnectModal({
+          onComplete: (spec) => { void this.addMcpPanel(spec); },
+        });
       });
     });
     panelsGrid.appendChild(mcpBlock);
@@ -1141,8 +1128,41 @@ export class PanelLayoutManager implements AppModule {
     }
   }
 
-  addCustomWidget(spec: CustomWidgetSpec): void {
+  private async loadExtensionPanels(): Promise<void> {
+    const widgetSpecs = loadWidgets();
+    if (widgetSpecs.length > 0) {
+      const { CustomWidgetPanel } = await import('@/components/CustomWidgetPanel');
+      for (const spec of widgetSpecs) {
+        const panel = new CustomWidgetPanel(spec);
+        this.ctx.panels[spec.id] = panel;
+        if (!this.ctx.panelSettings[spec.id]) {
+          this.ctx.panelSettings[spec.id] = { name: spec.title, enabled: true, priority: 3 };
+        }
+      }
+    }
+
+    const mcpSpecs = loadMcpPanels();
+    if (mcpSpecs.length > 0) {
+      const { McpDataPanel } = await import('@/components/McpDataPanel');
+      for (const spec of mcpSpecs) {
+        const panel = new McpDataPanel(spec);
+        this.ctx.panels[spec.id] = panel;
+        if (!this.ctx.panelSettings[spec.id]) {
+          this.ctx.panelSettings[spec.id] = { name: spec.title, enabled: true, priority: 3 };
+        }
+      }
+    }
+
+    if (widgetSpecs.length > 0 || mcpSpecs.length > 0) {
+      saveToStorage(STORAGE_KEYS.panels, this.ctx.panelSettings);
+      this.ensureCorrectZones();
+      this.applyPanelSettings();
+    }
+  }
+
+  async addCustomWidget(spec: CustomWidgetSpec): Promise<void> {
     saveWidget(spec);
+    const { CustomWidgetPanel } = await import('@/components/CustomWidgetPanel');
     const panel = new CustomWidgetPanel(spec);
     this.ctx.panels[spec.id] = panel;
     this.ctx.panelSettings[spec.id] = { name: spec.title, enabled: true, priority: 3 };
@@ -1162,8 +1182,9 @@ export class PanelLayoutManager implements AppModule {
     this.applyPanelSettings();
   }
 
-  addMcpPanel(spec: McpPanelSpec): void {
+  async addMcpPanel(spec: McpPanelSpec): Promise<void> {
     saveMcpPanel(spec);
+    const { McpDataPanel } = await import('@/components/McpDataPanel');
     const panel = new McpDataPanel(spec);
     this.ctx.panels[spec.id] = panel;
     this.ctx.panelSettings[spec.id] = { name: spec.title, enabled: true, priority: 3 };

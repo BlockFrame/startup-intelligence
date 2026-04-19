@@ -4667,7 +4667,7 @@ export class DeckGLMap {
       </div>
     `;
 
-    popup.innerHTML = SITE_VARIANT === 'tech'
+    popup.innerHTML = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup'
       ? techHelpContent
       : SITE_VARIANT === 'finance'
         ? financeHelpContent
@@ -4716,7 +4716,16 @@ export class DeckGLMap {
       { shape: shapes.square('rgb(132, 204, 22)'), label: 'Resilience: High', layerKey: 'resilienceScore' },
       { shape: shapes.square('rgb(34, 197, 94)'), label: 'Resilience: Very High', layerKey: 'resilienceScore' },
     ];
-    const legendItems: { shape: string; label: string; layerKey: keyof MapLayers }[] = SITE_VARIANT === 'tech' || SITE_VARIANT === 'startup'
+    const startupLegendItems: { shape: string; label: string; layerKey: keyof MapLayers }[] = [
+      { shape: shapes.circle(isLight ? 'rgb(22, 163, 74)' : 'rgb(0, 255, 150)'), label: t('components.deckgl.legend.startupHub'), layerKey: 'startupHubs' },
+      { shape: shapes.circle('rgb(100, 200, 255)'), label: t('components.deckgl.legend.techHQ'), layerKey: 'techHQs' },
+      { shape: shapes.circle(isLight ? 'rgb(180, 120, 0)' : 'rgb(255, 200, 0)'), label: t('components.deckgl.legend.accelerator'), layerKey: 'accelerators' },
+      { shape: shapes.circle('rgb(150, 100, 255)'), label: t('components.deckgl.legend.cloudRegion'), layerKey: 'cloudRegions' },
+      { shape: shapes.square('rgb(136, 68, 255)'), label: t('components.deckgl.legend.datacenter'), layerKey: 'datacenters' },
+    ];
+    const legendItems: { shape: string; label: string; layerKey: keyof MapLayers }[] = SITE_VARIANT === 'startup'
+      ? startupLegendItems
+      : SITE_VARIANT === 'tech'
       ? [
         { shape: shapes.circle(isLight ? 'rgb(22, 163, 74)' : 'rgb(0, 255, 150)'), label: t('components.deckgl.legend.startupHub'), layerKey: 'startupHubs' },
         { shape: shapes.circle('rgb(100, 200, 255)'), label: t('components.deckgl.legend.techHQ'), layerKey: 'techHQs' },

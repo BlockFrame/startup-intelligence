@@ -63,4 +63,36 @@ api/oref-alerts.js
 api/polymarket.js
 api/sanctions-entity-search.js
 api/satellites.js
-api/telegram-feed.js
+
+# Exclude legacy server-side World Monitor handlers from Startup Intelligence
+# deployments. The startup deploy keeps only the market RPC surface plus the
+# standalone startup APIs (arxiv, github-repos, huggingface, rss/auth/billing).
+server/worldmonitor/aviation/
+server/worldmonitor/climate/
+server/worldmonitor/conflict/
+server/worldmonitor/consumer-prices/
+server/worldmonitor/cyber/
+server/worldmonitor/displacement/
+server/worldmonitor/economic/
+server/worldmonitor/forecast/
+server/worldmonitor/giving/
+server/worldmonitor/health/
+server/worldmonitor/imagery/
+server/worldmonitor/infrastructure/
+server/worldmonitor/intelligence/
+server/worldmonitor/maritime/
+server/worldmonitor/military/
+server/worldmonitor/natural/
+server/worldmonitor/positive-events/
+server/worldmonitor/prediction/
+server/worldmonitor/radiation/
+server/worldmonitor/research/
+server/worldmonitor/resilience/
+server/worldmonitor/sanctions/
+server/worldmonitor/seismology/
+server/worldmonitor/supply-chain/
+server/worldmonitor/thermal/
+server/worldmonitor/trade/
+server/worldmonitor/unrest/
+server/worldmonitor/webcam/
+server/worldmonitor/wildfire/

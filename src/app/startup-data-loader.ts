@@ -4,17 +4,13 @@ import { FEEDS, MARKET_SYMBOLS, VARIANT_DEFAULTS } from '@/config';
 import { fetchCategoryFeeds, getFeedFailures } from '@/services/rss';
 import { fetchMultipleStocks } from '@/services/market';
 import { getMarketWatchlistEntries } from '@/services/market-watchlist';
-import { getHydratedData } from '@/services/bootstrap';
 import { getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
-import { checkBatchForBreakingAlerts } from '@/services/breaking-news-alerts';
 import { enrichStartupSignals } from '@/services/startup-signal';
 import { t } from '@/services/i18n';
-import { mountCommunityWidget } from '@/components/CommunityWidget';
 import type { MarketPanel } from '@/components/MarketPanel';
 import type { TechReadinessPanel } from '@/components/TechReadinessPanel';
 import type { TechEventsPanel } from '@/components/TechEventsPanel';
 import type { TopVCSignalsPanel } from '@/components/TopVCSignalsPanel';
-import type { ListMarketQuotesResponse } from '@/generated/client/worldmonitor/market/v1/service_client';
 
 export interface DataLoaderCallbacks {
   renderCriticalBanner: (postures: never[]) => void;
@@ -98,7 +94,6 @@ export class DataLoaderManager implements AppModule {
     this.ctx.initialLoadComplete = true;
     this.ctx.map?.updateHotspotActivity(this.ctx.allNews);
     this.updateMonitorResults();
-    mountCommunityWidget();
   }
 
   async loadMarkets(): Promise<void> {
@@ -122,30 +117,15 @@ export class DataLoaderManager implements AppModule {
       })();
 
       const panel = this.ctx.panels['markets'] as MarketPanel | undefined;
-      const hydrated = getHydratedData('marketQuotes') as ListMarketQuotesResponse | undefined;
-      if (customEntries.length === 0 && hydrated?.quotes?.length) {
-        const meta = new Map(symbols.map((item) => [item.symbol, item]));
-        const data = hydrated.quotes.map((quote) => ({
-          symbol: quote.symbol,
-          name: meta.get(quote.symbol)?.name || quote.name,
-          display: meta.get(quote.symbol)?.display || quote.display || quote.symbol,
-          price: quote.price ?? null,
-          change: quote.change ?? null,
-          sparkline: quote.sparkline?.length ? quote.sparkline : undefined,
-        }));
-        this.ctx.latestMarkets = data;
-        panel?.renderMarkets(data, hydrated.rateLimited || undefined);
-      } else {
-        const result = await fetchMultipleStocks(symbols, {
-          onBatch: (partial) => {
-            this.ctx.latestMarkets = partial;
-            panel?.renderMarkets(partial);
-          },
-        });
-        this.ctx.latestMarkets = result.data;
-        panel?.renderMarkets(result.data, result.rateLimited);
-        this.ctx.statusPanel?.updateApi('Finnhub', { status: result.skipped ? 'error' : 'ok' });
-      }
+      const result = await fetchMultipleStocks(symbols, {
+        onBatch: (partial) => {
+          this.ctx.latestMarkets = partial;
+          panel?.renderMarkets(partial);
+        },
+      });
+      this.ctx.latestMarkets = result.data;
+      panel?.renderMarkets(result.data, result.rateLimited);
+      this.ctx.statusPanel?.updateApi('Finnhub', { status: result.skipped ? 'error' : 'ok' });
 
     } catch (error) {
       console.error('[StartupDataLoader] Markets failed:', error);
@@ -219,7 +199,6 @@ export class DataLoaderManager implements AppModule {
         batchSize: 4,
         onBatch: (partialItems) => {
           const enriched = enrichStartupSignals(partialItems, category);
-          checkBatchForBreakingAlerts(enriched);
           this.renderNewsForCategory(category, enriched);
         },
       });

@@ -16,19 +16,21 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Situation',  icon: '🌍', query: "Summarize today's geopolitical situation" },
-  { label: 'Markets',    icon: '📈', query: 'Key market moves, macro signals, and commodity moves today' },
-  { label: 'Conflicts',  icon: '⚔️',  query: 'Top active conflicts and military developments' },
-  { label: 'Forecasts',  icon: '🔮', query: 'Active forecasts and prediction market outlook' },
-  { label: 'Risk',       icon: '⚠️',  query: 'Highest risk countries and instability hotspots' },
+  { label: 'VC Signals', icon: 'VC', query: "Summarize today's strongest startup and VC signals" },
+  { label: 'AI Stack', icon: 'AI', query: 'What changed in agents, RAG, memory, evaluation, gateways, and AI security?' },
+  { label: 'Markets', icon: '$', query: 'Connect AI and software market moves to startup financing conditions' },
+  { label: 'Infra', icon: 'GPU', query: 'What are the latest AI infrastructure, GPU, data center, and cloud signals?' },
+  { label: 'Watchlist', icon: '★', query: 'Build a watchlist of categories and companies worth tracking next' },
 ];
 
 const DOMAINS = [
   { id: 'all', label: 'All' },
-  { id: 'geo', label: 'Geo' },
+  { id: 'vc', label: 'VC' },
+  { id: 'startup', label: 'Startup' },
+  { id: 'ai_stack', label: 'AI Stack' },
   { id: 'market', label: 'Market' },
-  { id: 'military', label: 'Military' },
-  { id: 'economic', label: 'Economic' },
+  { id: 'infrastructure', label: 'Infra' },
+  { id: 'research', label: 'Research' },
 ];
 
 interface ChatMessage {
@@ -74,7 +76,7 @@ export class ChatAnalystPanel extends Panel {
   constructor() {
     super({
       id: 'chat-analyst',
-      title: 'WM Analyst',
+      title: 'Startup Analyst',
       premium: 'locked',
       defaultRowSpan: 2,
       infoTooltip: t('components.chatAnalyst.infoTooltip'),
@@ -194,7 +196,7 @@ export class ChatAnalystPanel extends Panel {
     const bubble = h('div', { className: 'chat-msg chat-msg-assistant' },
       h('div', { className: 'chat-msg-label' }, 'ANALYST'),
       h('div', { className: 'chat-msg-body' },
-        'Ready. I have live context across geopolitical, market, military, and economic domains. Ask anything.',
+        'Ready. I track startup, VC, AI stack, market, infrastructure, research, Telegram, MCP, and custom widget signals.',
       ),
     );
     replaceChildren(this.messagesEl, bubble);
@@ -310,8 +312,6 @@ export class ChatAnalystPanel extends Panel {
           history: trimmedHistory,
           query: trimmedQuery,
           domainFocus: this.domainFocus,
-          // geoContext (ISO-2 country focus) is supported by the API but wired in Phase 2
-          // when the panel can read the map's selected country. Agent callers can pass it directly.
         }),
         signal: this.streamAbort.signal,
       });
@@ -433,7 +433,7 @@ export class ChatAnalystPanel extends Panel {
 
   private exportChat(): void {
     if (this.history.length === 0) return;
-    const lines = [`# WM Analyst Session\n*Exported: ${new Date().toISOString()}*\n`];
+    const lines = [`# Startup Analyst Session\n*Exported: ${new Date().toISOString()}*\n`];
     for (const msg of this.history) {
       const role = msg.role === 'user' ? '**You**' : '**Analyst**';
       lines.push(`\n${role}:\n${msg.content}`);
@@ -442,7 +442,7 @@ export class ChatAnalystPanel extends Panel {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `wm-analyst-session-${Date.now()}.md`;
+    a.download = `startup-analyst-session-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   }

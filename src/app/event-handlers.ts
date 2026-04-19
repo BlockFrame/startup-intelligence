@@ -1,28 +1,21 @@
 import type { AppContext, AppModule } from '@/app/app-context';
 import type { AirlineIntelPanel } from '@/components/AirlineIntelPanel';
 import type { CustomWidgetPanel } from '@/components/CustomWidgetPanel';
-import { openWidgetChatModal } from '@/components/WidgetChatModal';
 import { deleteWidget, getWidget, saveWidget, isProUser } from '@/services/widget-store';
 import { FREE_MAX_PANELS, FREE_MAX_SOURCES } from '@/config/panels';
 import type { McpDataPanel } from '@/components/McpDataPanel';
-import { openMcpConnectModal } from '@/components/McpConnectModal';
 import { deleteMcpPanel, getMcpPanel, saveMcpPanel } from '@/services/mcp-store';
 import type { PanelConfig, MapLayers, MilitaryFlight } from '@/types';
 import type { MapView } from '@/components/MapContainer';
 import type { PositionSample } from '@/services/aviation';
 import type { ClusteredEvent } from '@/types';
 import type { DashboardSnapshot } from '@/services/storage';
-import { CIIPanel } from '@/components/CIIPanel';
-import { LlmStatusIndicator } from '@/components/LlmStatusIndicator';
-import { PizzIntIndicator } from '@/components/PizzIntIndicator';
-import { PlaybackControl } from '@/components/PlaybackControl';
-import { PredictionPanel } from '@/components/PredictionPanel';
-import { StatusPanel } from '@/components/StatusPanel';
+import type { CIIPanel } from '@/components/CIIPanel';
+import type { PredictionPanel } from '@/components/PredictionPanel';
 import {
   buildMapUrl,
   debounce,
   saveToStorage,
-  ExportPanel,
   getCurrentTheme,
   setTheme,
 } from '@/utils';
@@ -55,11 +48,7 @@ import { invokeTauri } from '@/services/tauri-bridge';
 import { getCachedGpsInterference } from '@/services/gps-interference';
 import { dataFreshness } from '@/services/data-freshness';
 import { mlWorker } from '@/services/ml-worker';
-import { UnifiedSettings } from '@/components/UnifiedSettings';
-import { AuthLauncher } from '@/components/AuthLauncher';
-import { AuthHeaderWidget } from '@/components/AuthHeaderWidget';
 import { t } from '@/services/i18n';
-import { TvModeController } from '@/services/tv-mode';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 
 export interface EventHandlerCallbacks {
@@ -183,12 +172,19 @@ export class EventHandlerManager implements AppModule {
       key => this.ctx.panelSettings[key]?.enabled !== false
     );
     if (!this.ctx.tvMode) {
-      this.ctx.tvMode = new TvModeController({
-        panelKeys,
-        onPanelChange: () => {
-          document.getElementById('tvModeBtn')?.classList.toggle('active', this.ctx.tvMode?.active ?? false);
+      void import('@/services/tv-mode').then(({ TvModeController }) => {
+        if (!this.ctx.tvMode) {
+          this.ctx.tvMode = new TvModeController({
+            panelKeys,
+            onPanelChange: () => {
+              document.getElementById('tvModeBtn')?.classList.toggle('active', this.ctx.tvMode?.active ?? false);
+            }
+          });
         }
+        this.ctx.tvMode.toggle();
+        document.getElementById('tvModeBtn')?.classList.toggle('active', this.ctx.tvMode.active);
       });
+      return;
     } else {
       this.ctx.tvMode.updatePanelKeys(panelKeys);
     }
@@ -410,13 +406,15 @@ export class EventHandlerManager implements AppModule {
     this.boundWidgetModifyHandler = ((e: CustomEvent<{ widgetId: string }>) => {
       const spec = getWidget(e.detail.widgetId);
       if (!spec) return;
-      openWidgetChatModal({
-        mode: 'modify',
-        existingSpec: spec,
-        onComplete: (updated) => {
-          saveWidget(updated);
-          (this.ctx.panels[updated.id] as CustomWidgetPanel | undefined)?.updateSpec(updated);
-        },
+      void import('@/components/WidgetChatModal').then(({ openWidgetChatModal }) => {
+        openWidgetChatModal({
+          mode: 'modify',
+          existingSpec: spec,
+          onComplete: (updated) => {
+            saveWidget(updated);
+            (this.ctx.panels[updated.id] as CustomWidgetPanel | undefined)?.updateSpec(updated);
+          },
+        });
       });
     }) as EventListener;
     this.ctx.container.addEventListener('wm:widget-modify', this.boundWidgetModifyHandler);
@@ -424,12 +422,14 @@ export class EventHandlerManager implements AppModule {
     this.ctx.container.addEventListener('wm:mcp-configure', ((e: CustomEvent<{ panelId: string }>) => {
       const spec = getMcpPanel(e.detail.panelId);
       if (!spec) return;
-      openMcpConnectModal({
-        existingSpec: spec,
-        onComplete: (updated) => {
-          saveMcpPanel(updated);
-          (this.ctx.panels[updated.id] as McpDataPanel | undefined)?.updateSpec(updated);
-        },
+      void import('@/components/McpConnectModal').then(({ openMcpConnectModal }) => {
+        openMcpConnectModal({
+          existingSpec: spec,
+          onComplete: (updated) => {
+            saveMcpPanel(updated);
+            (this.ctx.panels[updated.id] as McpDataPanel | undefined)?.updateSpec(updated);
+          },
+        });
       });
     }) as EventListener);
 
@@ -964,13 +964,15 @@ export class EventHandlerManager implements AppModule {
     this.clockIntervalId = setInterval(tick, 1000);
   }
 
-  setupStatusPanel(): void {
+  async setupStatusPanel(): Promise<void> {
+    const { StatusPanel } = await import('@/components/StatusPanel');
     this.ctx.statusPanel = new StatusPanel();
   }
 
-  setupPizzIntIndicator(): void {
+  async setupPizzIntIndicator(): Promise<void> {
     if (SITE_VARIANT !== 'full') return;
 
+    const { PizzIntIndicator } = await import('@/components/PizzIntIndicator');
     this.ctx.pizzintIndicator = new PizzIntIndicator();
     const headerLeft = this.ctx.container.querySelector('.header-left');
     if (headerLeft) {
@@ -978,8 +980,9 @@ export class EventHandlerManager implements AppModule {
     }
   }
 
-  setupLlmStatusIndicator(): void {
+  async setupLlmStatusIndicator(): Promise<void> {
     if (!isDesktopRuntime()) return;
+    const { LlmStatusIndicator } = await import('@/components/LlmStatusIndicator');
     this.ctx.llmStatusIndicator = new LlmStatusIndicator();
     const headerRight = this.ctx.container.querySelector('.header-right');
     if (headerRight) {
@@ -987,8 +990,9 @@ export class EventHandlerManager implements AppModule {
     }
   }
 
-  setupExportPanel(): void {
+  async setupExportPanel(): Promise<void> {
     // Always create — show/hide reactively via auth state subscription below.
+    const { ExportPanel } = await import('@/utils');
     this.ctx.exportPanel = new ExportPanel(() => {
       const allCards = this.ctx.correlationEngine?.getAllCards() ?? [];
       const disabledCount = this.ctx.disabledSources.size;
@@ -1027,7 +1031,8 @@ export class EventHandlerManager implements AppModule {
     this.proGateUnsubscribers.push(subscribeAuthState(state => applyProGate(state.user?.role === 'pro')));
   }
 
-  setupUnifiedSettings(): void {
+  async setupUnifiedSettings(): Promise<void> {
+    const { UnifiedSettings } = await import('@/components/UnifiedSettings');
     this.ctx.unifiedSettings = new UnifiedSettings({
       getPanelSettings: () => this.ctx.panelSettings,
       savePanelSettings: (panels: Record<string, PanelConfig>) => {
@@ -1109,7 +1114,11 @@ export class EventHandlerManager implements AppModule {
     }
   }
 
-  setupAuthWidget(): void {
+  async setupAuthWidget(): Promise<void> {
+    const [{ AuthLauncher }, { AuthHeaderWidget }] = await Promise.all([
+      import('@/components/AuthLauncher'),
+      import('@/components/AuthHeaderWidget'),
+    ]);
     const modal = new AuthLauncher();
     this.ctx.authModal = modal;
 
@@ -1124,8 +1133,9 @@ export class EventHandlerManager implements AppModule {
     }
   }
 
-  setupPlaybackControl(): void {
+  async setupPlaybackControl(): Promise<void> {
     // Always create — show/hide reactively via auth state subscription below.
+    const { PlaybackControl } = await import('@/components/PlaybackControl');
     this.ctx.playbackControl = new PlaybackControl();
     this.ctx.playbackControl.onSnapshot((snapshot) => {
       if (snapshot) {

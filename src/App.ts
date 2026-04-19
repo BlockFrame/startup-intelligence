@@ -25,10 +25,7 @@ import { getAiFlowSettings, subscribeAiFlowChange, isHeadlineMemoryEnabled } fro
 import { startLearning } from '@/services/country-instability';
 import { loadFromStorage, parseMapUrlState, saveToStorage, isMobileDevice } from '@/utils';
 import type { ParsedMapUrlState } from '@/utils';
-import { BreakingNewsBanner } from '@/components/BreakingNewsBanner';
-import { IntelligenceGapBadge } from '@/components/IntelligenceGapBadge';
 import { SignalModal } from '@/components/SignalModal';
-import { initBreakingNewsAlerts, destroyBreakingNewsAlerts } from '@/services/breaking-news-alerts';
 import type { ServiceStatusPanel } from '@/components/ServiceStatusPanel';
 import type { StablecoinPanel } from '@/components/StablecoinPanel';
 import type { EnergyCrisisPanel } from '@/components/EnergyCrisisPanel';
@@ -64,14 +61,15 @@ import { preloadCountryGeometry, getCountryNameByCode } from '@/services/country
 import { initI18n, t } from '@/services/i18n';
 
 import { computeDefaultDisabledSources, getLocaleBoostedSources, getTotalFeedCount, FEEDS, INTEL_SOURCES } from '@/config/feeds';
-import { fetchBootstrapData, getBootstrapHydrationState, markBootstrapAsLive, type BootstrapHydrationState } from '@/services/bootstrap';
+import type { BootstrapHydrationState } from '@/services/bootstrap';
 import { describeFreshness } from '@/services/persistent-cache';
 import { DesktopUpdater } from '@/app/desktop-updater';
 import { CountryIntelManager } from '@/app/startup-country-intel';
 import { SearchManager } from '@/app/search-manager';
 import { RefreshScheduler } from '@/app/refresh-scheduler';
 import { PanelLayoutManager } from '@/app/panel-layout';
-import { DataLoaderManager } from '@/app/startup-data-loader';
+import type { DataLoaderManager as FullDataLoaderManager } from '@/app/data-loader';
+import type { DataLoaderManager as StartupDataLoaderManager } from '@/app/startup-data-loader';
 import { EventHandlerManager } from '@/app/event-handlers';
 import { resolveUserRegion, resolvePreciseUserCoordinates, type PreciseCoordinates } from '@/utils/user-location';
 import { initAuthState, subscribeAuthState } from '@/services/auth-state';
@@ -80,16 +78,16 @@ import { getConvexClient, getConvexApi, waitForConvexAuth } from '@/services/con
 import { initEntitlementSubscription, destroyEntitlementSubscription, resetEntitlementState } from '@/services/entitlements';
 import { initSubscriptionWatch, destroySubscriptionWatch } from '@/services/billing';
 import { capturePendingCheckoutIntentFromUrl, resumePendingCheckout } from '@/services/checkout';
-import {
-  CorrelationEngine,
-  militaryAdapter,
-  escalationAdapter,
-  economicAdapter,
-  disasterAdapter,
-} from '@/services/correlation-engine';
 import type { CorrelationPanel } from '@/components/CorrelationPanel';
 
 const CYBER_LAYER_ENABLED = import.meta.env.VITE_ENABLE_CYBER_LAYER === 'true';
+const EMPTY_BOOTSTRAP_HYDRATION_STATE: BootstrapHydrationState = {
+  source: 'none',
+  tiers: {
+    fast: { source: 'none', updatedAt: null },
+    slow: { source: 'none', updatedAt: null },
+  },
+};
 
 export type { CountryBriefSignals } from '@/app/app-context';
 
@@ -99,20 +97,20 @@ export class App {
   private pendingDeepLinkExpanded = false;
   private pendingDeepLinkStoryCode: string | null = null;
 
-  private panelLayout: PanelLayoutManager;
-  private dataLoader: DataLoaderManager;
-  private eventHandlers: EventHandlerManager;
-  private searchManager: SearchManager;
-  private countryIntel: CountryIntelManager;
-  private refreshScheduler: RefreshScheduler;
-  private desktopUpdater: DesktopUpdater;
+  private panelLayout!: PanelLayoutManager;
+  private dataLoader!: FullDataLoaderManager | StartupDataLoaderManager;
+  private eventHandlers!: EventHandlerManager;
+  private searchManager!: SearchManager;
+  private countryIntel!: CountryIntelManager;
+  private refreshScheduler!: RefreshScheduler;
+  private desktopUpdater!: DesktopUpdater;
 
   private modules: { destroy(): void }[] = [];
   private unsubAiFlow: (() => void) | null = null;
   private unsubFreeTier: (() => void) | null = null;
   private visiblePanelPrimed = new Set<string>();
   private visiblePanelPrimeRaf: number | null = null;
-  private bootstrapHydrationState: BootstrapHydrationState = getBootstrapHydrationState();
+  private bootstrapHydrationState: BootstrapHydrationState = EMPTY_BOOTSTRAP_HYDRATION_STATE;
   private cachedModeBannerEl: HTMLElement | null = null;
   private readonly handleViewportPrime = (): void => {
     if (this.visiblePanelPrimeRaf !== null) return;
@@ -789,6 +787,13 @@ export class App {
       PANEL_SPANS_KEY,
     };
 
+  }
+
+  private async setupModules(): Promise<void> {
+    const { DataLoaderManager } = SITE_VARIANT === 'startup'
+      ? await import('@/app/startup-data-loader')
+      : await import('@/app/data-loader');
+
     // Instantiate modules (callbacks wired after all modules exist)
     this.refreshScheduler = new RefreshScheduler(this.state);
     this.countryIntel = new CountryIntelManager(this.state);
@@ -846,6 +851,7 @@ export class App {
 
   public async init(): Promise<void> {
     const initStart = performance.now();
+    await this.setupModules();
     await initDB();
     await initI18n();
     const aiFlow = getAiFlowSettings();
@@ -899,6 +905,7 @@ export class App {
     // Startup Intelligence does not need the legacy World Monitor bootstrap
     // envelope. Its active modules fetch their own focused sources.
     if (SITE_VARIANT !== 'startup') {
+      const { fetchBootstrapData, getBootstrapHydrationState } = await import('@/services/bootstrap');
       await fetchBootstrapData();
       this.bootstrapHydrationState = getBootstrapHydrationState();
     }
@@ -993,7 +1000,8 @@ export class App {
     this.state.signalModal.setLocationClickHandler((lat, lon) => {
       this.state.map?.setCenter(lat, lon, 4);
     });
-    if (!this.state.isMobile) {
+    if (!this.state.isMobile && SITE_VARIANT !== 'startup') {
+      const { IntelligenceGapBadge } = await import('@/components/IntelligenceGapBadge');
       this.state.findingsBadge = new IntelligenceGapBadge();
       this.state.findingsBadge.setOnSignalClick((signal) => {
         if (this.state.countryBriefPage?.isVisible()) return;
@@ -1007,28 +1015,39 @@ export class App {
       });
     }
 
-    if (!this.state.isMobile) {
+    if (!this.state.isMobile && SITE_VARIANT !== 'startup') {
+      const { initBreakingNewsAlerts } = await import('@/services/breaking-news-alerts');
+      const { BreakingNewsBanner } = await import('@/components/BreakingNewsBanner');
       initBreakingNewsAlerts();
       this.state.breakingBanner = new BreakingNewsBanner();
     }
 
     // Phase 3: UI setup methods
     this.eventHandlers.startHeaderClock();
-    this.eventHandlers.setupPlaybackControl();
-    this.eventHandlers.setupStatusPanel();
-    this.eventHandlers.setupPizzIntIndicator();
-    this.eventHandlers.setupLlmStatusIndicator();
-    this.eventHandlers.setupExportPanel();
+    await this.eventHandlers.setupPlaybackControl();
+    await this.eventHandlers.setupStatusPanel();
+    await this.eventHandlers.setupPizzIntIndicator();
+    await this.eventHandlers.setupLlmStatusIndicator();
+    await this.eventHandlers.setupExportPanel();
 
     // Correlation engine
-    const correlationEngine = new CorrelationEngine();
-    correlationEngine.registerAdapter(militaryAdapter);
-    correlationEngine.registerAdapter(escalationAdapter);
-    correlationEngine.registerAdapter(economicAdapter);
-    correlationEngine.registerAdapter(disasterAdapter);
-    this.state.correlationEngine = correlationEngine;
-    this.eventHandlers.setupUnifiedSettings();
-    this.eventHandlers.setupAuthWidget();
+    if (SITE_VARIANT !== 'startup') {
+      const {
+        CorrelationEngine,
+        militaryAdapter,
+        escalationAdapter,
+        economicAdapter,
+        disasterAdapter,
+      } = await import('@/services/correlation-engine');
+      const correlationEngine = new CorrelationEngine();
+      correlationEngine.registerAdapter(militaryAdapter);
+      correlationEngine.registerAdapter(escalationAdapter);
+      correlationEngine.registerAdapter(economicAdapter);
+      correlationEngine.registerAdapter(disasterAdapter);
+      this.state.correlationEngine = correlationEngine;
+    }
+    await this.eventHandlers.setupUnifiedSettings();
+    await this.eventHandlers.setupAuthWidget();
     const pendingCheckout = capturePendingCheckoutIntentFromUrl();
     if (pendingCheckout) {
       // Checkout intent from /pro page redirect. Resume immediately if
@@ -1075,10 +1094,13 @@ export class App {
       this.primeVisiblePanelData(true),
     ]);
 
-    // If bootstrap was served from cache but live data just loaded, promote the status indicator
-    markBootstrapAsLive();
-    this.bootstrapHydrationState = getBootstrapHydrationState();
-    this.updateConnectivityUi();
+    // If bootstrap was served from cache but live data just loaded, promote the status indicator.
+    if (SITE_VARIANT !== 'startup') {
+      const { markBootstrapAsLive, getBootstrapHydrationState } = await import('@/services/bootstrap');
+      markBootstrapAsLive();
+      this.bootstrapHydrationState = getBootstrapHydrationState();
+      this.updateConnectivityUi();
+    }
 
     // Initial correlation engine run
     if (this.state.correlationEngine) {
@@ -1189,7 +1211,11 @@ export class App {
     this.unsubAiFlow?.();
     this.unsubFreeTier?.();
     this.state.breakingBanner?.destroy();
-    destroyBreakingNewsAlerts();
+    if (SITE_VARIANT !== 'startup') {
+      void import('@/services/breaking-news-alerts').then(({ destroyBreakingNewsAlerts }) => {
+        destroyBreakingNewsAlerts();
+      }).catch(() => {});
+    }
     this.cachedModeBannerEl?.remove();
     this.cachedModeBannerEl = null;
     this.state.map?.destroy();

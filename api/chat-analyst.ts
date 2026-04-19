@@ -2,7 +2,7 @@
  * Streaming chat analyst edge function — Pro only.
  *
  * POST /api/chat-analyst
- * Body: { history: {role,content}[], query: string, domainFocus?: string, geoContext?: string }
+ * Body: { history: {role,content}[], query: string, domainFocus?: string }
  *
  * Returns text/event-stream SSE:
  *   data: {"meta":{"sources":["Brief","Risk",...],"degraded":false}}  — always first event
@@ -18,17 +18,15 @@ export const config = { runtime: 'edge', regions: ['iad1', 'lhr1', 'fra1', 'sfo1
 import { getCorsHeaders } from './_cors.js';
 import { isCallerPremium } from '../server/_shared/premium-check';
 import { checkRateLimit } from '../server/_shared/rate-limit';
-import { assembleAnalystContext } from '../server/worldmonitor/intelligence/v1/chat-analyst-context';
-import { buildAnalystSystemPrompt } from '../server/worldmonitor/intelligence/v1/chat-analyst-prompt';
-import { buildActionEvents } from '../server/worldmonitor/intelligence/v1/chat-analyst-actions';
+import { assembleStartupAnalystContext, normalizeStartupAnalystDomain } from '../server/startup/analyst/context';
+import { buildStartupAnalystSystemPrompt } from '../server/startup/analyst/prompt';
+import { buildStartupActionEvents } from '../server/startup/analyst/actions';
 import { callLlmReasoningStream } from '../server/_shared/llm';
 import { sanitizeForPrompt } from '../server/_shared/llm-sanitize.js';
 
 const MAX_QUERY_LEN = 500;
 const MAX_HISTORY_MESSAGES = 20;
 const MAX_MESSAGE_CHARS = 800;
-const MAX_GEO_LEN = 2;
-const VALID_DOMAINS = new Set(['all', 'geo', 'market', 'military', 'economic']);
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -39,7 +37,6 @@ interface ChatAnalystRequestBody {
   history?: unknown[];
   query?: unknown;
   domainFocus?: unknown;
-  geoContext?: unknown;
 }
 
 function json(body: unknown, status: number, cors: Record<string, string>): Response {
@@ -106,13 +103,7 @@ export default async function handler(req: Request): Promise<Response> {
   const query = sanitizeForPrompt(rawQuery);
   if (!query) return json({ error: 'query is required' }, 400, corsHeaders);
 
-  // Validate domainFocus against the fixed domain set to prevent prompt injection
-  const rawDomain = typeof body.domainFocus === 'string' ? body.domainFocus.trim() : '';
-  const domainFocus = VALID_DOMAINS.has(rawDomain) ? rawDomain : 'all';
-
-  const geoContext = typeof body.geoContext === 'string'
-    ? body.geoContext.trim().toUpperCase().slice(0, MAX_GEO_LEN)
-    : undefined;
+  const domainFocus = normalizeStartupAnalystDomain(body.domainFocus);
 
   const rawHistory = Array.isArray(body.history) ? body.history : [];
   const history: ChatMessage[] = rawHistory
@@ -135,8 +126,8 @@ export default async function handler(req: Request): Promise<Response> {
   const prevUserTurn = history.filter((m) => m.role === 'user').slice(-1)[0]?.content ?? '';
   const retrievalQuery = prevUserTurn ? `${query} ${prevUserTurn}` : query;
 
-  const context = await assembleAnalystContext(geoContext, domainFocus, retrievalQuery);
-  const systemPrompt = buildAnalystSystemPrompt(context, domainFocus);
+  const context = await assembleStartupAnalystContext(domainFocus, retrievalQuery);
+  const systemPrompt = buildStartupAnalystSystemPrompt(context, domainFocus);
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -158,7 +149,7 @@ export default async function handler(req: Request): Promise<Response> {
   const stream = prependSseEvents(
     [
       { meta: { sources: context.activeSources, degraded: context.degraded } },
-      ...buildActionEvents(query).map((a) => ({ action: a })),
+      ...buildStartupActionEvents(query).map((a) => ({ action: a })),
     ],
     llmStream,
   );
