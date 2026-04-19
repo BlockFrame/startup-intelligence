@@ -3,7 +3,6 @@ import './styles/happy-theme.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as Sentry from '@sentry/browser';
 import { inject } from '@vercel/analytics';
-import { App } from './App';
 import { installUtmInterceptor } from './utils/utm';
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN?.trim();
@@ -471,7 +470,6 @@ window.addEventListener('securitypolicyviolation', (e) => {
   });
 });
 
-import { debugGetCells, getCellCount } from '@/services/geo-convergence';
 import { initMetaTags } from '@/services/meta-tags';
 import { installRuntimeFetchPatch, installWebApiRedirect } from '@/services/runtime';
 import { loadDesktopSecrets } from '@/services/runtime-config';
@@ -541,20 +539,26 @@ if (urlParams.get('settings') === '1') {
   );
 } else {
   installUtmInterceptor();
-  const app = new App('app');
-  app
-    .init()
+  import('./App')
+    .then(({ App }) => {
+      const app = new App('app');
+      return app.init();
+    })
     .then(() => {
       clearChunkReloadGuard(chunkReloadStorageKey);
     })
     .catch(console.error);
 }
 
-// Debug helpers for geo-convergence testing (remove in production)
-(window as unknown as Record<string, unknown>).geoDebug = {
-  cells: debugGetCells,
-  count: getCellCount,
-};
+if (SITE_VARIANT !== 'startup') {
+  void import('@/services/geo-convergence').then(({ debugGetCells, getCellCount }) => {
+    // Debug helpers for geo-convergence testing (remove in production)
+    (window as unknown as Record<string, unknown>).geoDebug = {
+      cells: debugGetCells,
+      count: getCellCount,
+    };
+  });
+}
 
 // Beta mode toggle: type `beta=true` / `beta=false` in console
 Object.defineProperty(window, 'beta', {

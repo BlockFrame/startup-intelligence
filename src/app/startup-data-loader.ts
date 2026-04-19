@@ -1,6 +1,6 @@
 import type { AppContext, AppModule } from '@/app/app-context';
 import type { MapLayers, NewsItem } from '@/types';
-import { FEEDS, MARKET_SYMBOLS } from '@/config';
+import { FEEDS, MARKET_SYMBOLS, VARIANT_DEFAULTS } from '@/config';
 import { fetchCategoryFeeds, getFeedFailures } from '@/services/rss';
 import { fetchMultipleStocks } from '@/services/market';
 import { getMarketWatchlistEntries } from '@/services/market-watchlist';
@@ -25,6 +25,7 @@ export class DataLoaderManager implements AppModule {
   updateSearchIndex: () => void = () => {};
 
   private readonly cacheMaxAgeMs = 20 * 60 * 1000;
+  private readonly startupFeedKeys = new Set((VARIANT_DEFAULTS.startup ?? []).filter((key) => Array.isArray((FEEDS as Record<string, unknown>)[key])));
 
   constructor(
     private readonly ctx: AppContext,
@@ -72,7 +73,9 @@ export class DataLoaderManager implements AppModule {
 
   async loadNews(): Promise<void> {
     const categories = Object.entries(FEEDS)
-      .filter((entry): entry is [string, typeof FEEDS[keyof typeof FEEDS]] => Array.isArray(entry[1]) && entry[1].length > 0);
+      .filter((entry): entry is [string, typeof FEEDS[keyof typeof FEEDS]] => (
+        this.startupFeedKeys.has(entry[0]) && Array.isArray(entry[1]) && entry[1].length > 0
+      ));
 
     const collected: NewsItem[] = [];
     const concurrency = Math.min(4, Math.max(1, categories.length));

@@ -18,3 +18,49 @@ target/
 
 # Common local artifacts
 .DS_Store
+
+# Startup Intelligence deploy surface:
+# exclude legacy World Monitor API domains that are not part of the startup
+# dashboard product surface.
+api/aviation/
+api/climate/
+api/conflict/
+api/consumer-prices/
+api/cyber/
+api/displacement/
+api/economic/
+api/forecast/
+api/giving/
+api/health/
+api/imagery/
+api/infrastructure/
+api/intelligence/
+api/maritime/
+api/military/
+api/natural/
+api/positive-events/
+api/prediction/
+api/radiation/
+api/research/
+api/resilience/
+api/sanctions/
+api/scenario/
+api/seismology/
+api/supply-chain/
+api/thermal/
+api/trade/
+api/unrest/
+api/v2/
+api/webcam/
+api/wildfire/
+api/ais-snapshot.js
+api/bootstrap.js
+api/eia/
+api/gpsjam.js
+api/military-flights.js
+api/opensky.js
+api/oref-alerts.js
+api/polymarket.js
+api/sanctions-entity-search.js
+api/satellites.js
+api/telegram-feed.js

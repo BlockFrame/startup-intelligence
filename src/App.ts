@@ -896,9 +896,12 @@ export class App {
       await waitForSidecarReady(3000);
     }
 
-    // Hydrate in-memory cache from bootstrap endpoint (before panels construct and fetch)
-    await fetchBootstrapData();
-    this.bootstrapHydrationState = getBootstrapHydrationState();
+    // Startup Intelligence does not need the legacy World Monitor bootstrap
+    // envelope. Its active modules fetch their own focused sources.
+    if (SITE_VARIANT !== 'startup') {
+      await fetchBootstrapData();
+      this.bootstrapHydrationState = getBootstrapHydrationState();
+    }
 
     // Verify OAuth OTT and hydrate auth session BEFORE any UI subscribes to auth state
     await initAuthState();

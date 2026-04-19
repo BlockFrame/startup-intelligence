@@ -164,12 +164,32 @@ function polymarketPlugin(): Plugin {
  * the same handler pipeline as the Vercel catch-all gateway. Other /api/*
  * paths fall through to existing proxy rules.
  */
-function sebufApiPlugin(): Plugin {
+function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
   // Cache router across requests (H-13 fix). Invalidated by Vite's module graph on HMR.
   let cachedRouter: Awaited<ReturnType<typeof buildRouter>> | null = null;
   let cachedCorsMod: any = null;
 
   async function buildRouter() {
+    if (options.startupOnly) {
+      const [
+        routerMod, corsMod, errorMod,
+        marketServerMod, marketHandlerMod,
+      ] = await Promise.all([
+          import('./server/router'),
+          import('./server/cors'),
+          import('./server/error-mapper'),
+          import('./src/generated/server/worldmonitor/market/v1/service_server'),
+          import('./server/worldmonitor/market/v1/handler'),
+        ]);
+
+      const serverOptions = { onError: errorMod.mapErrorToResponse };
+      const allRoutes = [
+        ...marketServerMod.createMarketServiceRoutes(marketHandlerMod.marketHandler, serverOptions),
+      ];
+      cachedCorsMod = corsMod;
+      return routerMod.createRouter(allRoutes);
+    }
+
     const [
       routerMod, corsMod, errorMod,
       seismologyServerMod, seismologyHandlerMod,
@@ -290,6 +310,9 @@ function sebufApiPlugin(): Plugin {
       server.middlewares.use(async (req, res, next) => {
         // Only intercept sebuf routes: /api/{domain}/v1/* (domain may contain hyphens)
         if (!req.url || !/^\/api\/[a-z-]+\/v1\//.test(req.url)) {
+          return next();
+        }
+        if (options.startupOnly && !req.url.startsWith('/api/market/v1/')) {
           return next();
         }
 
@@ -714,6 +737,7 @@ export default defineConfig(({ mode }) => {
   const isDesktopBuild = process.env.VITE_DESKTOP_RUNTIME === '1';
   const activeVariant = process.env.VITE_VARIANT || 'full';
   const activeMeta = VARIANT_META[activeVariant] || VARIANT_META.full;
+  const startupOnly = activeVariant === 'startup';
 
   return {
     define: {
@@ -727,7 +751,7 @@ export default defineConfig(({ mode }) => {
       gpsjamDevPlugin(),
       githubReposDevPlugin(),
       huggingFaceDevPlugin(),
-      sebufApiPlugin(),
+      sebufApiPlugin({ startupOnly }),
       brotliPrecompressPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
