@@ -21,7 +21,10 @@ const root = resolve(__dirname, '..');
 const handlerSrc = readFileSync(resolve(root, 'server/worldmonitor/intelligence/v1/get-regional-brief.ts'), 'utf-8');
 const handlerIndexSrc = readFileSync(resolve(root, 'server/worldmonitor/intelligence/v1/handler.ts'), 'utf-8');
 const premiumPathsSrc = readFileSync(resolve(root, 'src/shared/premium-paths.ts'), 'utf-8');
-const gatewaySrc = readFileSync(resolve(root, 'server/gateway.ts'), 'utf-8');
+const gatewaySrc = [
+  readFileSync(resolve(root, 'server/gateway.ts'), 'utf-8'),
+  readFileSync(resolve(root, 'server/gateway-cache-tiers.ts'), 'utf-8'),
+].join('\n');
 const protoSrc = readFileSync(resolve(root, 'proto/worldmonitor/intelligence/v1/get_regional_brief.proto'), 'utf-8');
 const serviceProtoSrc = readFileSync(resolve(root, 'proto/worldmonitor/intelligence/v1/service.proto'), 'utf-8');
 

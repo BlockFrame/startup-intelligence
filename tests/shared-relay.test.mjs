@@ -205,10 +205,10 @@ describe('relay.ts — consumer import verification', () => {
   const consumers = [
     { file: 'server/worldmonitor/aviation/v1/_shared.ts', importPath: '../../../_shared/relay' },
     { file: 'server/worldmonitor/intelligence/v1/_relay.ts', importPath: '../../../_shared/relay' },
-    { file: 'server/worldmonitor/research/v1/list-tech-events.ts', importPath: '../../../_shared/relay' },
+    { file: 'server/startup/research/v1/list-tech-events.ts', importPath: '../../../_shared/relay' },
     { file: 'server/worldmonitor/maritime/v1/get-vessel-snapshot.ts', importPath: '../../../_shared/relay' },
-    { file: 'server/worldmonitor/market/v1/_shared.ts', importPath: '../../../_shared/relay' },
-    { file: 'server/worldmonitor/news/v1/list-feed-digest.ts', importPath: '../../../_shared/relay' },
+    { file: 'server/startup/market/v1/_shared.ts', importPath: '../../../_shared/relay' },
+    { file: 'server/startup/news/v1/list-feed-digest.ts', importPath: '../../../_shared/relay' },
     { file: 'server/worldmonitor/military/v1/list-military-flights.ts', importPath: '../../../_shared/relay' },
   ];
 
@@ -226,10 +226,10 @@ describe('relay.ts — consumer import verification', () => {
     const dupeFiles = [
       'server/worldmonitor/aviation/v1/_shared.ts',
       'server/worldmonitor/intelligence/v1/_relay.ts',
-      'server/worldmonitor/research/v1/list-tech-events.ts',
+      'server/startup/research/v1/list-tech-events.ts',
       'server/worldmonitor/maritime/v1/get-vessel-snapshot.ts',
-      'server/worldmonitor/market/v1/_shared.ts',
-      'server/worldmonitor/news/v1/list-feed-digest.ts',
+      'server/startup/market/v1/_shared.ts',
+      'server/startup/news/v1/list-feed-digest.ts',
       'server/worldmonitor/military/v1/list-military-flights.ts',
     ];
     for (const file of dupeFiles) {

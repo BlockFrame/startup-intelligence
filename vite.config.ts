@@ -173,18 +173,38 @@ function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
     if (options.startupOnly) {
       const [
         routerMod, corsMod, errorMod,
+        consumerPricesServerMod, consumerPricesHandlerMod,
+        economicServerMod, economicHandlerMod,
+        intelligenceServerMod, intelligenceHandlerMod,
         marketServerMod, marketHandlerMod,
+        newsServerMod, newsHandlerMod,
+        researchServerMod, researchHandlerMod,
       ] = await Promise.all([
           import('./server/router'),
           import('./server/cors'),
           import('./server/error-mapper'),
+          import('./src/generated/server/worldmonitor/consumer_prices/v1/service_server'),
+          import('./server/startup/consumer-prices/v1/handler'),
+          import('./src/generated/server/worldmonitor/economic/v1/service_server'),
+          import('./server/startup/economic/v1/handler'),
+          import('./src/generated/server/worldmonitor/intelligence/v1/service_server'),
+          import('./server/startup/intelligence/v1/handler'),
           import('./src/generated/server/worldmonitor/market/v1/service_server'),
-          import('./server/worldmonitor/market/v1/handler'),
+          import('./server/startup/market/v1/handler'),
+          import('./src/generated/server/worldmonitor/news/v1/service_server'),
+          import('./server/startup/news/v1/handler'),
+          import('./src/generated/server/worldmonitor/research/v1/service_server'),
+          import('./server/startup/research/v1/handler'),
         ]);
 
       const serverOptions = { onError: errorMod.mapErrorToResponse };
       const allRoutes = [
+        ...consumerPricesServerMod.createConsumerPricesServiceRoutes(consumerPricesHandlerMod.consumerPricesHandler, serverOptions),
+        ...economicServerMod.createEconomicServiceRoutes(economicHandlerMod.economicHandler, serverOptions),
+        ...intelligenceServerMod.createIntelligenceServiceRoutes(intelligenceHandlerMod.intelligenceHandler, serverOptions),
         ...marketServerMod.createMarketServiceRoutes(marketHandlerMod.marketHandler, serverOptions),
+        ...newsServerMod.createNewsServiceRoutes(newsHandlerMod.newsHandler, serverOptions),
+        ...researchServerMod.createResearchServiceRoutes(researchHandlerMod.researchHandler, serverOptions),
       ];
       cachedCorsMod = corsMod;
       return routerMod.createRouter(allRoutes);
@@ -232,7 +252,7 @@ function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
         import('./src/generated/server/worldmonitor/aviation/v1/service_server'),
         import('./server/worldmonitor/aviation/v1/handler'),
         import('./src/generated/server/worldmonitor/research/v1/service_server'),
-        import('./server/worldmonitor/research/v1/handler'),
+        import('./server/startup/research/v1/handler'),
         import('./src/generated/server/worldmonitor/unrest/v1/service_server'),
         import('./server/worldmonitor/unrest/v1/handler'),
         import('./src/generated/server/worldmonitor/conflict/v1/service_server'),
@@ -242,13 +262,13 @@ function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
         import('./src/generated/server/worldmonitor/cyber/v1/service_server'),
         import('./server/worldmonitor/cyber/v1/handler'),
         import('./src/generated/server/worldmonitor/economic/v1/service_server'),
-        import('./server/worldmonitor/economic/v1/handler'),
+        import('./server/startup/economic/v1/handler'),
         import('./src/generated/server/worldmonitor/infrastructure/v1/service_server'),
         import('./server/worldmonitor/infrastructure/v1/handler'),
         import('./src/generated/server/worldmonitor/market/v1/service_server'),
-        import('./server/worldmonitor/market/v1/handler'),
+        import('./server/startup/market/v1/handler'),
         import('./src/generated/server/worldmonitor/news/v1/service_server'),
-        import('./server/worldmonitor/news/v1/handler'),
+        import('./server/startup/news/v1/handler'),
         import('./src/generated/server/worldmonitor/intelligence/v1/service_server'),
         import('./server/worldmonitor/intelligence/v1/handler'),
         import('./src/generated/server/worldmonitor/military/v1/service_server'),
@@ -312,7 +332,7 @@ function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
         if (!req.url || !/^\/api\/[a-z-]+\/v1\//.test(req.url)) {
           return next();
         }
-        if (options.startupOnly && !req.url.startsWith('/api/market/v1/')) {
+        if (options.startupOnly && !/^\/api\/(consumer-prices|economic|intelligence|market|news|research)\/v1\//.test(req.url)) {
           return next();
         }
 

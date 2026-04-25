@@ -46,8 +46,6 @@ import type { GpsJamHex } from '@/services/gps-interference';
 import type { SatellitePosition } from '@/services/satellites';
 import type { ImageryScene } from '@/generated/server/worldmonitor/imagery/v1/service_server';
 import { isAllowedPreviewUrl } from '@/utils/imagery-preview';
-import { getCategoryStyle } from '@/services/webcams';
-import { pinWebcam, isPinned } from '@/services/webcams/pinned-store';
 import type { WebcamEntry, WebcamCluster } from '@/generated/client/worldmonitor/webcam/v1/service_client';
 import type { TrafficAnomaly as ProtoTrafficAnomaly, DdosLocationHit } from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
 import type { RadiationObservation } from '@/services/radiation';
@@ -57,6 +55,18 @@ const SAT_COUNTRY_COLORS: Record<string, string> = { CN: '#ff2020', RU: '#ff8800
 const SAT_TYPE_EMOJI: Record<string, string> = { sar: '\u{1F4E1}', optical: '\u{1F4F7}', military: '\u{1F396}', sigint: '\u{1F4FB}' };
 const SAT_TYPE_LABEL: Record<string, string> = { sar: 'SAR Imaging', optical: 'Optical Imaging', military: 'Military', sigint: 'SIGINT' };
 const SAT_OPERATOR_NAME: Record<string, string> = { CN: 'China', RU: 'Russia', US: 'United States', EU: 'ESA / EU', KR: 'South Korea', IN: 'India', TR: 'Turkey', OTHER: 'Other' };
+const WEBCAM_CATEGORY_STYLE: Record<string, { color: string; emoji: string }> = {
+  city: { color: '#00d4ff', emoji: '\u{1F3D9}' },
+  traffic: { color: '#ffb020', emoji: '\u{1F697}' },
+  beach: { color: '#2dd4bf', emoji: '\u{1F3D6}' },
+  mountain: { color: '#a3e635', emoji: '\u{26F0}' },
+  airport: { color: '#c084fc', emoji: '\u{2708}' },
+  other: { color: '#00d4ff', emoji: '\u{1F4F7}' },
+};
+
+function getWebcamCategoryStyle(category?: string): { color: string; emoji: string } {
+  return WEBCAM_CATEGORY_STYLE[category || 'other'] ?? { color: '#00d4ff', emoji: '\u{1F4F7}' };
+}
 
 // ─── Marker discriminated union ─────────────────────────────────────────────
 interface BaseMarker {
@@ -1194,7 +1204,7 @@ export class GlobeMap {
       el.innerHTML = GlobeMap.wrapHit(`<div style="font-size:11px;color:#00b4ff;text-shadow:0 0 4px #00b4ff88;">&#128752;</div>`);
       el.title = `${d.satellite} ${d.datetime}`;
     } else if (d._kind === 'webcam') {
-      const style = getCategoryStyle(d.category);
+      const style = getWebcamCategoryStyle(d.category);
       const emoji = this.webcamMarkerMode === 'emoji' ? style.emoji : '\u{1F4F7}';
       el.innerHTML = GlobeMap.wrapHit(`<span style="background:${style.color}33;border:1px solid ${style.color}88;border-radius:10px;padding:1px 5px;font-size:12px;">${emoji}</span>`);
       el.title = d.title;
@@ -1601,7 +1611,10 @@ export class GlobeMap {
       attribution.textContent = 'Powered by Windy';
       wrapper.appendChild(attribution);
 
-      import('@/services/webcams').then(({ fetchWebcamImage }) => {
+      Promise.all([
+        import('@/services/webcams'),
+        import('@/services/webcams/pinned-store'),
+      ]).then(([{ fetchWebcamImage }, pinnedStore]) => {
         fetchWebcamImage(d.webcamId).then(img => {
           if (!el.isConnected) return;
           previewDiv.replaceChildren();
@@ -1620,7 +1633,7 @@ export class GlobeMap {
           const pinBtn = document.createElement('button');
           pinBtn.className = 'webcam-pin-btn';
           pinBtn.style.cssText = 'display:block;margin-top:4px;';
-          if (isPinned(d.webcamId)) {
+          if (pinnedStore.isPinned(d.webcamId)) {
             pinBtn.classList.add('webcam-pin-btn--pinned');
             pinBtn.textContent = '\u{1F4CC} Pinned';
             pinBtn.disabled = true;
@@ -1628,7 +1641,7 @@ export class GlobeMap {
             pinBtn.textContent = '\u{1F4CC} Pin';
             pinBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              pinWebcam({
+              pinnedStore.pinWebcam({
                 webcamId: d.webcamId,
                 title: d.title || img.title || '',
                 lat: d._lat,

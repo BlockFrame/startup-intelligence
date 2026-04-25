@@ -12,10 +12,7 @@ import { LAYER_PRESETS, LAYER_KEY_MAP } from '@/config/commands';
 import { calculateCII, TIER1_COUNTRIES } from '@/services/country-instability';
 import { CURATED_COUNTRIES } from '@/config/countries';
 import { getCountryBbox } from '@/services/country-geometry';
-import { INTEL_HOTSPOTS, CONFLICT_ZONES, MILITARY_BASES, UNDERSEA_CABLES, NUCLEAR_FACILITIES } from '@/config/geo';
-import { PIPELINES } from '@/config/pipelines';
 import { AI_DATA_CENTERS } from '@/config/ai-datacenters';
-import { GAMMA_IRRADIATORS } from '@/config/irradiators';
 import { TECH_COMPANIES } from '@/config/tech-companies';
 import { AI_RESEARCH_LABS } from '@/config/ai-research-labs';
 import { STARTUP_ECOSYSTEMS } from '@/config/startup-ecosystems';
@@ -26,7 +23,6 @@ import { t } from '@/services/i18n';
 import { saveToStorage, setTheme } from '@/utils';
 import { CountryIntelManager } from '@/app/startup-country-intel';
 import type { PositionSample } from '@/services/aviation';
-import { fetchAircraftPositions } from '@/services/aviation';
 import type { MilitaryFlight } from '@/types';
 import { isProUser } from '@/services/widget-store';
 import { getAuthState } from '@/services/auth-state';
@@ -107,13 +103,6 @@ export class SearchManager implements AppModule {
         data: d,
       })));
 
-      this.ctx.searchModal.registerSource('cable', UNDERSEA_CABLES.map(c => ({
-        id: c.id,
-        title: c.name,
-        subtitle: c.major ? 'Major internet backbone' : 'Undersea cable',
-        data: c,
-      })));
-
       this.ctx.searchModal.registerSource('techhq', TECH_HQS.map(h => ({
         id: h.id,
         title: h.company,
@@ -128,60 +117,13 @@ export class SearchManager implements AppModule {
         data: a,
       })));
     } else {
-      this.ctx.searchModal.registerSource('hotspot', INTEL_HOTSPOTS.map(h => ({
-        id: h.id,
-        title: h.name,
-        subtitle: `${h.subtext || ''} ${h.keywords?.join(' ') || ''} ${h.description || ''}`.trim(),
-        data: h,
-      })));
-
-      this.ctx.searchModal.registerSource('conflict', CONFLICT_ZONES.map(c => ({
-        id: c.id,
-        title: c.name,
-        subtitle: `${c.parties?.join(' ') || ''} ${c.keywords?.join(' ') || ''} ${c.description || ''}`.trim(),
-        data: c,
-      })));
-
-      this.ctx.searchModal.registerSource('base', MILITARY_BASES.map(b => ({
-        id: b.id,
-        title: b.name,
-        subtitle: `${b.type} ${b.description || ''}`.trim(),
-        data: b,
-      })));
-
-      this.ctx.searchModal.registerSource('pipeline', PIPELINES.map(p => ({
-        id: p.id,
-        title: p.name,
-        subtitle: `${p.type} ${p.operator || ''} ${p.countries?.join(' ') || ''}`.trim(),
-        data: p,
-      })));
-
-      this.ctx.searchModal.registerSource('cable', UNDERSEA_CABLES.map(c => ({
-        id: c.id,
-        title: c.name,
-        subtitle: c.major ? 'Major cable' : '',
-        data: c,
-      })));
+      void this.registerLegacyGeoSearchSources();
 
       this.ctx.searchModal.registerSource('datacenter', AI_DATA_CENTERS.map(d => ({
         id: d.id,
         title: d.name,
         subtitle: `${d.owner} ${d.chipType || ''}`.trim(),
         data: d,
-      })));
-
-      this.ctx.searchModal.registerSource('nuclear', NUCLEAR_FACILITIES.map(n => ({
-        id: n.id,
-        title: n.name,
-        subtitle: `${n.type} ${n.operator || ''}`.trim(),
-        data: n,
-      })));
-
-      this.ctx.searchModal.registerSource('irradiator', GAMMA_IRRADIATORS.map(g => ({
-        id: g.id,
-        title: `${g.city}, ${g.country}`,
-        subtitle: g.organization || '',
-        data: g,
       })));
     }
 
@@ -223,12 +165,11 @@ export class SearchManager implements AppModule {
     this.ctx.searchModal.setOnSelect((result) => this.handleSearchResult(result));
     this.ctx.searchModal.setOnCommand((cmd) => this.handleCommand(cmd));
 
-    // Always wire flight search — check pro status reactively inside the callback
-    // so mid-session sign-ins get the feature without a page reload.
-    {
+    // Startup/tech search stays focused on AI and company intelligence.
+    if (!isStartupOrTech) {
       this.ctx.searchModal.setOnFlightSearch((callsign) => {
         if (!isProUser() && getAuthState().user?.role !== 'pro') return;
-        fetchAircraftPositions({ callsign }).then((positions) => {
+        import('@/services/aviation').then(({ fetchAircraftPositions }) => fetchAircraftPositions({ callsign })).then((positions) => {
           if (!this.ctx.searchModal) return;
           // Deduplicate by callsign: keep the most recently observed entry per callsign.
           const seen = new Map<string, PositionSample>();
@@ -273,6 +214,64 @@ export class SearchManager implements AppModule {
     document.addEventListener('keydown', this.boundKeydownHandler);
   }
 
+  private async registerLegacyGeoSearchSources(): Promise<void> {
+    const [{ INTEL_HOTSPOTS, CONFLICT_ZONES, MILITARY_BASES, UNDERSEA_CABLES, NUCLEAR_FACILITIES }, { PIPELINES }, { GAMMA_IRRADIATORS }] = await Promise.all([
+      import('@/config/geo'),
+      import('@/config/pipelines'),
+      import('@/config/irradiators'),
+    ]);
+    if (!this.ctx.searchModal) return;
+
+    this.ctx.searchModal.registerSource('hotspot', INTEL_HOTSPOTS.map(h => ({
+      id: h.id,
+      title: h.name,
+      subtitle: `${h.subtext || ''} ${h.keywords?.join(' ') || ''} ${h.description || ''}`.trim(),
+      data: h,
+    })));
+
+    this.ctx.searchModal.registerSource('conflict', CONFLICT_ZONES.map(c => ({
+      id: c.id,
+      title: c.name,
+      subtitle: `${c.parties?.join(' ') || ''} ${c.keywords?.join(' ') || ''} ${c.description || ''}`.trim(),
+      data: c,
+    })));
+
+    this.ctx.searchModal.registerSource('base', MILITARY_BASES.map(b => ({
+      id: b.id,
+      title: b.name,
+      subtitle: `${b.type} ${b.description || ''}`.trim(),
+      data: b,
+    })));
+
+    this.ctx.searchModal.registerSource('pipeline', PIPELINES.map(p => ({
+      id: p.id,
+      title: p.name,
+      subtitle: `${p.type} ${p.operator || ''} ${p.countries?.join(' ') || ''}`.trim(),
+      data: p,
+    })));
+
+    this.ctx.searchModal.registerSource('cable', UNDERSEA_CABLES.map(c => ({
+      id: c.id,
+      title: c.name,
+      subtitle: c.major ? 'Major cable' : '',
+      data: c,
+    })));
+
+    this.ctx.searchModal.registerSource('nuclear', NUCLEAR_FACILITIES.map(n => ({
+      id: n.id,
+      title: n.name,
+      subtitle: `${n.type} ${n.operator || ''}`.trim(),
+      data: n,
+    })));
+
+    this.ctx.searchModal.registerSource('irradiator', GAMMA_IRRADIATORS.map(g => ({
+      id: g.id,
+      title: `${g.city}, ${g.country}`,
+      subtitle: g.organization || '',
+      data: g,
+    })));
+  }
+
   private handleSearchResult(result: SearchResult): void {
     trackSearchResultSelected(result.type);
     switch (result.type) {
@@ -295,13 +294,13 @@ export class SearchManager implements AppModule {
         break;
       }
       case 'hotspot': {
-        const hotspot = result.data as typeof INTEL_HOTSPOTS[0];
+        const hotspot = result.data as { id: string };
         this.ctx.map?.setView('global');
         setTimeout(() => { this.ctx.map?.triggerHotspotClick(hotspot.id); }, 300);
         break;
       }
       case 'conflict': {
-        const conflict = result.data as typeof CONFLICT_ZONES[0];
+        const conflict = result.data as { id: string };
         this.ctx.map?.setView('global');
         setTimeout(() => { this.ctx.map?.triggerConflictClick(conflict.id); }, 300);
         break;
@@ -315,20 +314,20 @@ export class SearchManager implements AppModule {
         break;
       }
       case 'base': {
-        const base = result.data as typeof MILITARY_BASES[0];
+        const base = result.data as { id: string };
         this.ctx.map?.setView('global');
         setTimeout(() => { this.ctx.map?.triggerBaseClick(base.id); }, 300);
         break;
       }
       case 'pipeline': {
-        const pipeline = result.data as typeof PIPELINES[0];
+        const pipeline = result.data as { id: string };
         this.ctx.map?.setView('global');
         if (!this.enableAllowedLayer('pipelines')) break;
         setTimeout(() => { this.ctx.map?.triggerPipelineClick(pipeline.id); }, 300);
         break;
       }
       case 'cable': {
-        const cable = result.data as typeof UNDERSEA_CABLES[0];
+        const cable = result.data as { id: string };
         this.ctx.map?.setView('global');
         if (!this.enableAllowedLayer('cables')) break;
         setTimeout(() => { this.ctx.map?.triggerCableClick(cable.id); }, 300);
@@ -342,14 +341,14 @@ export class SearchManager implements AppModule {
         break;
       }
       case 'nuclear': {
-        const nuc = result.data as typeof NUCLEAR_FACILITIES[0];
+        const nuc = result.data as { id: string };
         this.ctx.map?.setView('global');
         if (!this.enableAllowedLayer('nuclear')) break;
         setTimeout(() => { this.ctx.map?.triggerNuclearClick(nuc.id); }, 300);
         break;
       }
       case 'irradiator': {
-        const irr = result.data as typeof GAMMA_IRRADIATORS[0];
+        const irr = result.data as { id: string };
         this.ctx.map?.setView('global');
         if (!this.enableAllowedLayer('irradiators')) break;
         setTimeout(() => { this.ctx.map?.triggerIrradiatorClick(irr.id); }, 300);

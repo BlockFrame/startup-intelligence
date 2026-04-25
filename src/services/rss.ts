@@ -202,6 +202,17 @@ export async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
   const currentLang = getCurrentLanguage();
   const feedScope = getFeedScope(feed.name, currentLang);
 
+  if (
+    SITE_VARIANT === 'startup' &&
+    typeof window !== 'undefined' &&
+    (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') &&
+    feed.name === 'FwdStart Newsletter' &&
+    typeof feed.url === 'string' &&
+    feed.url.startsWith('/api/')
+  ) {
+    return [];
+  }
+
   if (isFeedOnCooldown(feedScope)) {
     const cached = feedCache.get(feedScope);
     if (cached) return cached.items;

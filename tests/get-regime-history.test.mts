@@ -24,10 +24,10 @@ const premiumPathsSrc = readFileSync(
   'utf-8',
 );
 
-const gatewaySrc = readFileSync(
-  resolve(root, 'server/gateway.ts'),
-  'utf-8',
-);
+const gatewaySrc = [
+  readFileSync(resolve(root, 'server/gateway.ts'), 'utf-8'),
+  readFileSync(resolve(root, 'server/gateway-cache-tiers.ts'), 'utf-8'),
+].join('\n');
 
 const protoSrc = readFileSync(
   resolve(root, 'proto/worldmonitor/intelligence/v1/get_regime_history.proto'),

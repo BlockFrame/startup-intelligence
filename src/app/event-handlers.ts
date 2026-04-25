@@ -29,7 +29,6 @@ import {
 } from '@/config';
 import { VARIANT_META } from '@/config/variant-meta';
 import { isDesktopRuntime } from '@/services/runtime';
-import { initAisStream, disconnectAisStream } from '@/services/maritime';
 import { saveSnapshot } from '@/services/storage';
 import {
   track,
@@ -1226,10 +1225,14 @@ export class EventHandlerManager implements AppModule {
       if (layer === 'ais') {
         if (enabled) {
           this.ctx.map?.setLayerLoading('ais', true);
-          initAisStream();
+          void import('@/services/maritime')
+            .then(({ initAisStream }) => initAisStream())
+            .catch(() => {});
           this.callbacks.waitForAisData();
         } else {
-          disconnectAisStream();
+          void import('@/services/maritime')
+            .then(({ disconnectAisStream }) => disconnectAisStream())
+            .catch(() => {});
         }
         return;
       }

@@ -1,0 +1,4 @@
+- generic [active] [ref=e1]:
+  - heading "World Monitor - Real-Time Global Intelligence Dashboard" [level=1] [ref=e2]
+  - complementary [ref=e80]:
+    - button [ref=e82] [cursor=pointer]: ×

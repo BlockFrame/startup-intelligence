@@ -9,8 +9,8 @@ import {
   STOCK_ANALYSIS_FRESH_MS,
   type StockAnalysisSnapshot,
 } from '../src/services/stock-analysis-history.ts';
-import { analyzeStock } from '../server/worldmonitor/market/v1/analyze-stock.ts';
-import { getStockAnalysisHistory } from '../server/worldmonitor/market/v1/get-stock-analysis-history.ts';
+import { analyzeStock } from '../server/startup/market/v1/analyze-stock.ts';
+import { getStockAnalysisHistory } from '../server/startup/market/v1/get-stock-analysis-history.ts';
 import { MarketServiceClient } from '../src/generated/client/worldmonitor/market/v1/service_client.ts';
 
 const originalFetch = globalThis.fetch;

@@ -1030,8 +1030,12 @@ export const DEFAULT_ENABLED_INTEL: string[] = [
 
 export function getAllDefaultEnabledSources(): Set<string> {
   const s = new Set<string>();
-  for (const names of Object.values(DEFAULT_ENABLED_SOURCES)) names.forEach(n => s.add(n));
-  DEFAULT_ENABLED_INTEL.forEach(n => s.add(n));
+  for (const [key, names] of Object.entries(DEFAULT_ENABLED_SOURCES)) {
+    if (key in FEEDS) names.forEach(n => s.add(n));
+  }
+  if (SITE_VARIANT === 'full') {
+    DEFAULT_ENABLED_INTEL.forEach(n => s.add(n));
+  }
   return s;
 }
 
@@ -1068,13 +1072,20 @@ export function getTotalFeedCount(): number {
 
 if (import.meta.env.DEV) {
   const allFeedNames = new Set<string>();
-  for (const feeds of Object.values(FULL_FEEDS)) for (const f of feeds) allFeedNames.add(f.name);
-  for (const f of INTEL_SOURCES) allFeedNames.add(f.name);
-  const defaultEnabled = getAllDefaultEnabledSources();
-  for (const name of defaultEnabled) {
-    if (!allFeedNames.has(name)) console.error(`[feeds] DEFAULT_ENABLED name "${name}" not found in FULL_FEEDS!`);
+  for (const feeds of Object.values(FEEDS)) {
+    if (!Array.isArray(feeds)) continue;
+    for (const f of feeds) allFeedNames.add(f.name);
   }
-  console.log(`[feeds] ${defaultEnabled.size} unique default-enabled sources / ${allFeedNames.size} total`);
+  if (SITE_VARIANT === 'full') {
+    for (const f of INTEL_SOURCES) allFeedNames.add(f.name);
+    const defaultEnabled = getAllDefaultEnabledSources();
+    for (const name of defaultEnabled) {
+      if (!allFeedNames.has(name)) console.error(`[feeds] DEFAULT_ENABLED name "${name}" not found in active variant feeds!`);
+    }
+    console.log(`[feeds] ${defaultEnabled.size} unique default-enabled sources / ${allFeedNames.size} total`);
+  } else {
+    console.log(`[feeds] ${allFeedNames.size} active sources in ${SITE_VARIANT} variant`);
+  }
 }
 
 // Keywords that trigger alert status - must be specific to avoid false positives

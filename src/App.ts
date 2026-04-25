@@ -17,7 +17,6 @@ import {
 import { sanitizeLayersForVariant } from '@/config/map-layer-definitions';
 import type { MapVariant } from '@/config/map-layer-definitions';
 import { cleanOldSnapshots, initDB } from '@/services/storage';
-import { disconnectAisStream, initAisStream, isAisConfigured } from '@/services/maritime';
 import { isOutagesConfigured } from '@/services/infrastructure';
 import { isProUser } from '@/services/widget-store';
 import { mlWorker } from '@/services/ml-worker';
@@ -81,6 +80,7 @@ import { capturePendingCheckoutIntentFromUrl, resumePendingCheckout } from '@/se
 import type { CorrelationPanel } from '@/components/CorrelationPanel';
 
 const CYBER_LAYER_ENABLED = import.meta.env.VITE_ENABLE_CYBER_LAYER === 'true';
+const IS_STARTUP_BUILD = import.meta.env.VITE_VARIANT === 'startup';
 const EMPTY_BOOTSTRAP_HYDRATION_STATE: BootstrapHydrationState = {
   source: 'none',
   tiers: {
@@ -790,7 +790,7 @@ export class App {
   }
 
   private async setupModules(): Promise<void> {
-    const { DataLoaderManager } = SITE_VARIANT === 'startup'
+    const { DataLoaderManager } = IS_STARTUP_BUILD
       ? await import('@/app/startup-data-loader')
       : await import('@/app/data-loader');
 
@@ -890,11 +890,17 @@ export class App {
       }
     });
 
-    // Check AIS configuration before init
-    if (!isAisConfigured()) {
+    // Check AIS configuration before init. Legacy maritime code is lazy so startup builds
+    // do not pull AIS helpers unless the layer is actually available.
+    if (SITE_VARIANT === 'startup') {
       this.state.mapLayers.ais = false;
-    } else if (this.state.mapLayers.ais) {
-      initAisStream();
+    } else {
+      const { isAisConfigured, initAisStream } = await import('@/services/maritime');
+      if (!isAisConfigured()) {
+        this.state.mapLayers.ais = false;
+      } else if (this.state.mapLayers.ais) {
+        initAisStream();
+      }
     }
 
     // Wait for sidecar readiness on desktop so bootstrap hits a live server
@@ -1115,7 +1121,9 @@ export class App {
     startLearning();
 
     // Hide unconfigured layers after first data load
-    if (!isAisConfigured()) {
+    if (SITE_VARIANT === 'startup') {
+      this.state.map?.hideLayerToggle('ais');
+    } else if (!(await import('@/services/maritime')).isAisConfigured()) {
       this.state.map?.hideLayerToggle('ais');
     }
     if (isOutagesConfigured() === false) {
@@ -1219,7 +1227,11 @@ export class App {
     this.cachedModeBannerEl?.remove();
     this.cachedModeBannerEl = null;
     this.state.map?.destroy();
-    disconnectAisStream();
+    if (SITE_VARIANT !== 'startup') {
+      void import('@/services/maritime')
+        .then(({ disconnectAisStream }) => disconnectAisStream())
+        .catch(() => {});
+    }
   }
 
   private handleDeepLinks(): void {

@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deduplicateHeadlines } from '../server/worldmonitor/news/v1/dedup.mjs';
+import { deduplicateHeadlines } from '../server/startup/news/v1/dedup.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -105,7 +105,7 @@ describe('humanitarian_summary.proto', () => {
 // ========================================================================
 
 describe('LLM prompt political context (LOW-1)', () => {
-  const src = readSrc('server/worldmonitor/news/v1/_shared.ts');
+  const src = readSrc('server/startup/news/v1/_shared.ts');
 
   it('does not contain hardcoded "Donald Trump" reference', () => {
     assert.doesNotMatch(src, /Donald Trump/,
@@ -166,7 +166,7 @@ describe('headline deduplication', () => {
 
 describe('getCacheKey determinism', () => {
   const src = readSrc('src/utils/summary-cache-key.ts');
-  const sharedSrc = readSrc('server/worldmonitor/news/v1/_shared.ts');
+  const sharedSrc = readSrc('server/startup/news/v1/_shared.ts');
 
   it('getCacheKey function exists and builds versioned keys', () => {
     assert.match(src, /export function buildSummaryCacheKey\(/,

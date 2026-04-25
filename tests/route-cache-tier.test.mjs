@@ -38,8 +38,10 @@ function extractGetRoutes() {
 }
 
 function extractCacheTierKeys() {
-  const gatewayPath = join(root, 'server', 'gateway.ts');
-  const src = readFileSync(gatewayPath, 'utf-8');
+  const src = [
+    readFileSync(join(root, 'server', 'gateway.ts'), 'utf-8'),
+    readFileSync(join(root, 'server', 'gateway-cache-tiers.ts'), 'utf-8'),
+  ].join('\n');
   const re = /'\/(api\/[^']+)':\s*'(fast|medium|slow|slow-browser|static|daily|no-store)'/g;
   const entries = {};
   let m;
@@ -80,7 +82,7 @@ describe('RPC_CACHE_TIER route parity', () => {
     const gatewaySrc = readFileSync(join(root, 'server', 'gateway.ts'), 'utf-8');
     assert.match(
       gatewaySrc,
-      /RPC_CACHE_TIER\[pathname\]\s*\?\?\s*'medium'/,
+      /activeRpcCacheTier\[pathname\]\s*\?\?\s*'medium'/,
       'Gateway still has medium default fallback — ensure all routes are explicit',
     );
   });

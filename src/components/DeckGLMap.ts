@@ -38,14 +38,12 @@ import type {
 } from '@/types';
 import { fetchMilitaryBases, type MilitaryBaseCluster as ServerBaseCluster } from '@/services/military-bases';
 import type { AirportDelayAlert, PositionSample } from '@/services/aviation';
-import { fetchAircraftPositions } from '@/services/aviation';
 import { type IranEvent, getIranEventColor, getIranEventRadius } from '@/services/conflict';
 import { getMilitaryBaseColor } from '@/config/military-base-colors';
 import { getMineralColor } from '@/config/mineral-colors';
 import { getWindColor } from '@/config/wind-colors';
 import { CII_LEVEL_COLORS, type CiiLevel } from '@/config/cii-colors';
 import type { GpsJamHex } from '@/services/gps-interference';
-import { fetchImageryScenes } from '@/services/imagery';
 import type { ImageryScene } from '@/generated/server/worldmonitor/imagery/v1/service_server';
 import type { TrafficAnomaly as ProtoTrafficAnomaly, DdosLocationHit } from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
 import type { DisplacementFlow } from '@/services/displacement';
@@ -128,9 +126,7 @@ import {
 } from './resilience-choropleth-utils';
 
 import { isAllowedPreviewUrl } from '@/utils/imagery-preview';
-import { pinWebcam, isPinned } from '@/services/webcams/pinned-store';
 import type { WebcamEntry, WebcamCluster } from '@/generated/client/worldmonitor/webcam/v1/service_client';
-import { fetchWebcamImage } from '@/services/webcams';
 
 export type TimeRange = '1h' | '6h' | '24h' | '48h' | '7d' | 'all';
 export type DeckMapView = 'global' | 'america' | 'mena' | 'eu' | 'asia' | 'latam' | 'africa' | 'oceania';
@@ -3681,6 +3677,7 @@ export class DeckGLMap {
     const bbox = `${bounds.getWest().toFixed(4)},${bounds.getSouth().toFixed(4)},${bounds.getEast().toFixed(4)},${bounds.getNorth().toFixed(4)}`;
     const version = ++this.imagerySearchVersion;
     try {
+      const { fetchImageryScenes } = await import('@/services/imagery');
       const scenes = await fetchImageryScenes({ bbox, limit: 20 });
       if (version !== this.imagerySearchVersion) return;
       this.imageryScenes = scenes;
@@ -4278,11 +4275,15 @@ export class DeckGLMap {
     const id = webcam.webcamId;
 
     // Fetch playerUrl for when user pins
+    const [{ fetchWebcamImage }, pinnedStore] = await Promise.all([
+      import('@/services/webcams'),
+      import('@/services/webcams/pinned-store'),
+    ]);
     const imageData = await fetchWebcamImage(id).catch(() => null);
 
     const pinBtn = document.createElement('button');
     pinBtn.className = 'webcam-pin-btn';
-    if (isPinned(id)) {
+    if (pinnedStore.isPinned(id)) {
       pinBtn.classList.add('webcam-pin-btn--pinned');
       pinBtn.textContent = '\u{1F4CC} Pinned';
       pinBtn.disabled = true;
@@ -4290,7 +4291,7 @@ export class DeckGLMap {
       pinBtn.textContent = '\u{1F4CC} Pin';
       pinBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        pinWebcam({
+        pinnedStore.pinWebcam({
           webcamId: id,
           title: webcam.title || imageData?.title || '',
           lat: webcam.lat,
@@ -5607,10 +5608,10 @@ export class DeckGLMap {
     const ne = bounds.getNorthEast();
     const seq = ++this.aircraftFetchSeq;
     this.setLayerLoading('flights', true);
-    fetchAircraftPositions({
+    import('@/services/aviation').then(({ fetchAircraftPositions }) => fetchAircraftPositions({
       swLat: sw.lat, swLon: sw.lng,
       neLat: ne.lat, neLon: ne.lng,
-    }).then((positions) => {
+    })).then((positions) => {
       if (seq !== this.aircraftFetchSeq) return; // discard stale response
       this.aircraftPositions = positions;
       this.onAircraftPositionsUpdate?.(positions);

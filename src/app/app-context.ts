@@ -1,29 +1,11 @@
-import type { InternetOutage, SocialUnrestEvent, MilitaryFlight, MilitaryFlightCluster, MilitaryVessel, MilitaryVesselCluster, USNIFleetReport, PanelConfig, MapLayers, NewsItem, MarketData, ClusteredEvent, CyberThreat, Monitor } from '@/types';
-import type { AirportDelayAlert, PositionSample } from '@/services/aviation';
-import type { IranEvent } from '@/generated/client/worldmonitor/conflict/v1/service_client';
-import type { SanctionsPressureResult } from '@/services/sanctions-pressure';
-import type { RadiationWatchResult } from '@/services/radiation';
-import type { SecurityAdvisory } from '@/services/security-advisories';
-import type { Earthquake } from '@/services/earthquakes';
+import type { PanelConfig, MapLayers, NewsItem, MarketData, ClusteredEvent, CyberThreat, Monitor } from '@/types';
+import type { LegacyIntelligenceCache } from '@/app/legacy-app-context';
 
 export type { CountryBriefSignals } from '@/types';
 
-export interface IntelligenceCache {
-  flightDelays?: AirportDelayAlert[];
-  thermalEscalation?: import('@/services/thermal-escalation').ThermalEscalationWatch;
-  aircraftPositions?: PositionSample[];
-  outages?: InternetOutage[];
-  protests?: { events: SocialUnrestEvent[]; sources: { acled: number; gdelt: number } };
-  military?: { flights: MilitaryFlight[]; flightClusters: MilitaryFlightCluster[]; vessels: MilitaryVessel[]; vesselClusters: MilitaryVesselCluster[] };
-  earthquakes?: Earthquake[];
-  usniFleet?: USNIFleetReport;
-  iranEvents?: IranEvent[];
-  orefAlerts?: { alertCount: number; historyCount24h: number };
-  advisories?: SecurityAdvisory[];
-  sanctions?: SanctionsPressureResult;
-  radiation?: RadiationWatchResult;
-  imageryScenes?: Array<{ id: string; satellite: string; datetime: string; resolutionM: number; mode: string; geometryGeojson: string; previewUrl: string; assetUrl: string }>;
-}
+export interface StartupIntelligenceCache {}
+
+export type IntelligenceCache = StartupIntelligenceCache & LegacyIntelligenceCache;
 
 export interface AppContext {
   map: import('@/components/MapContainer').MapContainer | null;

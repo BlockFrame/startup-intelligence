@@ -44,7 +44,6 @@ import {
   CENTRAL_BANKS,
   COMMODITY_HUBS,
 } from '@/config';
-import { pinWebcam, isPinned } from '@/services/webcams/pinned-store';
 import type { WebcamEntry, WebcamCluster } from '@/generated/client/worldmonitor/webcam/v1/service_client';
 import { tokenizeForMatch, matchKeyword, findMatchingKeywords } from '@/utils/keyword-match';
 import { MapPopup } from './MapPopup';
@@ -2960,7 +2959,10 @@ export class MapComponent {
     this.placeWebcamTooltip(tooltip, clientX, clientY);
 
     if (cam.webcamId) {
-      import('@/services/webcams').then(({ fetchWebcamImage }) => {
+      Promise.all([
+        import('@/services/webcams'),
+        import('@/services/webcams/pinned-store'),
+      ]).then(([{ fetchWebcamImage }, pinnedStore]) => {
         fetchWebcamImage(cam.webcamId).then(img => {
           if (!tooltip.isConnected) return;
           previewDiv.replaceChildren();
@@ -2980,7 +2982,7 @@ export class MapComponent {
           const pinBtn = document.createElement('button');
           pinBtn.className = 'webcam-pin-btn';
           const wcId = cam.webcamId;
-          if (isPinned(wcId)) {
+          if (pinnedStore.isPinned(wcId)) {
             pinBtn.classList.add('webcam-pin-btn--pinned');
             pinBtn.textContent = '\u{1F4CC} Pinned';
             pinBtn.disabled = true;
@@ -2988,7 +2990,7 @@ export class MapComponent {
             pinBtn.textContent = '\u{1F4CC} Pin';
             pinBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-              pinWebcam({
+              pinnedStore.pinWebcam({
                 webcamId: wcId,
                 title: cam.title || img?.title || '',
                 lat: cam.lat,

@@ -18,15 +18,10 @@ import { checkRateLimit, checkEndpointRateLimit, hasEndpointRatePolicy } from '.
 import { drainResponseHeaders } from './_shared/response-headers';
 import { checkEntitlement, getRequiredTier } from './_shared/entitlement-check';
 import { resolveSessionUserId } from './_shared/auth-session';
+import { RPC_CACHE_TIER, STARTUP_RPC_CACHE_TIER, type CacheTier } from './gateway-cache-tiers';
 import type { ServerOptions } from '../src/generated/server/worldmonitor/seismology/v1/service_server';
 
 export const serverOptions: ServerOptions = { onError: mapErrorToResponse };
-
-// --- Edge cache tier definitions ---
-// NOTE: This map is shared across all domain bundles (~3KB). Kept centralised for
-// single-source-of-truth maintainability; the size is negligible vs handler code.
-
-type CacheTier = 'fast' | 'medium' | 'slow' | 'slow-browser' | 'static' | 'daily' | 'no-store';
 
 // Three-tier caching: browser (max-age) → CF edge (s-maxage) → Vercel CDN (CDN-Cache-Control).
 // CF ignores Vary: Origin so it may pin a single ACAO value, but this is acceptable
@@ -54,194 +49,6 @@ const TIER_CDN_CACHE: Record<CacheTier, string | null> = {
   'no-store': null,
 };
 
-const RPC_CACHE_TIER: Record<string, CacheTier> = {
-  '/api/maritime/v1/get-vessel-snapshot': 'no-store',
-
-  '/api/market/v1/list-market-quotes': 'medium',
-  '/api/market/v1/list-crypto-quotes': 'medium',
-  '/api/market/v1/list-crypto-sectors': 'slow',
-  '/api/market/v1/list-defi-tokens': 'slow',
-  '/api/market/v1/list-ai-tokens': 'slow',
-  '/api/market/v1/list-other-tokens': 'slow',
-  '/api/market/v1/list-commodity-quotes': 'medium',
-  '/api/market/v1/list-stablecoin-markets': 'medium',
-  '/api/market/v1/get-sector-summary': 'medium',
-  '/api/market/v1/get-fear-greed-index': 'slow',
-  '/api/market/v1/get-market-breadth-history': 'daily',
-  '/api/market/v1/list-gulf-quotes': 'medium',
-  '/api/market/v1/analyze-stock': 'slow',
-  '/api/market/v1/get-stock-analysis-history': 'medium',
-  '/api/market/v1/backtest-stock': 'slow',
-  '/api/market/v1/list-stored-stock-backtests': 'medium',
-  '/api/infrastructure/v1/list-service-statuses': 'slow',
-  '/api/seismology/v1/list-earthquakes': 'slow',
-  '/api/infrastructure/v1/list-internet-outages': 'slow',
-  '/api/infrastructure/v1/list-internet-ddos-attacks': 'slow',
-  '/api/infrastructure/v1/list-internet-traffic-anomalies': 'slow',
-
-  '/api/unrest/v1/list-unrest-events': 'slow',
-  '/api/cyber/v1/list-cyber-threats': 'static',
-  '/api/conflict/v1/list-acled-events': 'slow',
-  '/api/military/v1/get-theater-posture': 'slow',
-  '/api/infrastructure/v1/get-temporal-baseline': 'slow',
-  '/api/aviation/v1/list-airport-delays': 'static',
-  '/api/aviation/v1/get-airport-ops-summary': 'static',
-  '/api/aviation/v1/list-airport-flights': 'static',
-  '/api/aviation/v1/get-carrier-ops': 'slow',
-  '/api/aviation/v1/get-flight-status': 'fast',
-  '/api/aviation/v1/track-aircraft': 'no-store',
-  '/api/aviation/v1/search-flight-prices': 'medium',
-  '/api/aviation/v1/search-google-flights': 'no-store',
-  '/api/aviation/v1/search-google-dates': 'medium',
-  '/api/aviation/v1/list-aviation-news': 'slow',
-  '/api/market/v1/get-country-stock-index': 'slow',
-
-  '/api/natural/v1/list-natural-events': 'slow',
-  '/api/wildfire/v1/list-fire-detections': 'static',
-  '/api/maritime/v1/list-navigational-warnings': 'static',
-  '/api/supply-chain/v1/get-shipping-rates': 'daily',
-  '/api/economic/v1/get-fred-series': 'static',
-  '/api/economic/v1/get-bls-series': 'daily',
-  '/api/economic/v1/get-energy-prices': 'static',
-  '/api/research/v1/list-arxiv-papers': 'static',
-  '/api/research/v1/list-trending-repos': 'static',
-  '/api/giving/v1/get-giving-summary': 'static',
-  '/api/intelligence/v1/get-country-intel-brief': 'static',
-  '/api/intelligence/v1/get-gdelt-topic-timeline': 'medium',
-  '/api/climate/v1/list-climate-anomalies': 'daily',
-  '/api/climate/v1/list-climate-disasters': 'daily',
-  '/api/climate/v1/get-co2-monitoring': 'daily',
-  '/api/climate/v1/get-ocean-ice-data': 'daily',
-  '/api/climate/v1/list-air-quality-data': 'fast',
-  '/api/climate/v1/list-climate-news': 'slow',
-  '/api/sanctions/v1/list-sanctions-pressure': 'daily',
-  '/api/sanctions/v1/lookup-sanction-entity': 'no-store',
-  '/api/radiation/v1/list-radiation-observations': 'slow',
-  '/api/thermal/v1/list-thermal-escalations': 'slow',
-  '/api/research/v1/list-tech-events': 'daily',
-  '/api/military/v1/get-usni-fleet-report': 'daily',
-  '/api/military/v1/list-defense-patents': 'daily',
-  '/api/conflict/v1/list-ucdp-events': 'daily',
-  '/api/conflict/v1/get-humanitarian-summary': 'daily',
-  '/api/conflict/v1/list-iran-events': 'slow',
-  '/api/displacement/v1/get-displacement-summary': 'daily',
-  '/api/displacement/v1/get-population-exposure': 'daily',
-  '/api/economic/v1/get-bis-policy-rates': 'daily',
-  '/api/economic/v1/get-bis-exchange-rates': 'daily',
-  '/api/economic/v1/get-bis-credit': 'daily',
-  '/api/trade/v1/get-tariff-trends': 'daily',
-  '/api/trade/v1/get-trade-flows': 'daily',
-  '/api/trade/v1/get-trade-barriers': 'daily',
-  '/api/trade/v1/get-trade-restrictions': 'daily',
-  '/api/trade/v1/get-customs-revenue': 'daily',
-  '/api/trade/v1/list-comtrade-flows': 'daily',
-  '/api/economic/v1/list-world-bank-indicators': 'daily',
-  '/api/economic/v1/get-energy-capacity': 'daily',
-  '/api/economic/v1/list-grocery-basket-prices': 'daily',
-  '/api/economic/v1/list-bigmac-prices': 'daily',
-  '/api/economic/v1/list-fuel-prices': 'daily',
-  '/api/economic/v1/get-fao-food-price-index': 'daily',
-  '/api/economic/v1/get-crude-inventories': 'daily',
-  '/api/economic/v1/get-nat-gas-storage': 'daily',
-  '/api/economic/v1/get-eu-yield-curve': 'daily',
-  '/api/supply-chain/v1/get-critical-minerals': 'daily',
-  '/api/military/v1/get-aircraft-details': 'static',
-  '/api/military/v1/get-wingbits-status': 'static',
-  '/api/military/v1/get-wingbits-live-flight': 'no-store',
-
-  '/api/military/v1/list-military-flights': 'slow',
-  '/api/market/v1/list-etf-flows': 'slow',
-  '/api/research/v1/list-hackernews-items': 'slow',
-  '/api/intelligence/v1/get-country-risk': 'slow',
-  '/api/intelligence/v1/get-risk-scores': 'slow',
-  '/api/intelligence/v1/get-pizzint-status': 'slow',
-  '/api/intelligence/v1/classify-event': 'static',
-  '/api/intelligence/v1/search-gdelt-documents': 'slow',
-  '/api/infrastructure/v1/get-cable-health': 'slow',
-  '/api/positive-events/v1/list-positive-geo-events': 'slow',
-
-  '/api/military/v1/list-military-bases': 'daily',
-  '/api/economic/v1/get-macro-signals': 'medium',
-  '/api/economic/v1/get-national-debt': 'daily',
-  '/api/prediction/v1/list-prediction-markets': 'medium',
-  '/api/forecast/v1/get-forecasts': 'medium',
-  '/api/forecast/v1/get-simulation-package': 'slow',
-  '/api/forecast/v1/get-simulation-outcome': 'slow',
-  '/api/supply-chain/v1/get-chokepoint-status': 'medium',
-  '/api/news/v1/list-feed-digest': 'slow',
-  '/api/intelligence/v1/get-country-facts': 'daily',
-  '/api/intelligence/v1/list-security-advisories': 'slow',
-  '/api/intelligence/v1/list-satellites': 'static',
-  '/api/intelligence/v1/list-gps-interference': 'slow',
-  '/api/intelligence/v1/list-cross-source-signals': 'medium',
-  '/api/intelligence/v1/list-oref-alerts': 'fast',
-  '/api/intelligence/v1/list-telegram-feed': 'fast',
-  '/api/intelligence/v1/get-company-enrichment': 'slow',
-  '/api/intelligence/v1/list-company-signals': 'slow',
-  '/api/news/v1/summarize-article-cache': 'slow',
-
-  '/api/imagery/v1/search-imagery': 'static',
-
-  '/api/infrastructure/v1/list-temporal-anomalies': 'medium',
-  '/api/infrastructure/v1/get-ip-geo': 'no-store',
-  '/api/infrastructure/v1/reverse-geocode': 'slow',
-  '/api/infrastructure/v1/get-bootstrap-data': 'no-store',
-  '/api/webcam/v1/get-webcam-image': 'no-store',
-  '/api/webcam/v1/list-webcams': 'no-store',
-
-  '/api/consumer-prices/v1/get-consumer-price-overview': 'slow',
-  '/api/consumer-prices/v1/get-consumer-price-basket-series': 'slow',
-  '/api/consumer-prices/v1/list-consumer-price-categories': 'slow',
-  '/api/consumer-prices/v1/list-consumer-price-movers': 'slow',
-  '/api/consumer-prices/v1/list-retailer-price-spreads': 'slow',
-  '/api/consumer-prices/v1/get-consumer-price-freshness': 'slow',
-
-  '/api/aviation/v1/get-youtube-live-stream-info': 'fast',
-
-  '/api/market/v1/list-earnings-calendar': 'slow',
-  '/api/market/v1/get-cot-positioning': 'slow',
-  '/api/market/v1/get-gold-intelligence': 'slow',
-  '/api/market/v1/get-hyperliquid-flow': 'medium',
-  '/api/market/v1/get-insider-transactions': 'slow',
-  '/api/economic/v1/get-economic-calendar': 'slow',
-  '/api/intelligence/v1/list-market-implications': 'slow',
-  '/api/economic/v1/get-ecb-fx-rates': 'slow',
-  '/api/economic/v1/get-eurostat-country-data': 'slow',
-  '/api/economic/v1/get-eu-gas-storage': 'slow',
-  '/api/economic/v1/get-oil-stocks-analysis': 'static',
-  '/api/economic/v1/get-oil-inventories': 'slow',
-  '/api/economic/v1/get-energy-crisis-policies': 'static',
-  '/api/economic/v1/get-eu-fsi': 'slow',
-  '/api/economic/v1/get-economic-stress': 'slow',
-  '/api/supply-chain/v1/get-shipping-stress': 'medium',
-  '/api/supply-chain/v1/get-country-chokepoint-index': 'slow-browser',
-  '/api/supply-chain/v1/get-bypass-options': 'slow-browser',
-  '/api/supply-chain/v1/get-country-cost-shock': 'slow-browser',
-  '/api/supply-chain/v1/get-sector-dependency': 'slow-browser',
-  '/api/supply-chain/v1/get-route-explorer-lane': 'slow-browser',
-  '/api/supply-chain/v1/get-route-impact': 'slow-browser',
-  '/api/health/v1/list-disease-outbreaks': 'slow',
-  '/api/health/v1/list-air-quality-alerts': 'fast',
-  '/api/intelligence/v1/get-social-velocity': 'fast',
-  '/api/intelligence/v1/get-country-energy-profile': 'slow',
-  '/api/intelligence/v1/compute-energy-shock': 'fast',
-  '/api/intelligence/v1/get-country-port-activity': 'slow',
-  // NOTE: get-regional-snapshot is premium-gated via PREMIUM_RPC_PATHS; the
-  // gateway short-circuits to 'slow-browser' before consulting this map. The
-  // entry below exists to satisfy the parity contract enforced by
-  // tests/route-cache-tier.test.mjs (every generated GET route needs a tier)
-  // and documents the intended tier if the endpoint ever becomes non-premium.
-  '/api/intelligence/v1/get-regional-snapshot': 'slow',
-  // get-regime-history is premium-gated same as get-regional-snapshot; this
-  // entry is required by tests/route-cache-tier.test.mjs even though the
-  // gateway short-circuits premium paths to slow-browser.
-  '/api/intelligence/v1/get-regime-history': 'slow',
-  // get-regional-brief is premium-gated; slow-browser in practice, slow entry for route-parity.
-  '/api/intelligence/v1/get-regional-brief': 'slow',
-  '/api/resilience/v1/get-resilience-score': 'slow',
-  '/api/resilience/v1/get-resilience-ranking': 'slow',
-};
-
 import { PREMIUM_RPC_PATHS } from '../src/shared/premium-paths';
 
 /**
@@ -252,6 +59,19 @@ import { PREMIUM_RPC_PATHS } from '../src/shared/premium-paths';
  */
 export function createDomainGateway(
   routes: RouteDescriptor[],
+): (req: Request) => Promise<Response> {
+  return createDomainGatewayWithCache(routes, RPC_CACHE_TIER);
+}
+
+export function createStartupDomainGateway(
+  routes: RouteDescriptor[],
+): (req: Request) => Promise<Response> {
+  return createDomainGatewayWithCache(routes, STARTUP_RPC_CACHE_TIER);
+}
+
+function createDomainGatewayWithCache(
+  routes: RouteDescriptor[],
+  activeRpcCacheTier: Record<string, CacheTier>,
 ): (req: Request) => Promise<Response> {
   const router = createRouter(routes);
 
@@ -489,7 +309,7 @@ export function createDomainGateway(
         const envOverride = process.env[`CACHE_TIER_OVERRIDE_${rpcName.replace(/-/g, '_').toUpperCase()}`] as CacheTier | undefined;
         const isPremium = PREMIUM_RPC_PATHS.has(pathname) || getRequiredTier(pathname) !== null;
         const tier = isPremium ? 'slow-browser' as CacheTier
-          : (envOverride && envOverride in TIER_HEADERS ? envOverride : null) ?? RPC_CACHE_TIER[pathname] ?? 'medium';
+          : (envOverride && envOverride in TIER_HEADERS ? envOverride : null) ?? activeRpcCacheTier[pathname] ?? 'medium';
         mergedHeaders.set('Cache-Control', TIER_HEADERS[tier]);
         // Only allow Vercel CDN caching for trusted origins (worldmonitor.app, Vercel previews,
         // Tauri). No-origin server-side requests (external scrapers) must always reach the edge

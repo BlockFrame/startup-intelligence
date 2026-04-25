@@ -1,4 +1,5 @@
 import { Panel } from './Panel';
+import { SITE_VARIANT } from '@/config/variant';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { t } from '@/services/i18n';
 import { sanitizeUrl } from '@/utils/sanitize';
@@ -13,6 +14,13 @@ import { getHydratedData } from '@/services/bootstrap';
 type ViewMode = 'upcoming' | 'conferences' | 'earnings' | 'all';
 
 const researchClient = new ResearchServiceClient(getRpcBaseUrl(), { fetch: (...args) => globalThis.fetch(...args) });
+
+function shouldSkipTechEventsRpcInDev(): boolean {
+  if (SITE_VARIANT !== 'startup') return false;
+  if (typeof window === 'undefined') return false;
+  if (getRpcBaseUrl()) return false;
+  return window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+}
 
 export class TechEventsPanel extends Panel {
   private viewMode: ViewMode = 'upcoming';
@@ -36,6 +44,14 @@ export class TechEventsPanel extends Panel {
     if (hydrated?.events?.length) {
       this.events = hydrated.events;
       this.setCount(hydrated.conferenceCount || hydrated.events.filter((e: TechEvent) => e.type === 'conference').length);
+      this.loading = false;
+      this.render();
+      return;
+    }
+
+    if (shouldSkipTechEventsRpcInDev()) {
+      this.events = [];
+      this.setCount(0);
       this.loading = false;
       this.render();
       return;

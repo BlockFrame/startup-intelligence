@@ -14,9 +14,6 @@ import { TransitChart } from '@/utils/transit-chart';
 import { HS2RingChart } from '@/utils/hs2-ring-chart';
 import type { GetChokepointStatusResponse } from '@/services/supply-chain';
 import { t } from '@/services/i18n';
-import { fetchHotspotContext, formatArticleDate, extractDomain, type GdeltArticle } from '@/services/gdelt-intel';
-import { getWingbitsLiveFlight } from '@/services/wingbits';
-import { isFeatureAvailable } from '@/services/runtime-config';
 import { getNaturalEventIcon } from '@/services/eonet';
 import { getHotspotEscalation, getEscalationChange24h } from '@/services/hotspot-escalation';
 import { getCableHealthRecord } from '@/services/cable-health';
@@ -40,6 +37,35 @@ const CHOKEPOINT_HS2_SECTORS: Record<string, Array<{ label: string; share: numbe
   gibraltar:       [{ label: 'Containers', share: 30, color: '#3b82f6' }, { label: 'Energy', share: 25, color: '#f97316' }, { label: 'Bulk', share: 20, color: '#eab308' }, { label: 'Other', share: 25, color: '#64748b' }],
   bosphorus:       [{ label: 'Energy', share: 58, color: '#f97316' }, { label: 'Bulk', share: 18, color: '#eab308' }, { label: 'Containers', share: 14, color: '#3b82f6' }, { label: 'Other', share: 10, color: '#64748b' }],
 };
+
+const isWingbitsEnrichmentEnabled = (): boolean =>
+  import.meta.env.VITE_FEATURE_WINGBITS_ENRICHMENT === 'true';
+
+type GdeltArticle = {
+  title: string;
+  url: string;
+  source?: string;
+  date?: string;
+  snippet?: string;
+};
+
+function extractArticleDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
+function formatArticleAge(date?: string): string {
+  if (!date) return '';
+  const ts = new Date(date).getTime();
+  if (!Number.isFinite(ts)) return '';
+  const hours = Math.max(0, Math.round((Date.now() - ts) / 3_600_000));
+  if (hours < 1) return 'now';
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
 
 function renderSectorRing(sectors: Array<{ label: string; share: number; color: string }>): string {
   const R = 28;
@@ -1011,6 +1037,7 @@ export class MapPopup {
     if (!container) return;
 
     try {
+      const { fetchHotspotContext } = await import('@/services/gdelt-intel');
       const articles = await fetchHotspotContext(hotspot);
 
       if (!this.popup || !container.isConnected) return;
@@ -1046,6 +1073,7 @@ export class MapPopup {
     if (!section) return;
 
     try {
+      const { getWingbitsLiveFlight } = await import('@/services/wingbits');
       const live = await getWingbitsLiveFlight(hexCode);
 
       if (!this.popup || !section.isConnected) return;
@@ -1147,8 +1175,8 @@ export class MapPopup {
   }
 
   private renderGdeltArticle(article: GdeltArticle): string {
-    const domain = article.source || extractDomain(article.url);
-    const timeAgo = formatArticleDate(article.date);
+    const domain = article.source || extractArticleDomain(article.url);
+    const timeAgo = formatArticleAge(article.date);
 
     return `
       <a href="${sanitizeUrl(article.url)}" target="_blank" rel="noopener" class="hotspot-gdelt-article">
@@ -1610,7 +1638,7 @@ export class MapPopup {
             <span class="stat-value">${pos.observedAt.toLocaleTimeString()}</span>
           </div>
         </div>
-${isFeatureAvailable('wingbitsEnrichment') ? '<div class="wingbits-live-section"><div class="wingbits-live-loading" style="font-size:11px;opacity:0.5;padding:4px 0">Loading Wingbits live data…</div></div>' : ''}
+${isWingbitsEnrichmentEnabled() ? '<div class="wingbits-live-section"><div class="wingbits-live-loading" style="font-size:11px;opacity:0.5;padding:4px 0">Loading Wingbits live data…</div></div>' : ''}
       </div>
     `;
   }
@@ -2587,7 +2615,7 @@ ${isFeatureAvailable('wingbitsEnrichment') ? '<div class="wingbits-live-section"
           ${enrichedStats}
         </div>
         ${flight.note ? `<p class="popup-description">${note}</p>` : ''}
-${isFeatureAvailable('wingbitsEnrichment') ? '<div class="wingbits-live-section"><div class="wingbits-live-loading" style="font-size:11px;opacity:0.5;padding:4px 0">Loading Wingbits live data…</div></div>' : ''}
+${isWingbitsEnrichmentEnabled() ? '<div class="wingbits-live-section"><div class="wingbits-live-loading" style="font-size:11px;opacity:0.5;padding:4px 0">Loading Wingbits live data…</div></div>' : ''}
         <div class="popup-attribution">${t('popups.militaryFlight.attribution')}</div>
       </div>
     `;

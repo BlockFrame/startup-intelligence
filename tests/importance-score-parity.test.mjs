@@ -1,7 +1,7 @@
 /**
  * Parity test: the relay-inlined importance scorer (scripts/ais-relay.cjs)
  * must produce identical output to the canonical digest scorer
- * (server/worldmonitor/news/v1/list-feed-digest.ts).
+ * (server/startup/news/v1/list-feed-digest.ts).
  *
  * Background: PR #2604 introduced importanceScore in the digest. The relay
  * republishes classified headlines as rss_alert events and must carry a score
@@ -24,7 +24,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
 
 const digestSrc = readFileSync(
-  resolve(repoRoot, 'server/worldmonitor/news/v1/list-feed-digest.ts'),
+  resolve(repoRoot, 'server/startup/news/v1/list-feed-digest.ts'),
   'utf-8',
 );
 const relaySrc = readFileSync(

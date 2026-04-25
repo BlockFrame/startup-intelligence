@@ -1,4 +1,5 @@
 import { Panel } from './Panel';
+import { SITE_VARIANT } from '@/config/variant';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { escapeHtml } from '@/utils/sanitize';
 import { t } from '@/services/i18n';
@@ -25,6 +26,13 @@ interface MacroSignalData {
 }
 
 const economicClient = new EconomicServiceClient(getRpcBaseUrl(), { fetch: (...args) => globalThis.fetch(...args) });
+
+function shouldSkipMacroSignalsRpcInDev(): boolean {
+  if (SITE_VARIANT !== 'startup') return false;
+  if (typeof window === 'undefined') return false;
+  if (getRpcBaseUrl()) return false;
+  return window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+}
 
 /** Map proto response (optional fields = undefined) to MacroSignalData (null for absent values). */
 function mapProtoToData(r: GetMacroSignalsResponse): MacroSignalData {
@@ -152,6 +160,15 @@ export class MacroSignalsPanel extends Panel {
   }
 
   private async refreshFromRpc(): Promise<boolean> {
+    if (shouldSkipMacroSignalsRpcInDev()) {
+      this.loading = false;
+      if (!this.data) {
+        this.error = t('common.noDataShort');
+        this.renderPanel();
+      }
+      return false;
+    }
+
     try {
       const res = await economicClient.getMacroSignals({});
       if (!this.element?.isConnected) return false;

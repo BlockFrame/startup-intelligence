@@ -64,6 +64,13 @@ const API_PROVIDERS: ApiProviderDef[] = [
 
 let lastAttemptedProvider = 'none';
 
+function shouldSkipSummarizationRpcInDev(): boolean {
+  if (SITE_VARIANT !== 'startup') return false;
+  if (typeof window === 'undefined') return false;
+  if (getRpcBaseUrl()) return false;
+  return window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+}
+
 // ── Unified API provider caller (via SummarizeArticle RPC) ──
 
 async function tryApiProvider(
@@ -72,6 +79,7 @@ async function tryApiProvider(
   geoContext?: string,
   lang?: string,
 ): Promise<SummarizationResult | null> {
+  if (shouldSkipSummarizationRpcInDev()) return null;
   if (!isFeatureAvailable(providerDef.featureId)) return null;
   lastAttemptedProvider = providerDef.provider;
   try {
@@ -205,6 +213,10 @@ async function generateSummaryInternal(
   lang: string,
   options?: SummarizeOptions,
 ): Promise<SummarizationResult | null> {
+  if (shouldSkipSummarizationRpcInDev() && options?.skipBrowserFallback) {
+    return null;
+  }
+
   if (!options?.skipCloudProviders) {
     try {
       const cacheKey = buildSummaryCacheKey(headlines, 'brief', geoContext, SITE_VARIANT, lang);
@@ -261,7 +273,9 @@ async function generateSummaryInternal(
       onProgress?.(totalSteps, totalSteps, 'No providers available');
     }
 
-    console.warn('[BETA] All providers failed');
+    if (!shouldSkipSummarizationRpcInDev()) {
+      console.warn('[BETA] All providers failed');
+    }
     return null;
   }
 
@@ -280,7 +294,9 @@ async function generateSummaryInternal(
     if (browserResult) return browserResult;
   }
 
-  console.warn('[Summarization] All providers failed');
+  if (!shouldSkipSummarizationRpcInDev()) {
+    console.warn('[Summarization] All providers failed');
+  }
   return null;
 }
 

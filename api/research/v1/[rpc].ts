@@ -1,9 +1,9 @@
 export const config = { runtime: 'edge' };
 
-import { createDomainGateway, serverOptions } from '../../../server/gateway';
+import { createStartupDomainGateway, serverOptions } from '../../../server/gateway';
 import { createResearchServiceRoutes } from '../../../src/generated/server/worldmonitor/research/v1/service_server';
-import { researchHandler } from '../../../server/worldmonitor/research/v1/handler';
+import { researchHandler } from '../../../server/startup/research/v1/handler';
 
-export default createDomainGateway(
+export default createStartupDomainGateway(
   createResearchServiceRoutes(researchHandler, serverOptions),
 );
