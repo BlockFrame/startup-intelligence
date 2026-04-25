@@ -14,12 +14,22 @@ This map separates the original WorldMonitor surface from the target Startup Int
 - Startup intelligence keeps startup-fit RPCs and stubs geopolitical/world-risk RPCs as unavailable.
 - Startup news defaults to startup/tech feeds instead of the old full WorldMonitor feed set.
 - Startup search no longer statically imports legacy geopolitical map datasets.
+- Startup source-limit enforcement protects core startup dashboards: Product Hunt, funding/VC, startup dealflow, and semiconductors/hardware.
+- Startup map data contracts are split from the legacy map data type bundle.
+- Startup map popup renderers are split into `src/components/startup-map-popup-renderers.ts`; `MapPopup.ts` now delegates startup popups there.
+- Startup map app contract now lives in `src/components/map-container-contract.ts`; `AppContext` and `CountryDeepDivePanel` no longer import the heavy `MapContainer` implementation type.
+- Startup related-asset focus/click handling now ignores legacy pipeline, cable, military-base, and nuclear asset types and keeps only datacenter map activation.
+- `MapContainer` now skips legacy cache rehydration and legacy map data setter side effects in the startup variant; startup rehydrates only startup-safe tech event data.
+- `App.ts` now depends on the lightweight `src/app/data-loader-contract.ts` interface instead of importing loader types from both full and startup data-loader implementations.
+- Startup event handling no longer forwards aviation live-position updates or legacy CII focal refreshes, and startup exports omit legacy intelligence/cyber/GPS payloads.
+- `App.ts` now depends on the lightweight `src/app/event-handler-contract.ts` interface and dynamically imports the event handler implementation.
+- `PanelLayoutManager` now initializes asynchronously and lazy-loads `MapContainer`, so the Startup Intelligence main app chunk no longer statically imports the legacy map shell.
 - `api/intelligence/` and `api/research/` are active startup API domains and are no longer startup-deploy exclusions.
 - Verification passed after the latest code cleanup batch: `npm run typecheck`, focused startup/MCP/chat/market tests, and `npm run build:startup`.
 
 ### Still Open
 
-- Startup map still bundles legacy world-risk rendering through `DeckGLMap.ts`, `Map.ts`, `GlobeMap.ts`, `MapPopup.ts`, and `MapContainer.ts`.
+- Startup map shell no longer statically bundles the legacy map container into the main app chunk. The remaining work is a deeper renderer split inside the lazy map chunk.
 - `AppContext`, event handlers, and country intelligence still carry legacy domain state or legacy extension points.
 - Panel registry/config still mixes startup panels with legacy WorldMonitor panels.
 - Full `data-loader.ts` is not needed for startup and should disappear from the startup import graph.
@@ -139,22 +149,24 @@ Delete only after replacing or removing all imports from startup entrypoints.
 2. Extract chat analyst backend from `server/worldmonitor/intelligence/v1/` into a startup-oriented namespace, then update `api/chat-analyst.ts`. Done.
 3. Split backend startup RPCs out of `server/worldmonitor/` for market, news, research, economic, consumer-prices, and startup intelligence. Done.
 4. Re-enable active startup RPC API domains in `.vercelignore` and route Vite dev startup APIs to `server/startup/`. Done.
-5. Freeze the current green baseline: `npm run typecheck`, focused startup/MCP/chat/market tests, `npm run build:startup`, and one browser smoke test.
-6. Split the map into startup map modules and legacy geo modules. Startup build should import only startup hubs, tech HQs, cloud regions, datacenters, accelerators, tech events, and AI labs.
-7. Split `MapPopup` into startup popup renderers and legacy popup renderers.
-8. Split `MapContainer` so startup imports a startup map shell and never statically imports the legacy map stack.
-9. Split `AppContext` into startup-safe core plus legacy extensions, so startup no longer references aviation, maritime, conflict, sanctions, climate, radiation, displacement, or wildfire state.
-10. Split event handlers into startup handlers and legacy handlers. Keep desktop/download, ML worker, and data freshness only where still useful for startup.
-11. Remove `data-loader.ts` from the startup import graph. Startup should use only `startup-data-loader.ts`.
-12. Split panel registry/config into startup registry plus archived legacy registry. Startup variants should not register military, aviation, maritime, sanctions, disaster, disease, webcam, or non-tech crisis panels.
-13. Split country intelligence into startup country intelligence plus archived world-risk intelligence.
-14. Quarantine `server/worldmonitor/intelligence/v1/` after tests are migrated to `server/startup/intelligence/v1/` or removed.
-15. Quarantine frontend legacy panels, services, configs, and workers only after `rg`, typecheck, and startup build prove no startup imports remain.
-16. Rewrite `api/bootstrap.js` as startup bootstrap for startup news, arXiv, GitHub, Hugging Face, market comps, Telegram, MCP, and chat health.
-17. Replace remaining WorldMonitor product copy, links, docs, and branding in startup routes.
-18. Remove generated proto stubs only after deleted domains have no runtime/server/client imports.
-19. Run full cleanup verification and bundle audit.
-20. Delete quarantined legacy files in one final deletion batch after CI-style verification stays green.
+5. Freeze the current green baseline: `npm run typecheck`, focused startup/MCP/chat/market tests, `npm run build:startup`, and one browser smoke test. Done.
+6. Protect startup source defaults so core startup dashboards never render as all-sources-disabled after free-tier source trimming. Done.
+7. Split startup map data contracts from legacy map data contracts. Done.
+8. Split the map into startup map modules and legacy geo modules. Done for the app shell: `MapContainer` is lazy-loaded and no longer statically bundled into Startup Intelligence `App`. Follow-up renderer work remains inside the lazy map chunk.
+9. Split `MapPopup` into startup popup renderers and legacy popup renderers. Done.
+10. Split `MapContainer` so startup imports a startup map shell and never statically imports the legacy map stack. Done at app-shell level: app-facing map contract extracted, `MapContainer` lazy-loaded, startup blocks legacy map cache rehydrate/data setter side effects.
+11. Split `AppContext` into startup-safe core plus legacy extensions, so startup no longer references aviation, maritime, conflict, sanctions, climate, radiation, displacement, or wildfire state. In progress: map implementation type removed from core context.
+12. Split event handlers into startup handlers and legacy handlers. Keep desktop/download, ML worker, and data freshness only where still useful for startup. In progress: event handler contract extracted, startup legacy aviation/CII/export payload paths gated off.
+13. Remove `data-loader.ts` from the startup import graph. Startup should use only `startup-data-loader.ts`. In progress: runtime import is already dynamic, and `App.ts` now uses a shared loader contract instead of implementation types.
+14. Split panel registry/config into startup registry plus archived legacy registry. Startup variants should not register military, aviation, maritime, sanctions, disaster, disease, webcam, or non-tech crisis panels.
+15. Split country intelligence into startup country intelligence plus archived world-risk intelligence.
+16. Quarantine `server/worldmonitor/intelligence/v1/` after tests are migrated to `server/startup/intelligence/v1/` or removed.
+17. Quarantine frontend legacy panels, services, configs, and workers only after `rg`, typecheck, and startup build prove no startup imports remain.
+18. Rewrite `api/bootstrap.js` as startup bootstrap for startup news, arXiv, GitHub, Hugging Face, market comps, Telegram, MCP, and chat health.
+19. Replace remaining WorldMonitor product copy, links, docs, and branding in startup routes.
+20. Remove generated proto stubs only after deleted domains have no runtime/server/client imports.
+21. Run full cleanup verification and bundle audit.
+22. Delete quarantined legacy files in one final deletion batch after CI-style verification stays green.
 
 ## Final Cleanup Verification
 

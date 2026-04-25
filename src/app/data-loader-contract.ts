@@ -1,0 +1,44 @@
+import type { AppModule } from '@/app/app-context';
+import type { MapLayers } from '@/types';
+
+export interface DataLoaderController extends AppModule {
+  updateSearchIndex: () => void;
+  syncDataFreshnessWithLayers(): void;
+  waitForAisData(): void | Promise<void>;
+  stopLayerActivity(layer: keyof MapLayers): void;
+  loadAllData(forceAll?: boolean): Promise<void>;
+  loadDataForLayer(layer: keyof MapLayers): Promise<void>;
+  loadNews(): Promise<void>;
+  loadMarkets(): Promise<void>;
+  loadPredictions(): Promise<void>;
+  loadForecasts(): Promise<void>;
+  loadPizzInt(): Promise<void>;
+  loadNatural(): Promise<void>;
+  loadWeatherAlerts(): Promise<void>;
+  loadFredData(): Promise<void>;
+  loadGovernmentSpending(): Promise<void>;
+  loadBisData(): Promise<void>;
+  loadOilAnalytics(): Promise<void>;
+  loadFirmsData(): Promise<void>;
+  loadAisSignals(): Promise<void>;
+  loadCableActivity(): Promise<void>;
+  loadCableHealth(): Promise<void>;
+  loadFlightDelays(): Promise<void>;
+  loadCyberThreats(): Promise<void>;
+  loadStockAnalysis(): Promise<void>;
+  loadDailyMarketBrief(): Promise<void>;
+  loadStockBacktest(): Promise<void>;
+  loadMarketImplications(): Promise<void>;
+  loadWsbTickers(): Promise<void>;
+  refreshTemporalBaseline(): Promise<void>;
+  loadTradePolicy(): Promise<void>;
+  loadSupplyChain(): Promise<void>;
+  loadCrossSourceSignals(): Promise<void>;
+  loadTelegramIntel(): Promise<void>;
+  loadAaiiSentiment(): Promise<void>;
+  loadMarketBreadth(): Promise<void>;
+  loadIntelligenceSignals(): Promise<void>;
+  loadSecurityAdvisories(): Promise<void>;
+  updateMonitorResults(): void;
+  hydrateHappyPanelsFromCache(): Promise<void>;
+}

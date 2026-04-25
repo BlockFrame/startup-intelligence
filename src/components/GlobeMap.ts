@@ -36,7 +36,7 @@ import type { Earthquake } from '@/services/earthquakes';
 import type { AirportDelayAlert } from '@/services/aviation';
 import { MapPopup } from './MapPopup';
 import type { GetChokepointStatusResponse } from '@/services/supply-chain';
-import type { MapContainerState, MapView, TimeRange } from './MapContainer';
+import type { MapContainerState, MapView, TimeRange } from './map-container-contract';
 import type { CountryClickPayload } from './DeckGLMap';
 import type { WeatherAlert } from '@/services/weather';
 import { type IranEvent, getIranEventHexColor } from '@/services/conflict';

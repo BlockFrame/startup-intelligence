@@ -40,7 +40,7 @@ import type {
   MultiSectorShock,
 } from '@/services/supply-chain';
 import { fetchMultiSectorCostShock, HS2_SHORT_LABELS } from '@/services/supply-chain';
-import type { MapContainer } from './MapContainer';
+import type { AppMap } from './map-container-contract';
 import { ResilienceWidget } from './ResilienceWidget';
 import { dedupeHeadlines } from './CountryDeepDivePanel-news-utils';
 
@@ -85,7 +85,7 @@ export class CountryDeepDivePanel implements CountryBriefPanel {
   private onStateChangeCallback?: (state: { visible: boolean; maximized: boolean }) => void;
   private onShareStory?: (code: string, name: string) => void;
   private onExportImage?: (code: string, name: string) => void;
-  private map: MapContainer | null;
+  private map: AppMap | null;
   private abortController: AbortController = new AbortController();
   private lastFocusedElement: HTMLElement | null = null;
   private economicIndicators: CountryDeepDiveEconomicIndicator[] = [];
@@ -159,7 +159,7 @@ export class CountryDeepDivePanel implements CountryBriefPanel {
     }
   };
 
-  constructor(map: MapContainer | null = null) {
+  constructor(map: AppMap | null = null) {
     this.map = map;
     this.panel = this.getOrCreatePanel();
 
@@ -180,7 +180,7 @@ export class CountryDeepDivePanel implements CountryBriefPanel {
     });
   }
 
-  public setMap(map: MapContainer | null): void {
+  public setMap(map: AppMap | null): void {
     this.map = map;
   }
 

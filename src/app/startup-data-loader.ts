@@ -92,7 +92,6 @@ export class DataLoaderManager implements AppModule {
     this.ctx.allNews = collected;
     (this.ctx.panels['top-vc-signals'] as TopVCSignalsPanel | undefined)?.updateSignals(collected);
     this.ctx.initialLoadComplete = true;
-    this.ctx.map?.updateHotspotActivity(this.ctx.allNews);
     this.updateMonitorResults();
   }
 

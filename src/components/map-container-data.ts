@@ -34,21 +34,6 @@ import type { WebcamEntry, WebcamCluster } from '@/generated/client/worldmonitor
 import type { TrafficAnomaly as ProtoTrafficAnomaly, DdosLocationHit } from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
 import type { DiseaseOutbreakItem } from '@/services/disease-outbreaks';
 
-export interface StartupMapData {
-  techEvent: {
-    id: string;
-    title: string;
-    location: string;
-    lat: number;
-    lng: number;
-    country: string;
-    startDate: string;
-    endDate: string;
-    url: string | null;
-    daysUntil: number;
-  };
-}
-
 export interface LegacyMapData {
   earthquake: Earthquake;
   weatherAlert: WeatherAlert;
@@ -88,10 +73,6 @@ export interface LegacyMapData {
   webcam: WebcamEntry | WebcamCluster;
   trafficAnomaly: ProtoTrafficAnomaly;
   ddosLocation: DdosLocationHit;
-}
-
-export interface StartupMapCache {
-  techEvents?: StartupMapData['techEvent'][];
 }
 
 export interface LegacyMapCache {

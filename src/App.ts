@@ -67,9 +67,8 @@ import { CountryIntelManager } from '@/app/startup-country-intel';
 import { SearchManager } from '@/app/search-manager';
 import { RefreshScheduler } from '@/app/refresh-scheduler';
 import { PanelLayoutManager } from '@/app/panel-layout';
-import type { DataLoaderManager as FullDataLoaderManager } from '@/app/data-loader';
-import type { DataLoaderManager as StartupDataLoaderManager } from '@/app/startup-data-loader';
-import { EventHandlerManager } from '@/app/event-handlers';
+import type { DataLoaderController } from '@/app/data-loader-contract';
+import type { EventHandlerController } from '@/app/event-handler-contract';
 import { resolveUserRegion, resolvePreciseUserCoordinates, type PreciseCoordinates } from '@/utils/user-location';
 import { initAuthState, subscribeAuthState } from '@/services/auth-state';
 import { install as installCloudPrefsSync, onSignIn as cloudPrefsSignIn, onSignOut as cloudPrefsSignOut } from '@/utils/cloud-prefs-sync';
@@ -98,8 +97,8 @@ export class App {
   private pendingDeepLinkStoryCode: string | null = null;
 
   private panelLayout!: PanelLayoutManager;
-  private dataLoader!: FullDataLoaderManager | StartupDataLoaderManager;
-  private eventHandlers!: EventHandlerManager;
+  private dataLoader!: DataLoaderController;
+  private eventHandlers!: EventHandlerController;
   private searchManager!: SearchManager;
   private countryIntel!: CountryIntelManager;
   private refreshScheduler!: RefreshScheduler;
@@ -576,6 +575,30 @@ export class App {
         localStorage.setItem(STARTUP_PANEL_FOCUS_KEY, 'done');
       }
 
+      const STARTUP_REQUIRED_PANELS_KEY = 'worldmonitor-startup-required-panels-v1';
+      if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_REQUIRED_PANELS_KEY)) {
+        const requiredStartupPanels = [
+          'producthunt',
+          'funding',
+          'startups',
+          'vcblogs',
+          'hardware',
+          'fintech',
+          'tech-readiness',
+        ];
+        for (const key of requiredStartupPanels) {
+          const config = getEffectivePanelConfig(key, 'startup');
+          panelSettings[key] = {
+            ...config,
+            ...panelSettings[key],
+            name: config.name,
+            enabled: true,
+          };
+        }
+        saveToStorage(STORAGE_KEYS.panels, panelSettings);
+        localStorage.setItem(STARTUP_REQUIRED_PANELS_KEY, 'done');
+      }
+
       // One-time migration: fix happy variant sessions that got cross-variant panels enabled
       // (regression from #1911 unified panel registry which failed to disable non-variant panels on variant switch)
       const HAPPY_PANEL_FIX_KEY = 'worldmonitor-happy-panel-fix-v1';
@@ -790,9 +813,12 @@ export class App {
   }
 
   private async setupModules(): Promise<void> {
-    const { DataLoaderManager } = IS_STARTUP_BUILD
-      ? await import('@/app/startup-data-loader')
-      : await import('@/app/data-loader');
+    const [{ DataLoaderManager }, { EventHandlerManager }] = await Promise.all([
+      IS_STARTUP_BUILD
+        ? import('@/app/startup-data-loader')
+        : import('@/app/data-loader'),
+      import('@/app/event-handlers'),
+    ]);
 
     // Instantiate modules (callbacks wired after all modules exist)
     this.refreshScheduler = new RefreshScheduler(this.state);
@@ -986,7 +1012,7 @@ export class App {
     this.state.resolvedLocation = resolvedRegion;
 
     // Phase 1: Layout (creates map + panels — they'll find hydrated data)
-    this.panelLayout.init();
+    await this.panelLayout.init();
     this.updateConnectivityUi();
     window.addEventListener('online', this.handleConnectivityChange);
     window.addEventListener('offline', this.handleConnectivityChange);
@@ -1181,6 +1207,13 @@ export class App {
 
     // --- Source limit ---
     const disabledSources = new Set(loadFromStorage<string[]>(STORAGE_KEYS.disabledFeeds, []));
+    const startupProtectedSources = this.getStartupProtectedSources();
+    let protectedSourcesChanged = false;
+    if (SITE_VARIANT === 'startup') {
+      for (const name of startupProtectedSources) {
+        if (disabledSources.delete(name)) protectedSourcesChanged = true;
+      }
+    }
     const allSourceNames = (() => {
       const s = new Set<string>();
       Object.values(FEEDS).forEach(feeds => feeds?.forEach(f => s.add(f.name)));
@@ -1191,12 +1224,43 @@ export class App {
     const enabledCount = currentlyEnabled.length;
     if (enabledCount > FREE_MAX_SOURCES) {
       const toDisable = enabledCount - FREE_MAX_SOURCES;
-      for (const name of currentlyEnabled.slice(FREE_MAX_SOURCES)) {
+      const disableCandidates = currentlyEnabled.filter((name) => !startupProtectedSources.has(name));
+      for (const name of disableCandidates.slice(0, toDisable)) {
         disabledSources.add(name);
       }
       saveToStorage(STORAGE_KEYS.disabledFeeds, Array.from(disabledSources));
       console.log(`[App] Free tier: disabled ${toDisable} source(s) to enforce ${FREE_MAX_SOURCES}-source limit`);
+    } else if (protectedSourcesChanged) {
+      saveToStorage(STORAGE_KEYS.disabledFeeds, Array.from(disabledSources));
     }
+  }
+
+  private getStartupProtectedSources(): Set<string> {
+    if (SITE_VARIANT !== 'startup') return new Set();
+    const fullyProtectedCategories = ['producthunt', 'funding', 'vcblogs', 'startups', 'hardware'];
+    const minimumProtectedCategories = [
+      'tech',
+      'finance',
+      'layoffs',
+      'ai',
+      'cloud',
+      'fintech',
+      'regionalStartups',
+      'unicorns',
+      'accelerators',
+      'security',
+      'policy',
+      'ipo',
+    ];
+    const names = new Set<string>();
+    for (const category of fullyProtectedCategories) {
+      for (const feed of FEEDS[category] ?? []) names.add(feed.name);
+    }
+    for (const category of minimumProtectedCategories) {
+      const firstFeed = FEEDS[category]?.[0];
+      if (firstFeed) names.add(firstFeed.name);
+    }
+    return names;
   }
 
   public destroy(): void {

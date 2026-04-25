@@ -8,7 +8,6 @@ import type { TheaterPostureSummary } from '@/services/military-surge';
 import { InsightsPanel } from '@/components/InsightsPanel';
 import { LiveNewsPanel, getDefaultLiveChannels, loadChannelsFromStorage } from '@/components/LiveNewsPanel';
 import { MacroSignalsPanel } from '@/components/MacroSignalsPanel';
-import { MapContainer } from '@/components/MapContainer';
 import { MarketPanel } from '@/components/MarketPanel';
 import { MonitorPanel } from '@/components/MonitorPanel';
 import { NewsPanel } from '@/components/NewsPanel';
@@ -123,8 +122,8 @@ export class PanelLayoutManager implements AppModule {
     });
   }
 
-  init(): void {
-    this.renderLayout();
+  async init(): Promise<void> {
+    await this.renderLayout();
 
     // Subscribe to auth state for reactive panel gating on web
     this.unsubscribeAuth = subscribeAuthState((state) => {
@@ -237,7 +236,7 @@ export class PanelLayoutManager implements AppModule {
     }
   }
 
-  renderLayout(): void {
+  async renderLayout(): Promise<void> {
     this.ctx.container.innerHTML = `
       ${this.ctx.isDesktopApp ? '<div class="tauri-titlebar" data-tauri-drag-region></div>' : ''}
       <div class="header">
@@ -509,7 +508,7 @@ export class PanelLayoutManager implements AppModule {
       </footer>
     `;
 
-    this.createPanels();
+    await this.createPanels();
     this.setupStartupProductTabs();
 
     if (this.ctx.isMobile) {
@@ -828,27 +827,31 @@ export class PanelLayoutManager implements AppModule {
     }
   }
 
-  private createPanels(): void {
+  private async createPanels(): Promise<void> {
     const panelsGrid = document.getElementById('panelsGrid')!;
     this.sanitizeStartupPanelSettings();
 
     const mapContainer = document.getElementById('mapContainer') as HTMLElement;
     const preferGlobe = loadFromStorage<string>(STORAGE_KEYS.mapMode, 'flat') === 'globe';
-    this.ctx.map = new MapContainer(mapContainer, {
+    const { MapContainer } = await import('@/components/MapContainer');
+    const map = new MapContainer(mapContainer, {
       zoom: this.ctx.isMobile ? 2.5 : 1.0,
       pan: { x: 0, y: 0 },
       view: this.ctx.isMobile ? this.ctx.resolvedLocation : 'global',
       layers: this.ctx.mapLayers,
       timeRange: '7d',
     }, preferGlobe);
+    this.ctx.map = map;
 
-    if (this.ctx.mapLayers.resilienceScore && !this.ctx.map.isDeckGLActive?.()) {
+    if (this.ctx.mapLayers.resilienceScore && !map.isDeckGLActive?.()) {
       this.ctx.mapLayers = { ...this.ctx.mapLayers, resilienceScore: false };
       saveToStorage(STORAGE_KEYS.mapLayers, this.ctx.mapLayers);
     }
 
-    this.ctx.map.initEscalationGetters();
-    this.ctx.currentTimeRange = this.ctx.map.getTimeRange();
+    if (SITE_VARIANT !== 'startup') {
+      map.initEscalationGetters();
+    }
+    this.ctx.currentTimeRange = map.getTimeRange();
 
     if (SITE_VARIANT === 'startup') {
       this.createStartupPanels();
@@ -1066,7 +1069,7 @@ export class PanelLayoutManager implements AppModule {
     });
   }
 
-  private filterItemsByTimeRange(items: import('@/types').NewsItem[], range: import('@/components/MapContainer').TimeRange = this.ctx.currentTimeRange): import('@/types').NewsItem[] {
+  private filterItemsByTimeRange(items: import('@/types').NewsItem[], range: import('@/components/map-container-contract').TimeRange = this.ctx.currentTimeRange): import('@/types').NewsItem[] {
     if (range === 'all') return items;
     const ranges: Record<string, number> = {
       '1h': 60 * 60 * 1000, '6h': 6 * 60 * 60 * 1000,
@@ -1391,15 +1394,24 @@ export class PanelLayoutManager implements AppModule {
   private attachRelatedAssetHandlers(panel: NewsPanel): void {
     panel.setRelatedAssetHandlers({
       onRelatedAssetClick: (asset) => this.handleRelatedAssetClick(asset),
-      onRelatedAssetsFocus: (assets) => this.ctx.map?.highlightAssets(assets),
+      onRelatedAssetsFocus: (assets) => this.ctx.map?.highlightAssets(this.getStartupAllowedRelatedAssets(assets)),
       onRelatedAssetsClear: () => this.ctx.map?.highlightAssets(null),
     });
+  }
+
+  private getStartupAllowedRelatedAssets(assets: RelatedAsset[]): RelatedAsset[] {
+    if (SITE_VARIANT !== 'startup') return assets;
+    return assets.filter((asset) => asset.type === 'datacenter');
   }
 
   private handleRelatedAssetClick(asset: RelatedAsset): void {
     if (!this.ctx.map) return;
 
     const allowedLayers = getAllowedLayerKeys((SITE_VARIANT || 'full') as MapVariant);
+
+    if (SITE_VARIANT === 'startup' && asset.type !== 'datacenter') {
+      return;
+    }
 
     switch (asset.type) {
       case 'pipeline':

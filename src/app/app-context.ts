@@ -1,5 +1,6 @@
 import type { PanelConfig, MapLayers, NewsItem, MarketData, ClusteredEvent, CyberThreat, Monitor } from '@/types';
 import type { LegacyIntelligenceCache } from '@/app/legacy-app-context';
+import type { AppMap, TimeRange } from '@/components/map-container-contract';
 
 export type { CountryBriefSignals } from '@/types';
 
@@ -8,7 +9,7 @@ export interface StartupIntelligenceCache {}
 export type IntelligenceCache = StartupIntelligenceCache & LegacyIntelligenceCache;
 
 export interface AppContext {
-  map: import('@/components/MapContainer').MapContainer | null;
+  map: AppMap | null;
   readonly isMobile: boolean;
   readonly isDesktopApp: boolean;
   readonly container: HTMLElement;
@@ -28,7 +29,7 @@ export interface AppContext {
   cyberThreatsCache: CyberThreat[] | null;
 
   disabledSources: Set<string>;
-  currentTimeRange: import('@/components/MapContainer').TimeRange;
+  currentTimeRange: TimeRange;
 
   inFlight: Set<string>;
   seenGeoAlerts: Set<string>;

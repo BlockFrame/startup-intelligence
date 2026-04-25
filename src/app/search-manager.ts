@@ -1,7 +1,7 @@
 import type { AppContext, AppModule } from '@/app/app-context';
 import type { SearchResult } from '@/components/SearchModal';
 import type { NewsItem, MapLayers } from '@/types';
-import type { MapView, TimeRange } from '@/components/MapContainer';
+import type { MapView, TimeRange } from '@/components/map-container-contract';
 import type { Command } from '@/config/commands';
 import { CIIPanel } from '@/components/CIIPanel';
 import { SearchModal } from '@/components/SearchModal';

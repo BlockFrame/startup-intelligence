@@ -6,8 +6,7 @@ import { FREE_MAX_PANELS, FREE_MAX_SOURCES } from '@/config/panels';
 import type { McpDataPanel } from '@/components/McpDataPanel';
 import { deleteMcpPanel, getMcpPanel, saveMcpPanel } from '@/services/mcp-store';
 import type { PanelConfig, MapLayers, MilitaryFlight } from '@/types';
-import type { MapView } from '@/components/MapContainer';
-import type { PositionSample } from '@/services/aviation';
+import type { MapView } from '@/components/map-container-contract';
 import type { ClusteredEvent } from '@/types';
 import type { DashboardSnapshot } from '@/services/storage';
 import type { CIIPanel } from '@/components/CIIPanel';
@@ -52,7 +51,7 @@ import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 
 export interface EventHandlerCallbacks {
   updateSearchIndex: () => void;
-  updateFlightSource?: (adsb: PositionSample[], military: MilitaryFlight[]) => void;
+  updateFlightSource?: (adsb: any[], military: MilitaryFlight[]) => void;
   loadAllData: () => Promise<void>;
   flushStaleRefreshes: () => void;
   setHiddenSince: (ts: number) => void;
@@ -499,6 +498,7 @@ export class EventHandlerManager implements AppModule {
     document.addEventListener('visibilitychange', this.boundVisibilityHandler);
 
     this.boundFocalPointsReadyHandler = () => {
+      if (SITE_VARIANT === 'startup') return;
       (this.ctx.panels.cii as CIIPanel)?.refresh(true);
       this.callbacks.refreshOpenCountryBrief?.();
     };
@@ -995,7 +995,7 @@ export class EventHandlerManager implements AppModule {
     this.ctx.exportPanel = new ExportPanel(() => {
       const allCards = this.ctx.correlationEngine?.getAllCards() ?? [];
       const disabledCount = this.ctx.disabledSources.size;
-      return {
+      const basePayload = {
         meta: {
           exportedAt: new Date().toISOString(),
           note: disabledCount > 0
@@ -1008,11 +1008,15 @@ export class EventHandlerManager implements AppModule {
         newsByCategory: this.ctx.newsByCategory,
         markets: this.ctx.latestMarkets,
         predictions: this.ctx.latestPredictions,
+        convergenceCards: allCards.map(({ assessment: _a, ...card }) => card),
+        monitors: this.ctx.monitors.length > 0 ? this.ctx.monitors : undefined,
+      };
+      if (SITE_VARIANT === 'startup') return basePayload;
+      return {
+        ...basePayload,
         intelligence: this.ctx.intelligenceCache,
         cyberThreats: this.ctx.cyberThreatsCache ?? undefined,
         gpsJamming: getCachedGpsInterference() ?? undefined,
-        convergenceCards: allCards.map(({ assessment: _a, ...card }) => card),
-        monitors: this.ctx.monitors.length > 0 ? this.ctx.monitors : undefined,
       };
     });
 
@@ -1249,14 +1253,16 @@ export class EventHandlerManager implements AppModule {
       }
     });
 
-    // Forward live aircraft positions from map to AirlineIntelPanel + cache + search index
-    this.ctx.map?.setOnAircraftPositionsUpdate((positions) => {
-      this.ctx.intelligenceCache.aircraftPositions = positions;
-      const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelPanel | undefined;
-      airlineIntel?.updateLivePositions(positions);
-      const military = this.ctx.intelligenceCache.military?.flights ?? [];
-      this.callbacks.updateFlightSource?.(positions, military);
-    });
+    if (SITE_VARIANT !== 'startup') {
+      // Forward live aircraft positions from map to AirlineIntelPanel + cache + search index.
+      this.ctx.map?.setOnAircraftPositionsUpdate((positions) => {
+        this.ctx.intelligenceCache.aircraftPositions = positions;
+        const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelPanel | undefined;
+        airlineIntel?.updateLivePositions(positions);
+        const military = this.ctx.intelligenceCache.military?.flights ?? [];
+        this.callbacks.updateFlightSource?.(positions, military);
+      });
+    }
   }
 
   setupPanelViewTracking(): void {

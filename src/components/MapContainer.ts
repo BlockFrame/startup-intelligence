@@ -16,23 +16,16 @@ import type {
 } from '@/types';
 import type { GetChokepointStatusResponse } from '@/services/supply-chain';
 import type { ScenarioVisualState, ScenarioResult } from '@/config/scenario-templates';
-import type { LegacyMapCache, LegacyMapData, StartupMapCache, StartupMapData } from './map-container-data';
+import type { LegacyMapCache, LegacyMapData } from './map-container-data';
+import type { StartupMapCache, StartupMapData } from './startup-map-data';
 import { getAuthState } from '@/services/auth-state';
 import { hasPremiumAccess } from '@/services/panel-gating';
 import { trackGateHit } from '@/services/analytics';
+import { SITE_VARIANT } from '@/config';
+import type { MapContainerState, MapView, TimeRange } from './map-container-contract';
 
 export type { ScenarioVisualState, ScenarioResult };
-
-export type TimeRange = '1h' | '6h' | '24h' | '48h' | '7d' | 'all';
-export type MapView = 'global' | 'america' | 'mena' | 'eu' | 'asia' | 'latam' | 'africa' | 'oceania';
-
-export interface MapContainerState {
-  zoom: number;
-  pan: { x: number; y: number };
-  view: MapView;
-  layers: MapLayers;
-  timeRange: TimeRange;
-}
+export type { MapContainerState, MapView, TimeRange } from './map-container-contract';
 
 /**
  * Unified map interface that delegates to either DeckGLMap or MapComponent
@@ -219,7 +212,14 @@ export class MapContainer {
     if (this.cachedOnAircraftPositionsUpdate) this.setOnAircraftPositionsUpdate(this.cachedOnAircraftPositionsUpdate);
     if (this.cachedOnMapContextMenu) this.onMapContextMenu(this.cachedOnMapContextMenu);
 
-    // 2. Re-push all cached data
+    // 2. Startup rehydrates only startup-safe cached map data. Legacy world-risk
+    // caches remain available for full/tech/finance variants below.
+    if (SITE_VARIANT === 'startup') {
+      if (this.startupCache.techEvents) this.setTechEvents(this.startupCache.techEvents);
+      return;
+    }
+
+    // 3. Re-push all cached legacy data
     if (this.legacyCache.earthquakes) this.setEarthquakes(this.legacyCache.earthquakes);
     if (this.legacyCache.weatherAlerts) this.setWeatherAlerts(this.legacyCache.weatherAlerts);
     if (this.legacyCache.outages) this.setOutages(this.legacyCache.outages);
@@ -357,19 +357,26 @@ export class MapContainer {
 
   // ─── Data setters ────────────────────────────────────────────────────────────
 
+  private shouldIgnoreLegacyMapData(): boolean {
+    return SITE_VARIANT === 'startup';
+  }
+
   public setEarthquakes(earthquakes: LegacyMapData['earthquake'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.earthquakes = earthquakes;
     if (this.useGlobe) { this.globeMap?.setEarthquakes(earthquakes); return; }
     if (this.useDeckGL) { this.deckGLMap?.setEarthquakes(earthquakes); } else { this.svgMap?.setEarthquakes(earthquakes); }
   }
 
   public setImageryScenes(scenes: LegacyMapData['imageryScene'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.imageryScenes = scenes;
     if (this.useGlobe) { this.globeMap?.setImageryScenes(scenes); return; }
     if (this.useDeckGL) { this.deckGLMap?.setImageryScenes(scenes); }
   }
 
   public setWebcams(markers: LegacyMapData['webcam'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.webcams = markers;
     if (this.useGlobe) { this.globeMap?.setWebcams(markers); return; }
     if (this.useDeckGL) { this.deckGLMap?.setWebcams(markers); }
@@ -377,28 +384,33 @@ export class MapContainer {
   }
 
   public setWeatherAlerts(alerts: LegacyMapData['weatherAlert'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.weatherAlerts = alerts;
     if (this.useGlobe) { this.globeMap?.setWeatherAlerts(alerts); return; }
     if (this.useDeckGL) { this.deckGLMap?.setWeatherAlerts(alerts); } else { this.svgMap?.setWeatherAlerts(alerts); }
   }
 
   public setOutages(outages: LegacyMapData['outage'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.outages = outages;
     if (this.useGlobe) { this.globeMap?.setOutages(outages); return; }
     if (this.useDeckGL) { this.deckGLMap?.setOutages(outages); } else { this.svgMap?.setOutages(outages); }
   }
 
   public setTrafficAnomalies(anomalies: LegacyMapData['trafficAnomaly'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     if (this.useGlobe) { this.globeMap?.setTrafficAnomalies(anomalies); return; }
     if (this.useDeckGL) { this.deckGLMap?.setTrafficAnomalies(anomalies); }
   }
 
   public setDdosLocations(hits: LegacyMapData['ddosLocation'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     if (this.useGlobe) { this.globeMap?.setDdosLocations(hits); return; }
     if (this.useDeckGL) { this.deckGLMap?.setDdosLocations(hits); }
   }
 
   public setAisData(disruptions: LegacyMapData['aisDisruption'][], density: LegacyMapData['aisDensity'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.aisDisruptions = disruptions;
     this.legacyCache.aisDensity = density;
     if (this.useGlobe) { this.globeMap?.setAisData(disruptions, density); return; }
@@ -410,6 +422,7 @@ export class MapContainer {
   }
 
   public setCableActivity(advisories: LegacyMapData['cableAdvisory'][], repairShips: LegacyMapData['repairShip'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.cableAdvisories = advisories;
     this.legacyCache.repairShips = repairShips;
     if (this.useGlobe) { this.globeMap?.setCableActivity(advisories, repairShips); return; }
@@ -421,6 +434,7 @@ export class MapContainer {
   }
 
   public setCableHealth(healthMap: Record<string, LegacyMapData['cableHealth']>): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.cableHealth = healthMap;
     if (this.useGlobe) { this.globeMap?.setCableHealth(healthMap); return; }
     if (this.useDeckGL) {
@@ -431,6 +445,7 @@ export class MapContainer {
   }
 
   public setProtests(events: LegacyMapData['protest'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.protests = events;
     if (this.useGlobe) { this.globeMap?.setProtests(events); return; }
     if (this.useDeckGL) {
@@ -441,6 +456,7 @@ export class MapContainer {
   }
 
   public setFlightDelays(delays: LegacyMapData['flightDelay'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.flightDelays = delays;
     if (this.useGlobe) { this.globeMap?.setFlightDelays(delays); return; }
     if (this.useDeckGL) {
@@ -451,6 +467,7 @@ export class MapContainer {
   }
 
   public setAircraftPositions(positions: LegacyMapData['aircraftPosition'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.aircraftPositions = positions;
     if (this.useDeckGL) {
       this.deckGLMap?.setAircraftPositions(positions);
@@ -460,6 +477,7 @@ export class MapContainer {
   }
 
   public setMilitaryFlights(flights: LegacyMapData['militaryFlight'][], clusters: LegacyMapData['militaryFlightCluster'][] = []): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.militaryFlights = flights;
     this.legacyCache.militaryFlightClusters = clusters;
     if (this.useGlobe) { this.globeMap?.setMilitaryFlights(flights); return; }
@@ -467,6 +485,7 @@ export class MapContainer {
   }
 
   public setMilitaryVessels(vessels: LegacyMapData['militaryVessel'][], clusters: LegacyMapData['militaryVesselCluster'][] = []): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.militaryVessels = vessels;
     this.legacyCache.militaryVesselClusters = clusters;
     if (this.useGlobe) { this.globeMap?.setMilitaryVessels(vessels, clusters); return; }
@@ -474,12 +493,14 @@ export class MapContainer {
   }
 
   public setNaturalEvents(events: LegacyMapData['naturalEvent'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.naturalEvents = events;
     if (this.useGlobe) { this.globeMap?.setNaturalEvents(events); return; }
     if (this.useDeckGL) { this.deckGLMap?.setNaturalEvents(events); } else { this.svgMap?.setNaturalEvents(events); }
   }
 
   public setFires(fires: LegacyMapData['fireMarker'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.fires = fires;
     if (this.useGlobe) { this.globeMap?.setFires(fires); return; }
     if (this.useDeckGL) {
@@ -500,6 +521,7 @@ export class MapContainer {
   }
 
   public setUcdpEvents(events: LegacyMapData['ucdpEvent'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.ucdpEvents = events;
     if (this.useGlobe) { this.globeMap?.setUcdpEvents(events); return; }
     if (this.useDeckGL) {
@@ -508,6 +530,7 @@ export class MapContainer {
   }
 
   public setDisplacementFlows(flows: LegacyMapData['displacementFlow'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.displacementFlows = flows;
     if (this.useGlobe) { this.globeMap?.setDisplacementFlows(flows); return; }
     if (this.useDeckGL) {
@@ -516,6 +539,7 @@ export class MapContainer {
   }
 
   public setClimateAnomalies(anomalies: LegacyMapData['climateAnomaly'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.climateAnomalies = anomalies;
     if (this.useGlobe) { this.globeMap?.setClimateAnomalies(anomalies); return; }
     if (this.useDeckGL) {
@@ -524,6 +548,7 @@ export class MapContainer {
   }
 
   public setRadiationObservations(observations: LegacyMapData['radiationObservation'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.radiationObservations = observations;
     if (this.useGlobe) { this.globeMap?.setRadiationObservations(observations); return; }
     if (this.useDeckGL) {
@@ -534,6 +559,7 @@ export class MapContainer {
   }
 
   public setGpsJamming(hexes: LegacyMapData['gpsJamHex'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.gpsJamming = hexes;
     if (this.useGlobe) { this.globeMap?.setGpsJamming(hexes); return; }
     if (this.useDeckGL) {
@@ -542,17 +568,20 @@ export class MapContainer {
   }
 
   public setSatellites(positions: LegacyMapData['satellitePosition'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.satellites = positions;
     if (this.useGlobe) { this.globeMap?.setSatellites(positions); return; }
   }
 
   public setDiseaseOutbreaks(outbreaks: LegacyMapData['diseaseOutbreak'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.diseaseOutbreaks = outbreaks;
     if (this.useGlobe) return; // TODO: add globe support for disease outbreaks layer
     if (this.useDeckGL) this.deckGLMap?.setDiseaseOutbreaks(outbreaks);
   }
 
   public setCyberThreats(threats: LegacyMapData['cyberThreat'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.cyberThreats = threats;
     if (this.useGlobe) { this.globeMap?.setCyberThreats(threats); return; }
     if (this.useDeckGL) {
@@ -563,6 +592,7 @@ export class MapContainer {
   }
 
   public setIranEvents(events: LegacyMapData['iranEvent'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.iranEvents = events;
     if (this.useGlobe) { this.globeMap?.setIranEvents(events); return; }
     if (this.useDeckGL) {
@@ -573,6 +603,7 @@ export class MapContainer {
   }
 
   public setNewsLocations(data: LegacyMapData['newsLocation'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.newsLocations = data;
     if (this.useGlobe) { this.globeMap?.setNewsLocations(data); return; }
     if (this.useDeckGL) {
@@ -583,6 +614,7 @@ export class MapContainer {
   }
 
   public setPositiveEvents(events: LegacyMapData['positiveEvent'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.positiveEvents = events;
     if (this.useGlobe) { this.globeMap?.setPositiveEvents(events); return; }
     if (this.useDeckGL) {
@@ -592,6 +624,7 @@ export class MapContainer {
   }
 
   public setKindnessData(points: LegacyMapData['kindnessPoint'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.kindnessData = points;
     if (this.useGlobe) { this.globeMap?.setKindnessData(points); return; }
     if (this.useDeckGL) {
@@ -601,6 +634,7 @@ export class MapContainer {
   }
 
   public setHappinessScores(data: LegacyMapData['happinessData']): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.happinessScores = data;
     if (this.useGlobe) { this.globeMap?.setHappinessScores(data); return; }
     if (this.useDeckGL) {
@@ -610,18 +644,21 @@ export class MapContainer {
   }
 
   public setChokepointData(data: GetChokepointStatusResponse | null): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     if (this.useGlobe) { this.globeMap?.setChokepointData(data); return; }
     if (this.useDeckGL) { this.deckGLMap?.setChokepointData(data); return; }
     this.svgMap?.setChokepointData(data);
   }
 
   public setCIIScores(scores: LegacyMapData['ciiScore'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.ciiScores = scores;
     if (this.useGlobe) { this.globeMap?.setCIIScores(scores); return; }
     if (this.useDeckGL) { this.deckGLMap?.setCIIScores(scores); }
   }
 
   public setResilienceRanking(items: LegacyMapData['resilienceRanking'][], greyedOut: LegacyMapData['resilienceRanking'][] = []): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.resilienceRanking = items;
     this.legacyCache.resilienceGreyedOut = greyedOut;
     if (this.useDeckGL) {
@@ -630,6 +667,7 @@ export class MapContainer {
   }
 
   public setSpeciesRecoveryZones(species: LegacyMapData['speciesRecovery'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.speciesRecovery = species;
     if (this.useGlobe) { this.globeMap?.setSpeciesRecoveryZones(species); return; }
     if (this.useDeckGL) {
@@ -639,6 +677,7 @@ export class MapContainer {
   }
 
   public setRenewableInstallations(installations: LegacyMapData['renewableInstallation'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.renewableInstallations = installations;
     if (this.useGlobe) { this.globeMap?.setRenewableInstallations(installations); return; }
     if (this.useDeckGL) {
@@ -648,6 +687,7 @@ export class MapContainer {
   }
 
   public updateHotspotActivity(news: NewsItem[]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.hotspotActivity = news;
     if (this.useDeckGL) {
       this.deckGLMap?.updateHotspotActivity(news);
@@ -657,6 +697,7 @@ export class MapContainer {
   }
 
   public updateMilitaryForEscalation(flights: LegacyMapData['militaryFlight'][], vessels: LegacyMapData['militaryVessel'][]): void {
+    if (this.shouldIgnoreLegacyMapData()) return;
     this.legacyCache.escalationFlights = flights;
     this.legacyCache.escalationVessels = vessels;
     if (this.useDeckGL) {

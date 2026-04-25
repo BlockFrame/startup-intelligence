@@ -3,7 +3,7 @@ import { getRpcBaseUrl } from '@/services/rpc-client';
 import { enqueuePanelCall } from '@/app/pending-panel-data';
 import type { NewsItem, MapLayers, SocialUnrestEvent } from '@/types';
 import type { MarketData } from '@/types';
-import type { TimeRange } from '@/components/MapContainer';
+import type { TimeRange } from '@/components/map-container-contract';
 import {
   FEEDS,
   INTEL_SOURCES,
