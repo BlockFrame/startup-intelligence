@@ -5,7 +5,7 @@
  * instead of reading localStorage keys directly. Resolution order:
  *
  *   1. Clerk auth (via getCurrentClerkUser() — the initialized clerkInstance)
- *   2. Legacy wm-pro-key from localStorage
+ *   2. Legacy si-pro-key from localStorage
  *   3. Stable anonymous ID (auto-generated, persisted in localStorage)
  *
  * This module is the "identity bridge" between checkout, billing,
@@ -13,7 +13,7 @@
  *
  * KNOWN LIMITATION — Anonymous ID persistence:
  * Before Clerk auth is wired, purchases are keyed to a random UUID stored
- * in localStorage (`wm-anon-id`). This ID is lost if the user clears
+ * in localStorage (`si-anon-id`). This ID is lost if the user clears
  * storage, switches browsers/devices, or uses private browsing. Once lost,
  * there is no automatic way to reconnect the purchase to the user.
  *
@@ -23,18 +23,18 @@
  * the real Clerk user ID. The anon ID should be read from localStorage
  * before it is replaced by the real identity.
  *
- * @see https://github.com/koala73/worldmonitor/issues/2078
+ * @see https://github.com/koala73/startup-intelligence/issues/2078
  */
 
 import { getCurrentClerkUser } from './clerk';
 
-const LEGACY_PRO_KEY = 'wm-pro-key';
-const ANON_KEY = 'wm-anon-id';
+const LEGACY_PRO_KEY = 'si-pro-key';
+const ANON_KEY = 'si-anon-id';
 
 /**
  * Returns (or creates) a stable anonymous ID for this browser.
  * Persisted in localStorage so it survives page reloads.
- * This guarantees createCheckout always has a wm_user_id for the
+ * This guarantees createCheckout always has a si_user_id for the
  * webhook identity bridge, even before the user has authenticated.
  */
 export function getOrCreateAnonId(): string {
@@ -62,7 +62,7 @@ export function getUserId(): string | null {
   const clerkUser = getCurrentClerkUser();
   if (clerkUser?.id) return clerkUser.id;
 
-  // 2. Legacy wm-pro-key
+  // 2. Legacy si-pro-key
   try {
     const proKey = localStorage.getItem(LEGACY_PRO_KEY);
     if (proKey) return proKey;

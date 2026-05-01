@@ -108,7 +108,7 @@ export async function setCachedJson(key: string, value: unknown, ttlSeconds: num
   }
 }
 
-const NEG_SENTINEL = '__WM_NEG__';
+const NEG_SENTINEL = '__SI_NEG__';
 
 /**
  * Batch GET using Upstash pipeline API — single HTTP round-trip for N keys.

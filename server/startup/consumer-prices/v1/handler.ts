@@ -1,4 +1,4 @@
-import type { ConsumerPricesServiceHandler } from '../../../../src/generated/server/worldmonitor/consumer_prices/v1/service_server';
+import type { ConsumerPricesServiceHandler } from '../../../../src/generated/server/startup_intelligence/consumer_prices/v1/service_server';
 
 import { getConsumerPriceOverview } from './get-consumer-price-overview';
 import { getConsumerPriceBasketSeries } from './get-consumer-price-basket-series';

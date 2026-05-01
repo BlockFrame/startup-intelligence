@@ -490,8 +490,8 @@ export function createBrowserEnvironment() {
     removeEventListener() {},
     open() {},
     location: {
-      origin: 'https://worldmonitor.test',
-      href: 'https://worldmonitor.test/',
+      origin: 'https://startupintelligence.test',
+      href: 'https://startupintelligence.test/',
     },
     navigator: {
       clipboard: {
@@ -547,7 +547,7 @@ function createRuntimeState() {
 }
 
 async function loadRuntimeConfigPanel() {
-  const tempDir = mkdtempSync(join(tmpdir(), 'wm-runtime-config-panel-'));
+  const tempDir = mkdtempSync(join(tmpdir(), 'si-runtime-config-panel-'));
   const outfile = join(tempDir, 'RuntimeConfigPanel.bundle.mjs');
 
   const stubModules = new Map([

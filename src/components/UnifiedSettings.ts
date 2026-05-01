@@ -217,7 +217,7 @@ export class UnifiedSettings {
     this.resetPanelDraft();
     this.render();
     this.overlay.classList.add('active');
-    localStorage.setItem('wm-settings-open', '1');
+    localStorage.setItem('si-settings-open', '1');
     document.addEventListener('keydown', this.escapeHandler);
     track('settings-open', { tab: tab ?? 'default' });
   }
@@ -231,7 +231,7 @@ export class UnifiedSettings {
     this.notifCleanup = null;
     this.pendingNotifs = null;
     this.resetPanelDraft();
-    localStorage.removeItem('wm-settings-open');
+    localStorage.removeItem('si-settings-open');
     document.removeEventListener('keydown', this.escapeHandler);
   }
 
@@ -334,7 +334,7 @@ export class UnifiedSettings {
         <div class="unified-settings-tab-panel${this.activeTab === 'api-keys' ? ' active' : ''}" data-panel-id="api-keys" id="us-tab-panel-api-keys" role="tabpanel" aria-labelledby="us-tab-api-keys">
           <div class="api-keys-section">
             <div class="api-keys-header">
-              <p class="api-keys-desc">Create API keys to access WorldMonitor data programmatically. Keys are shown once on creation — store them securely.</p>
+              <p class="api-keys-desc">Create API keys to access StartupIntelligence data programmatically. Keys are shown once on creation — store them securely.</p>
             </div>
             <div class="api-keys-create-form">
               <input type="text" class="api-keys-name-input" placeholder="Key name (e.g. my-app)" maxlength="64" />
@@ -465,11 +465,11 @@ export class UnifiedSettings {
   private handleUpgradeClick(): void {
     this.close();
     if (this.config.isDesktopApp) {
-      window.open('https://worldmonitor.app/pro', '_blank');
+      window.open('https://startupintelligence.app/pro', '_blank');
       return;
     }
     import('@/services/checkout').then(m => import('@/config/products').then(p => m.startCheckout(p.DEFAULT_UPGRADE_PRODUCT))).catch(() => {
-      window.open('https://worldmonitor.app/pro', '_blank');
+      window.open('https://startupintelligence.app/pro', '_blank');
     });
   }
 

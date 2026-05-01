@@ -109,8 +109,8 @@ export interface PreciseCoordinates {
   lon: number;
 }
 
-const SESSION_KEY_COORDS = 'wm-geo-coords';
-const SESSION_KEY_REGION = 'wm-geo-region';
+const SESSION_KEY_COORDS = 'si-geo-coords';
+const SESSION_KEY_REGION = 'si-geo-region';
 
 function getCachedCoords(): PreciseCoordinates | null {
   try {

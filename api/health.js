@@ -448,7 +448,7 @@ const CASCADE_GROUPS = {
 };
 
 
-const NEG_SENTINEL = '__WM_NEG__';
+const NEG_SENTINEL = '__SI_NEG__';
 
 
 function parseRedisValue(raw) {
@@ -585,7 +585,7 @@ export default async function handler(req, ctx) {
   const allMetaKeys = Object.values(SEED_META).map(s => s.key);
 
   // STRLEN for data keys avoids loading large blobs into memory (OOM prevention).
-  // NEG_SENTINEL ('__WM_NEG__') is 10 bytes — strlenIsData() rejects exactly
+  // NEG_SENTINEL ('__SI_NEG__') is 10 bytes — strlenIsData() rejects exactly
   // that length while accepting any other non-zero strlen as data.
   let results;
   try {

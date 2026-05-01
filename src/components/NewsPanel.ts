@@ -136,7 +136,7 @@ export class NewsPanel extends Panel {
 
   // --- Sort toggle (#107) ---
   private get sortStorageKey(): string {
-    return `wm_sort_${SITE_VARIANT}_${this.panelId}`;
+    return `si_sort_${SITE_VARIANT}_${this.panelId}`;
   }
 
   private loadSortMode(): SortMode {

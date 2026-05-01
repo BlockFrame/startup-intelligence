@@ -3,7 +3,7 @@ import type {
   ServerContext,
   ListTelegramFeedRequest,
   ListTelegramFeedResponse,
-} from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/intelligence/v1/service_server';
 import { getRelayBaseUrl, getRelayHeaders } from './_relay';
 
 interface TelegramRelayMessage {

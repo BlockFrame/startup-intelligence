@@ -19,7 +19,7 @@ import {
   type ListOtherTokensResponse,
   type MarketQuote as ProtoMarketQuote,
   type CryptoQuote as ProtoCryptoQuote,
-} from '@/generated/client/worldmonitor/market/v1/service_client';
+} from '@/generated/client/startup_intelligence/market/v1/service_client';
 import type { MarketData, CryptoData, TokenData } from '@/types';
 import { createCircuitBreaker } from '@/utils/circuit-breaker';
 import { getHydratedData } from '@/services/bootstrap';

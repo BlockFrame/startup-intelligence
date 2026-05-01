@@ -122,7 +122,7 @@ describe("E2E checkout-to-entitlement contract", () => {
     const proMonthly = plans.find((p) => p.planKey === "pro_monthly");
     expect(proMonthly).toBeDefined();
 
-    // Step 2: Simulate subscription.active webhook (with wm_user_id metadata)
+    // Step 2: Simulate subscription.active webhook (with si_user_id metadata)
     const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await simulateSubscriptionWebhook(t, {
       webhookId: "wh_checkout_e2e_001",

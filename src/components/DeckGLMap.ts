@@ -44,8 +44,8 @@ import { getMineralColor } from '@/config/mineral-colors';
 import { getWindColor } from '@/config/wind-colors';
 import { CII_LEVEL_COLORS, type CiiLevel } from '@/config/cii-colors';
 import type { GpsJamHex } from '@/services/gps-interference';
-import type { ImageryScene } from '@/generated/server/worldmonitor/imagery/v1/service_server';
-import type { TrafficAnomaly as ProtoTrafficAnomaly, DdosLocationHit } from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
+import type { ImageryScene } from '@/generated/server/startup_intelligence/imagery/v1/service_server';
+import type { TrafficAnomaly as ProtoTrafficAnomaly, DdosLocationHit } from '@/generated/client/startup_intelligence/infrastructure/v1/service_client';
 import type { DisplacementFlow } from '@/services/displacement';
 import type { Earthquake } from '@/services/earthquakes';
 import type { ClimateAnomaly } from '@/services/climate';
@@ -100,7 +100,7 @@ import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { hasPremiumAccess } from '@/services/panel-gating';
 import { trackGateHit } from '@/services/analytics';
 import { MapPopup, type PopupType } from './MapPopup';
-import type { GetChokepointStatusResponse } from '@/services/supply-chain';
+import type { GetChokepointStatusResponse } from '@/generated/client/startup_intelligence/supply_chain/v1/service_client';
 import {
   updateHotspotEscalation,
   getHotspotEscalation,
@@ -126,7 +126,7 @@ import {
 } from './resilience-choropleth-utils';
 
 import { isAllowedPreviewUrl } from '@/utils/imagery-preview';
-import type { WebcamEntry, WebcamCluster } from '@/generated/client/worldmonitor/webcam/v1/service_client';
+import type { WebcamEntry, WebcamCluster } from '@/generated/client/startup_intelligence/webcam/v1/service_client';
 
 export type TimeRange = '1h' | '6h' | '24h' | '48h' | '7d' | 'all';
 export type DeckMapView = 'global' | 'america' | 'mena' | 'eu' | 'asia' | 'latam' | 'africa' | 'oceania';

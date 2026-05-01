@@ -15,7 +15,7 @@ import {
   type ListServiceStatusesResponse,
   type InternetOutage as ProtoOutage,
   type ServiceStatus as ProtoServiceStatus,
-} from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
+} from '@/generated/client/startup_intelligence/infrastructure/v1/service_client';
 import type { InternetOutage } from '@/types';
 import { createCircuitBreaker } from '@/utils';
 import { isFeatureAvailable } from '../runtime-config';

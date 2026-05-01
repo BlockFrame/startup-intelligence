@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "AIインサイト付きグローバル情勢"
   },
   "countryBrief": {
@@ -497,7 +497,7 @@
         "some": "一部の機能にAPIキーが必要"
       },
       "openSettings": "設定を開く",
-      "skipSetup": "セットアップをスキップ — World Monitorライセンス1つですべてが利用可能になります。早期アクセスのウェイトリストにご参加ください。",
+      "skipSetup": "セットアップをスキップ — Startup Intelligenceライセンス1つですべてが利用可能になります。早期アクセスのウェイトリストにご参加ください。",
       "summary": {
         "desktop": "デスクトップモード",
         "web": "Webモード（読み取り専用、サーバー管理の認証情報）",
@@ -541,13 +541,13 @@
       "noTraffic": "まだトラフィックが記録されていない。",
       "sidecarUnreachable": "サイドカーに接続不能。",
       "logCleared": "ログをクリア済。",
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "1つのキーですべてが揃います。",
-        "heroDescription": "World Monitorライセンス1つで、個別に設定が必要なすべてのAPIキーとLLMプロバイダーを代替できます。AI要約、リアルタイムインテリジェンス、市場データ、紛争追跡、火災検出、衛星画像 — すべて稼働、すべて管理、セットアップ不要。",
+        "heroDescription": "Startup Intelligenceライセンス1つで、個別に設定が必要なすべてのAPIキーとLLMプロバイダーを代替できます。AI要約、リアルタイムインテリジェンス、市場データ、紛争追跡、火災検出、衛星画像 — すべて稼働、すべて管理、セットアップ不要。",
         "apiKey": {
           "title": "ライセンスキー",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "ライセンスを貼り付けると、すべてのデータソースとAI機能が即座に利用可能になります。",
           "statusValid": "ライセンス済",
           "statusMissing": "ライセンスなし"
@@ -555,7 +555,7 @@
         "dividerOr": "または",
         "register": {
           "title": "あなたの席を確保",
-          "description": "World Monitorライセンスのローンチ準備中です。今すぐ登録して優先アクセスと創設メンバー価格を手に入れましょう。",
+          "description": "Startup Intelligenceライセンスのローンチ準備中です。今すぐ登録して優先アクセスと創設メンバー価格を手に入れましょう。",
           "emailPlaceholder": "your@email.com",
           "submitBtn": "ウェイトリストに参加",
           "submitting": "送信中...",
@@ -1767,7 +1767,7 @@
       "infoTooltip": "<strong>航空インテリジェンス</strong> リアルタイムの航空会社運航データ：路線停止、空域閉鎖、運航会社の勧告、緊急迂回。航空当局のNOTAMおよび運航会社の速報がソース。"
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>WM アナリスト</strong> 地政学、市場、軍事、経済分野のライブコンテキストを持つAIアナリスト。WorldMonitorのアクティブフィードからリアルタイムデータを注入したClaudeで稼働。"
+      "infoTooltip": "<strong>WM アナリスト</strong> 地政学、市場、軍事、経済分野のライブコンテキストを持つAIアナリスト。StartupIntelligenceのアクティブフィードからリアルタイムデータを注入したClaudeで稼働。"
     },
     "cotPositioning": {
       "infoTooltip": "<strong>CFTC COT ポジショニング</strong> トレーダーのコミットメント報告：商品先物・金融先物における商業筋、大口投機筋、小口トレーダーのネットポジション。毎週金曜日に公開。ソース：CFTC。"
@@ -1797,7 +1797,7 @@
       "infoTooltip": "<strong>マクロ指標</strong> 米国とユーロ圏の主要マクロ経済指標：CPI、失業率、GDP、中央銀行金利。前期との差分を含む値表示。ソース：FRED（連邦準備制度経済データ）。"
     },
     "monitors": {
-      "infoTooltip": "<strong>キーワードモニター</strong> 任意の用語を追加してWorldMonitorの全ソースからリアルタイムのニュース言及を追跡。マッチする記事が取り込まれると結果がリアルタイムで更新。"
+      "infoTooltip": "<strong>キーワードモニター</strong> 任意の用語を追加してStartupIntelligenceの全ソースからリアルタイムのニュース言及を追跡。マッチする記事が取り込まれると結果がリアルタイムで更新。"
     },
     "renewable": {
       "infoTooltip": "<strong>再生可能エネルギー</strong> グローバルな再生可能エネルギープロジェクトパイプライン：太陽光、風力、水力、蓄電容量の追加。地域と技術タイプ別に発表済み、建設中、運転開始済みプロジェクトを追跡。"

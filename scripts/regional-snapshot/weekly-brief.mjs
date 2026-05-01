@@ -44,8 +44,8 @@ const DEFAULT_PROVIDERS = [
     headers: (key) => ({
       Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://worldmonitor.app',
-      'X-Title': 'World Monitor',
+      'HTTP-Referer': 'https://startupintelligence.app',
+      'X-Title': 'Startup Intelligence',
       'User-Agent': CHROME_UA,
     }),
   },

@@ -68,7 +68,7 @@ async function fetchWingbits(apiKey) {
   const resp = await fetch(url, {
     headers: {
       'x-api-key': apiKey,
-      'User-Agent': 'WorldMonitor/1.0',
+      'User-Agent': 'StartupIntelligence/1.0',
     },
     signal: AbortSignal.timeout(30_000),
   });

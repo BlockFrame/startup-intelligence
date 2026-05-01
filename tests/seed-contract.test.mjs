@@ -156,7 +156,7 @@ test('resolveRecordCount: rejects non-function declareRecords', () => {
 // ─── Seeder conformance (static AST-lite parse, no dynamic import) ─────────
 // We do NOT `import()` any scripts/seed-*.mjs file because several of them
 // `process.exit()` at module load (seed-consumer-prices.mjs:31,
-// seed-military-maritime-news.mjs:68, seed-service-statuses.mjs:43). We scan
+// seed-military-maritime-news.mjs:68). We scan
 // the file text for required patterns. PR 1 soft-warns; PR 3 hard-fails.
 
 async function findSeederFiles() {

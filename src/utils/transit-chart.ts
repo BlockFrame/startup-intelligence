@@ -1,4 +1,4 @@
-import type { TransitDayCount } from '../generated/client/worldmonitor/supply_chain/v1/service_client';
+import type { TransitDayCount } from '../generated/client/startup_intelligence/supply_chain/v1/service_client';
 import { getCSSColor } from '@/utils';
 
 type ZoomWindow = 30 | 90 | 180;

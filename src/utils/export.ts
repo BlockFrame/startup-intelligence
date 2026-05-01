@@ -56,16 +56,16 @@ function sanitizeData(data: ExportData): ExportData {
   };
 }
 
-export function exportToJSON(data: ExportData, filename = 'worldmonitor-export'): void {
+export function exportToJSON(data: ExportData, filename = 'startupintelligence-export'): void {
   const jsonStr = JSON.stringify(sanitizeData(data), null, 2);
   downloadFile(jsonStr, `${filename}.json`, 'application/json');
 }
 
-export function exportToCSV(data: ExportData, filename = 'worldmonitor-export'): void {
+export function exportToCSV(data: ExportData, filename = 'startupintelligence-export'): void {
   const clean = sanitizeData(data);
   const lines: string[] = [];
 
-  lines.push(`# WorldMonitor Export — ${new Date(clean.timestamp).toISOString()}`);
+  lines.push(`# StartupIntelligence Export — ${new Date(clean.timestamp).toISOString()}`);
   lines.push('# Note: CSV is a structured summary. Use JSON export for full fidelity.');
   if (clean.meta?.note) lines.push(`# ${clean.meta.note}`);
   lines.push('');
@@ -398,7 +398,7 @@ export class ExportPanel {
   private export(format: ExportFormat): void {
     const data = this.getData();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `worldmonitor-${timestamp}`;
+    const filename = `startup_intelligence-${timestamp}`;
 
     if (format === 'json') {
       exportToJSON(data, filename);

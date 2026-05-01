@@ -2,7 +2,7 @@
 
 Investor-focused intelligence dashboard for VC and startup investors.
 
-This fork starts from WorldMonitor and is being pruned into a narrower product for:
+This fork starts from StartupIntelligence and is being pruned into a narrower product for:
 
 - startup and VC news monitoring
 - funding round and unicorn tracking
@@ -31,7 +31,7 @@ npm run build
 
 The app currently keeps the browser SPA, startup/tech/finance intelligence panels, news ingestion, map UI, search, summarization, and market-context services.
 
-The first pruning pass removed the WorldMonitor blog, docs site, desktop shell, E2E visual suite, and prebuilt Pro static bundle. The next pruning pass should remove unused runtime domains such as military, aviation, maritime, climate/disaster, radiation/thermal, webcams, happy-news, and commodity-heavy modules after their imports and data loaders are fully disconnected.
+The first pruning pass removed the StartupIntelligence blog, docs site, desktop shell, E2E visual suite, and prebuilt Pro static bundle. The next pruning pass should remove unused runtime domains such as military, aviation, maritime, climate/disaster, radiation/thermal, webcams, happy-news, and commodity-heavy modules after their imports and data loaders are fully disconnected.
 
 ## License
 

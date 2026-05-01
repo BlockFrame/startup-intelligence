@@ -377,7 +377,7 @@ import {
   IntelligenceServiceClient,
   ApiError,
   type ClassifyEventResponse,
-} from '@/generated/client/worldmonitor/intelligence/v1/service_client';
+} from '@/generated/client/startup_intelligence/intelligence/v1/service_client';
 import { createCircuitBreaker } from '@/utils';
 
 const classifyClient = new IntelligenceServiceClient(getRpcBaseUrl(), { fetch: (...args) => globalThis.fetch(...args) });

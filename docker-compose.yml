@@ -1,5 +1,5 @@
 # =============================================================================
-# World Monitor — Docker / Podman Compose
+# Startup Intelligence — Docker / Podman Compose
 # =============================================================================
 # Self-contained stack: app + Redis + AIS relay.
 #
@@ -12,17 +12,17 @@
 
 services:
 
-  worldmonitor:
+ startup_intelligence:
     build:
       context: .
       dockerfile: Dockerfile
-    image: worldmonitor:latest
-    container_name: worldmonitor
+    image:startup_intelligence:latest
+    container_name:startup_intelligence
     ports:
-      - "${WM_PORT:-3000}:8080"
+      - "${SI_PORT:-3000}:8080"
     environment:
       UPSTASH_REDIS_REST_URL: "http://redis-rest:80"
-      UPSTASH_REDIS_REST_TOKEN: "${REDIS_TOKEN:-wm-local-token}"
+      UPSTASH_REDIS_REST_TOKEN: "${REDIS_TOKEN:-si-local-token}"
       LOCAL_API_PORT: "46123"
       LOCAL_API_MODE: "docker"
       LOCAL_API_CLOUD_FALLBACK: "false"
@@ -62,8 +62,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.relay
-    image: worldmonitor-ais-relay:latest
-    container_name: worldmonitor-ais-relay
+    image:startupintelligence-ais-relay:latest
+    container_name:startupintelligence-ais-relay
     environment:
       AISSTREAM_API_KEY: "${AISSTREAM_API_KEY:-}"
       PORT: "3004"
@@ -71,7 +71,7 @@ services:
 
   redis:
     image: docker.io/redis:7-alpine
-    container_name: worldmonitor-redis
+    container_name:startupintelligence-redis
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
@@ -81,12 +81,12 @@ services:
     build:
       context: docker
       dockerfile: Dockerfile.redis-rest
-    image: worldmonitor-redis-rest:latest
-    container_name: worldmonitor-redis-rest
+    image:startupintelligence-redis-rest:latest
+    container_name:startupintelligence-redis-rest
     ports:
       - "127.0.0.1:8079:80"
     environment:
-      SRH_TOKEN: "${REDIS_TOKEN:-wm-local-token}"
+      SRH_TOKEN: "${REDIS_TOKEN:-si-local-token}"
       SRH_CONNECTION_STRING: "redis://redis:6379"
     depends_on:
       - redis

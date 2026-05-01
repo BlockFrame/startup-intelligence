@@ -7,7 +7,7 @@ const panelLayoutSource = readFileSync(new URL('../src/app/panel-layout.ts', imp
 const viteConfigSource = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../src/App.ts', import.meta.url), 'utf8');
 
-test('startup map container is isolated from legacy WorldMonitor map renderers', () => {
+test('startup map container is isolated from legacy StartupIntelligence map renderers', () => {
   assert.match(startupMapSource, /export class StartupMapContainer/);
   assert.doesNotMatch(startupMapSource, /['"]\.\/MapContainer['"]/);
   assert.doesNotMatch(startupMapSource, /['"]\.\/DeckGLMap['"]/);

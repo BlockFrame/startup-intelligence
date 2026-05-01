@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Situazione globale con approfondimenti AI"
   },
   "countryBrief": {
@@ -559,7 +559,7 @@
         "some": "Alcune funzionalità richiedono chiavi API"
       },
       "openSettings": "Apri Impostazioni",
-      "skipSetup": "Salta la configurazione — una singola licenza World Monitor sblocca tutto. Iscriviti alla lista d'attesa per l'accesso anticipato.",
+      "skipSetup": "Salta la configurazione — una singola licenza Startup Intelligence sblocca tutto. Iscriviti alla lista d'attesa per l'accesso anticipato.",
       "summary": {
         "desktop": "Modalità desktop",
         "web": "Modalità Web (credenziali di sola lettura, gestite dal server)",
@@ -704,13 +704,13 @@
       },
       "sidecarUnreachable": "Sidecar non raggiungibile.",
       "logCleared": "Registro cancellato.",
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "Una chiave. Tutto incluso.",
-        "heroDescription": "Una singola licenza World Monitor sostituisce ogni chiave API e fornitore LLM che altrimenti dovresti configurare manualmente. Riassunti IA, intelligence in tempo reale, dati di mercato, monitoraggio conflitti, rilevamento incendi, immagini satellitari — tutto alimentato, tutto gestito, zero configurazione.",
+        "heroDescription": "Una singola licenza Startup Intelligence sostituisce ogni chiave API e fornitore LLM che altrimenti dovresti configurare manualmente. Riassunti IA, intelligence in tempo reale, dati di mercato, monitoraggio conflitti, rilevamento incendi, immagini satellitari — tutto alimentato, tutto gestito, zero configurazione.",
         "apiKey": {
           "title": "Chiave di licenza",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "Incolla la tua licenza per sbloccare istantaneamente tutte le fonti dati e le funzioni IA.",
           "statusValid": "LICENZIATO",
           "statusMissing": "NESSUNA LICENZA"
@@ -718,7 +718,7 @@
         "dividerOr": "OPPURE",
         "register": {
           "title": "Riserva il tuo posto",
-          "description": "Stiamo preparando il lancio delle licenze World Monitor. Iscriviti ora e sii il primo — i membri iniziali ricevono accesso prioritario e prezzi da membro fondatore.",
+          "description": "Stiamo preparando il lancio delle licenze Startup Intelligence. Iscriviti ora e sii il primo — i membri iniziali ricevono accesso prioritario e prezzi da membro fondatore.",
           "emailPlaceholder": "tua@email.com",
           "submitBtn": "Iscriviti alla lista d'attesa",
           "submitting": "Invio in corso...",
@@ -1829,7 +1829,7 @@
       "infoTooltip": "<strong>Intelligence aeronautica</strong> Dati operativi delle compagnie aeree in tempo reale: sospensioni di rotte, chiusure dello spazio aereo, avvisi dei vettori e deviazioni di emergenza. Fonte: NOTAM delle autorità aeronautiche e bollettini dei vettori."
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>Analista WM</strong> Analista AI con contesto in tempo reale nei domini geopolitico, dei mercati, militare ed economico. Alimentato da Claude con dati in tempo reale iniettati dai feed attivi di WorldMonitor."
+      "infoTooltip": "<strong>Analista WM</strong> Analista AI con contesto in tempo reale nei domini geopolitico, dei mercati, militare ed economico. Alimentato da Claude con dati in tempo reale iniettati dai feed attivi di StartupIntelligence."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>Posizionamento CFTC COT</strong> Rapporto sugli impegni dei trader: posizionamento netto di commerciali, grandi speculatori e piccoli trader in futures su materie prime e finanziari. Pubblicato settimanalmente (venerdì). Fonte: CFTC."
@@ -1859,7 +1859,7 @@
       "infoTooltip": "<strong>Indicatori macro</strong> Indicatori macroeconomici chiave per USA e zona euro: CPI, disoccupazione, GDP e tassi delle banche centrali. Valori con delta rispetto al periodo precedente. Fonte: FRED (Federal Reserve Economic Data)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Monitor di parole chiave</strong> Aggiungi qualsiasi termine per tracciare le menzioni nelle notizie in tempo reale da tutte le fonti WorldMonitor. I risultati si aggiornano in tempo reale man mano che gli articoli corrispondenti vengono acquisiti."
+      "infoTooltip": "<strong>Monitor di parole chiave</strong> Aggiungi qualsiasi termine per tracciare le menzioni nelle notizie in tempo reale da tutte le fonti StartupIntelligence. I risultati si aggiornano in tempo reale man mano che gli articoli corrispondenti vengono acquisiti."
     },
     "renewable": {
       "infoTooltip": "<strong>Energia rinnovabile</strong> Pipeline globale di progetti di energia rinnovabile: aggiunte di capacità solare, eolica, idrica e di accumulo. Traccia progetti annunciati, in costruzione e commissionati per regione e tipo di tecnologia."

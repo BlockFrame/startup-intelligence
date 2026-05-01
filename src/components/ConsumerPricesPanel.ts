@@ -25,8 +25,8 @@ import {
 
 type TabId = 'overview' | 'categories' | 'movers' | 'spread' | 'health';
 
-const SETTINGS_KEY = 'wm-consumer-prices-v1';
-const CHANGE_EVENT = 'wm-consumer-prices-settings-changed';
+const SETTINGS_KEY = 'si-consumer-prices-v1';
+const CHANGE_EVENT = 'si-consumer-prices-settings-changed';
 
 interface PanelSettings {
   market: string;

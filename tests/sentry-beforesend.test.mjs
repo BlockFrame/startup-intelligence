@@ -132,7 +132,7 @@ describe('empty-stack network/timeout errors are NOT suppressed', () => {
     'TypeError: Failed to fetch',
     'TypeError: NetworkError when attempting to fetch resource.',
     'Could not connect to the server',
-    'Failed to fetch dynamically imported module: https://worldmonitor.app/assets/panels-abc.js',
+    'Failed to fetch dynamically imported module: https://startupintelligence.app/assets/panels-abc.js',
     'Importing a module script failed.',
     'Operation timed out',
     'signal timed out',
@@ -286,7 +286,7 @@ describe('existing beforeSend filters', () => {
     assert.ok(beforeSend(event) !== null);
   });
 
-  // WORLDMONITOR-MK: Fireglass (Symantec/Broadcom CloudSOC) console-hook recursion.
+  // STARTUP_INTELLIGENCE-MK: Fireglass (Symantec/Broadcom CloudSOC) console-hook recursion.
   it('suppresses Fireglass RangeError with FireglassUtils frame', () => {
     const event = makeEvent('Maximum call stack size exceeded', 'RangeError', [
       { filename: '<anonymous>', lineno: 1, function: 'FireglassUtils.logInternal' },
@@ -303,7 +303,7 @@ describe('existing beforeSend filters', () => {
     assert.ok(beforeSend(event) !== null, 'RangeError gate must limit blast radius');
   });
 
-  // WORLDMONITOR-MH: Chrome Mobile WebView 105+ duplex requirement, Dodo SDK path.
+  // STARTUP_INTELLIGENCE-MH: Chrome Mobile WebView 105+ duplex requirement, Dodo SDK path.
   it('suppresses duplex error ONLY when checkout-*.js chunk is in the stack', () => {
     const event = makeEvent(
       "Failed to construct 'Request': The `duplex` member must be specified for a request with a streaming body",
@@ -325,7 +325,7 @@ describe('existing beforeSend filters', () => {
     assert.ok(beforeSend(event) !== null, 'first-party runtime regression must still surface');
   });
 
-  // WORLDMONITOR-MP: Chrome extension intercepting maplibre fetch — suppress only when no first-party frames.
+  // STARTUP_INTELLIGENCE-MP: Chrome extension intercepting maplibre fetch — suppress only when no first-party frames.
   it('suppresses chrome-extension-frame errors when no first-party frames are present', () => {
     const event = makeEvent('Failed to fetch (pub-x.r2.dev)', 'TypeError', [
       { filename: '/assets/maplibre-WH5fAPRo.js', lineno: 1, function: 'FetchSource.load' }, // vendor chunk → not first-party
@@ -351,7 +351,7 @@ describe('existing beforeSend filters', () => {
     assert.ok(beforeSend(event) !== null, 'first-party bug must surface even if an extension frame is on the stack');
   });
 
-  // WORLDMONITOR-MQ: Sentry SDK DOM breadcrumb null.contains crash — suppress only when no first-party frames.
+  // STARTUP_INTELLIGENCE-MQ: Sentry SDK DOM breadcrumb null.contains crash — suppress only when no first-party frames.
   it("suppresses null 'contains' read on a sentry-*.js frame with no first-party frames", () => {
     const event = makeEvent("Cannot read properties of null (reading 'contains')", 'TypeError', [
       { filename: '/assets/sentry-C2sjIlLb.js', lineno: 1, function: 'HTMLDocument.r' },
@@ -374,7 +374,7 @@ describe('existing beforeSend filters', () => {
     assert.ok(beforeSend(event) !== null, 'first-party null.contains must still surface');
   });
 
-  // WORLDMONITOR-MV: Convex WS onmessage JSON.parse truncation — suppress only when stack has no first-party frames.
+  // STARTUP_INTELLIGENCE-MV: Convex WS onmessage JSON.parse truncation — suppress only when stack has no first-party frames.
   it('suppresses SyntaxError "is not valid JSON" with onmessage frame and no first-party frames', () => {
     const event = makeEvent(
       'Unexpected token \'p\', "pdated","Ping"}" is not valid JSON',

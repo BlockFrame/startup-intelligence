@@ -42,7 +42,6 @@ export const REFRESH_INTERVALS = {
   strategicRisk: 5 * 60 * 1000,
   temporalBaseline: 10 * 60 * 1000,
   tradePolicy: 60 * 60 * 1000,
-  supplyChain: 60 * 60 * 1000,
   telegramIntel: 60 * 1000,
   gulfEconomies: 10 * 60 * 1000,
   groceryBasket: 6 * 60 * 60 * 1000,
@@ -55,7 +54,6 @@ export const REFRESH_INTERVALS = {
   defensePatents: 24 * 60 * 60 * 1000, // 24h — data is weekly, daily poll is sufficient
   wsbTickers: 10 * 60 * 1000,
   crossSourceSignals: 15 * 60 * 1000,
-  hormuzTracker: 60 * 60 * 1000, // 1h — data updates daily
   hyperliquidFlow: 5 * 60 * 1000, // 5min — matches Railway seed cadence
   energyCrisis: 6 * 60 * 60 * 1000, // 6h — policy data updates infrequently
   macroTiles: 30 * 60 * 1000,
@@ -85,14 +83,14 @@ export const MONITOR_COLORS = [
 
 // Storage keys - shared
 export const STORAGE_KEYS = {
-  panels: 'worldmonitor-panels',
-  monitors: 'worldmonitor-monitors',
-  mapLayers: 'worldmonitor-layers',
-  disabledFeeds: 'worldmonitor-disabled-feeds',
-  liveChannels: 'worldmonitor-live-channels',
-  mapMode: 'worldmonitor-map-mode',          // 'flat' | 'globe'
-  activeChannel: 'worldmonitor-active-channel',
-  webcamPrefs: 'worldmonitor-webcam-prefs',
+  panels: 'startupintelligence-panels',
+  monitors: 'startupintelligence-monitors',
+  mapLayers: 'startupintelligence-layers',
+  disabledFeeds: 'startupintelligence-disabled-feeds',
+  liveChannels: 'startupintelligence-live-channels',
+  mapMode: 'startupintelligence-map-mode',          // 'flat' | 'globe'
+  activeChannel: 'startupintelligence-active-channel',
+  webcamPrefs: 'startupintelligence-webcam-prefs',
 } as const;
 
 // Type definitions for variant configs

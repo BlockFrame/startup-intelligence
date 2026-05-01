@@ -12,7 +12,7 @@ import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
 import { isMobileDevice, getCSSColor } from '@/utils';
 import { TransitChart } from '@/utils/transit-chart';
 import { HS2RingChart } from '@/utils/hs2-ring-chart';
-import type { GetChokepointStatusResponse } from '@/services/supply-chain';
+import type { GetChokepointStatusResponse } from '@/generated/client/startup_intelligence/supply_chain/v1/service_client';
 import { t } from '@/services/i18n';
 import { getNaturalEventIcon } from '@/services/eonet';
 import { getHotspotEscalation, getEscalationChange24h } from '@/services/hotspot-escalation';
@@ -90,7 +90,7 @@ function renderSectorRing(sectors: Array<{ label: string; share: number; color: 
 
 function formatPositionSource(source: string): string {
   if (source === 'POSITION_SOURCE_WINGBITS') {
-    return '<a href="https://wingbits.com?utm_source=worldmonitor&utm_medium=referral&utm_campaign=worldmonitor" target="_blank" rel="noopener" style="color:inherit">wingbits.com</a>';
+    return '<a href="https://wingbits.com?utm_source=startup_intelligence&utm_medium=referral&utm_campaign=startup_intelligence" target="_blank" rel="noopener" style="color:inherit">wingbits.com</a>';
   }
   if (source === 'POSITION_SOURCE_OPENSKY') {
     return '<a href="https://opensky-network.org" target="_blank" rel="noopener" style="color:inherit">opensky-network.org</a>';

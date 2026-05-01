@@ -3,7 +3,7 @@ import {
   SeismologyServiceClient,
   type Earthquake,
   type ListEarthquakesResponse,
-} from '@/generated/client/worldmonitor/seismology/v1/service_client';
+} from '@/generated/client/startup_intelligence/seismology/v1/service_client';
 import { createCircuitBreaker } from '@/utils';
 import { getHydratedData } from '@/services/bootstrap';
 

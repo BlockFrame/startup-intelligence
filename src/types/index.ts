@@ -28,7 +28,6 @@ export type DataSourceId =
   | 'bis'
   | 'bls'
   | 'wto_trade'
-  | 'supply_chain'
   | 'security_advisories'
   | 'gpsjam'
   | 'sanctions_pressure'

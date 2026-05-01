@@ -20,7 +20,7 @@ const TARIFF_TTL = 28800; // 8h — 2h buffer over 6h cron cadence (was TRADE_TT
 const CUSTOMS_TTL = 86400; // 24h — monthly Treasury data, matches maxStaleMin:1440 (was TRADE_TTL=6h = 0 buffer)
 
 // Reporter list fetched dynamically from WTO API at startup.
-// WorldMonitor = WORLD coverage — use whatever the WTO API supports.
+// StartupIntelligence = WORLD coverage — use whatever the WTO API supports.
 import { readFileSync as _readFileSync } from 'node:fs';
 import { dirname as _dirname, join as _join } from 'node:path';
 import { fileURLToPath as _fileURLToPath } from 'node:url';

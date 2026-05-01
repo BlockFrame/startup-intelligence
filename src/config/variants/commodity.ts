@@ -1,4 +1,4 @@
-// Commodity variant - commodity.worldmonitor.app -- Focused on mining, metals, energy commodities, and critical minerals
+// Commodity variant - commodity.startupintelligence.app -- Focused on mining, metals, energy commodities, and critical minerals
 import type { PanelConfig, MapLayers } from '@/types';
 import type { VariantConfig } from './base';
 
@@ -31,7 +31,6 @@ export const DEFAULT_PANELS: Record<string, PanelConfig> = {
   'mining-companies': { name: 'Major Miners', enabled: true, priority: 1 },
   'commodity-news': { name: 'Commodity News', enabled: true, priority: 1 },
   // Operations & supply
-  'supply-chain': { name: 'Supply Chain & Shipping', enabled: true, priority: 2 },
   'commodity-regulation': { name: 'Mining Policy & ESG', enabled: true, priority: 2 },
   // Regional / macro
   'gulf-economies': { name: 'Gulf & OPEC Economies', enabled: true, priority: 1 },

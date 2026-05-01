@@ -19,7 +19,7 @@ import { drainResponseHeaders } from './_shared/response-headers';
 import { checkEntitlement, getRequiredTier } from './_shared/entitlement-check';
 import { resolveSessionUserId } from './_shared/auth-session';
 import { RPC_CACHE_TIER, STARTUP_RPC_CACHE_TIER, type CacheTier } from './gateway-cache-tiers';
-import type { ServerOptions } from '../src/generated/server/worldmonitor/seismology/v1/service_server';
+import type { ServerOptions } from '../src/generated/server/startup_intelligence/seismology/v1/service_server';
 
 export const serverOptions: ServerOptions = { onError: mapErrorToResponse };
 
@@ -129,13 +129,13 @@ function createDomainGatewayWithCache(
       forceKey: (isTierGated && !sessionUserId) || needsLegacyProBearerGate,
     }) as { valid: boolean; required: boolean; error?: string };
 
-    // User-owned API keys (wm_ prefix): when the static WORLDMONITOR_VALID_KEYS
+    // User-owned API keys (si_ prefix): when the static STARTUP_INTELLIGENCE_VALID_KEYS
     // check fails, try async Convex-backed validation for user-issued keys.
     let isUserApiKey = false;
-    const wmKey = request.headers.get('X-WorldMonitor-Key') ?? '';
-    if (keyCheck.required && !keyCheck.valid && wmKey.startsWith('wm_')) {
+    const startupIntelligenceKey = request.headers.get('X-Startup-Intelligence-Key') ?? '';
+    if (keyCheck.required && !keyCheck.valid && startupIntelligenceKey.startsWith('si_')) {
       const { validateUserApiKey } = await import('./_shared/user-api-key');
-      const userKeyResult = await validateUserApiKey(wmKey);
+      const userKeyResult = await validateUserApiKey(startupIntelligenceKey);
       if (userKeyResult) {
         isUserApiKey = true;
         keyCheck = { valid: true, required: true };
@@ -156,7 +156,7 @@ function createDomainGatewayWithCache(
     }
 
     // User API keys on PREMIUM_RPC_PATHS need verified pro-tier entitlement.
-    // Admin keys (WORLDMONITOR_VALID_KEYS) bypass this since they are operator-issued.
+    // Admin keys (STARTUP_INTELLIGENCE_VALID_KEYS) bypass this since they are operator-issued.
     if (isUserApiKey && needsLegacyProBearerGate && sessionUserId) {
       const { getEntitlements } = await import('./_shared/entitlement-check');
       const ent = await getEntitlements(sessionUserId);
@@ -218,9 +218,9 @@ function createDomainGatewayWithCache(
     }
 
     // Entitlement check — blocks tier-gated endpoints for users below required tier.
-    // Admin API-key holders (WORLDMONITOR_VALID_KEYS) bypass entitlement checks.
+    // Admin API-key holders (STARTUP_INTELLIGENCE_VALID_KEYS) bypass entitlement checks.
     // User API keys do NOT bypass — the key owner's tier is checked normally.
-    if (!(keyCheck.valid && wmKey && !isUserApiKey)) {
+    if (!(keyCheck.valid && startupIntelligenceKey && !isUserApiKey)) {
       const entitlementResponse = await checkEntitlement(request, pathname, corsHeaders);
       if (entitlementResponse) return entitlementResponse;
     }
@@ -311,7 +311,7 @@ function createDomainGatewayWithCache(
         const tier = isPremium ? 'slow-browser' as CacheTier
           : (envOverride && envOverride in TIER_HEADERS ? envOverride : null) ?? activeRpcCacheTier[pathname] ?? 'medium';
         mergedHeaders.set('Cache-Control', TIER_HEADERS[tier]);
-        // Only allow Vercel CDN caching for trusted origins (worldmonitor.app, Vercel previews,
+        // Only allow Vercel CDN caching for trusted origins (startupintelligence.app, Vercel previews,
         // Tauri). No-origin server-side requests (external scrapers) must always reach the edge
         // function so the auth check in validateApiKey() can run. Without this guard, a cached
         // 200 from a trusted-origin browser request could be served to a no-origin scraper,

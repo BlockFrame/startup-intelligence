@@ -646,19 +646,6 @@ function normalizeGpsJamming(raw) {
   return raw;
 }
 
-async function warmPingChokepoints() {
-  const baseUrl = process.env.WM_API_BASE_URL;
-  if (!baseUrl) { console.log('  [Chokepoints] Warm-ping skipped (no WM_API_BASE_URL)'); return; }
-  try {
-    const resp = await fetch(`${baseUrl}/api/supply-chain/v1/get-chokepoint-status`, {
-      headers: { 'User-Agent': CHROME_UA, Origin: 'https://worldmonitor.app' },
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!resp.ok) console.warn(`  [Chokepoints] Warm-ping failed: HTTP ${resp.status}`);
-    else console.log('  [Chokepoints] Warm-ping OK');
-  } catch (err) { console.warn(`  [Chokepoints] Warm-ping error: ${err.message}`); }
-}
-
 async function readInputKeys() {
   const { url, token } = getRedisCredentials();
   const fredKeys = FRED_MARKET_SERIES.map((seriesId) => FRED_MARKET_INPUT_KEYS[seriesId]);
@@ -14320,7 +14307,7 @@ async function callForecastLLM(systemPrompt, userPrompt, options = {}) {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'User-Agent': CHROME_UA,
-          ...(provider.name === 'openrouter' ? { 'HTTP-Referer': 'https://worldmonitor.app', 'X-Title': 'World Monitor' } : {}),
+          ...(provider.name === 'openrouter' ? { 'HTTP-Referer': 'https://startupintelligence.app', 'X-Title': 'Startup Intelligence' } : {}),
         },
         body: JSON.stringify({
           model: provider.model,
@@ -14950,7 +14937,6 @@ async function updateEmaWindows(inputs, url, token) {
 
 // ── Main pipeline ──────────────────────────────────────────
 async function fetchForecasts() {
-  await warmPingChokepoints();
   const traceStorageConfig = resolveR2StorageConfig();
   const [priorWorldStates, priorWorldStateFallback, priorTracePointer] = traceStorageConfig
     ? await Promise.all([

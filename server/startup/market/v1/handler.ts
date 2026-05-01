@@ -1,4 +1,4 @@
-import type { MarketServiceHandler } from '../../../../src/generated/server/worldmonitor/market/v1/service_server';
+import type { MarketServiceHandler } from '../../../../src/generated/server/startup_intelligence/market/v1/service_server';
 
 import { listMarketQuotes } from './list-market-quotes';
 import { listCryptoQuotes } from './list-crypto-quotes';

@@ -172,7 +172,7 @@ Files to update:
 
 - src/jobs/aggregate.ts: getBasketRows query — add AND pm.pin_disabled_at IS NULL
 - src/jobs/aggregate.ts: getBaselinePrices query — add BOTH AND pm.match_status IN ('auto', 'approved') [MISSING entirely today] AND pm.pin_disabled_at IS NULL
-- src/snapshots/worldmonitor.ts: retailer spread query — add AND pm.pin_disabled_at IS NULL
+- src/snapshots/startup_intelligence.ts: retailer spread query — add AND pm.pin_disabled_at IS NULL
 - src/jobs/validate.ts: match-reading query — add AND pm.pin_disabled_at IS NULL
 
 Without this, soft-disabled matches (stale products) still skew indices, baselines,
@@ -217,7 +217,7 @@ aggregate.ts:
   if (commonItemIds.length >= 4) { compute spread }
   else { write retailer_spread_pct = 0 }  // explicit 0 prevents stale value persisting
 
-snapshots/worldmonitor.ts buildRetailerSpreadSnapshot:
+snapshots/startup_intelligence.ts buildRetailerSpreadSnapshot:
   apply same MIN_SPREAD_ITEMS=4 threshold; return spreadPct=0 when below.
 
 ---
@@ -232,7 +232,7 @@ Disable with dated comment if still 0 after one run.
 
 ## Task 11 — Cross-repo: remove KE from frontend MARKETS
 
-In worldmonitor repo: src/services/consumer-prices/index.ts
+In startup_intelligence repo: src/services/consumer-prices/index.ts
 Remove ke from MARKETS array until a working KE retailer is validated.
 KE basket data stays in DB.
 Note: publish.ts already only includes markets with enabled retailers, so
@@ -315,7 +315,7 @@ UPDATE retailers SET active = false WHERE slug IN (
 18. Verify: bigbasket_in in_stock counts, no product_matches rows deleted, disabled retailers active=false
 19. npm run jobs:aggregate && npm run jobs:publish
 20. PR in consumer-prices-core repo
-21. Separate PR in worldmonitor repo: remove ke from MARKETS (Task 11)
+21. Separate PR in startup_intelligence repo: remove ke from MARKETS (Task 11)
 
 ---
 

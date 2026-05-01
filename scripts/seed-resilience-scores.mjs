@@ -9,15 +9,15 @@ import { unwrapEnvelope } from './_seed-envelope-source.mjs';
 
 loadEnvFile(import.meta.url);
 
-const API_BASE = process.env.API_BASE_URL || 'https://api.worldmonitor.app';
-// Reuse WORLDMONITOR_VALID_KEYS when a dedicated WORLDMONITOR_API_KEY isn't set —
+const API_BASE = process.env.API_BASE_URL || 'https://api.startupintelligence.app';
+// Reuse STARTUP_INTELLIGENCE_VALID_KEYS when a dedicated STARTUP_INTELLIGENCE_API_KEY isn't set —
 // any entry in that comma-separated list is accepted by the API (same
 // validation list that server/_shared/premium-check.ts and validateApiKey read).
 // Avoids duplicating the same secret under a second env-var name per service.
-const WM_KEY = process.env.WORLDMONITOR_API_KEY
-  || (process.env.WORLDMONITOR_VALID_KEYS ?? '').split(',').map((k) => k.trim()).filter(Boolean)[0]
+const SI_KEY = process.env.STARTUP_INTELLIGENCE_API_KEY
+  || (process.env.STARTUP_INTELLIGENCE_VALID_KEYS ?? '').split(',').map((k) => k.trim()).filter(Boolean)[0]
   || '';
-const SEED_UA = 'Mozilla/5.0 (compatible; WorldMonitor-Seed/1.0)';
+const SEED_UA = 'Mozilla/5.0 (compatible; StartupIntelligence-Seed/1.0)';
 
 export const RESILIENCE_SCORE_CACHE_PREFIX = 'resilience:score:v9:';
 export const RESILIENCE_RANKING_CACHE_KEY = 'resilience:ranking:v9';
@@ -170,10 +170,10 @@ async function seedResilienceScores() {
       // pre-12h window the handler's cache-hit early-return would fire and
       // skip the whole warm path — scores would stay missing, coverage would
       // degrade, and only the per-country laggard fallback (or nothing, if
-      // WM_KEY is absent) would recover. Forcing a recompute routes the call
+      // SI_KEY is absent) would recover. Forcing a recompute routes the call
       // through warmMissingResilienceScores and its chunked pipeline SET.
       const headers = { 'User-Agent': SEED_UA, 'Accept': 'application/json' };
-      if (WM_KEY) headers['X-WorldMonitor-Key'] = WM_KEY;
+      if (SI_KEY) headers['X-Startup-Intelligence-Key'] = SI_KEY;
       const resp = await fetch(`${API_BASE}/api/resilience/v1/get-resilience-ranking?refresh=1`, {
         headers,
         signal: AbortSignal.timeout(60_000),
@@ -203,11 +203,11 @@ async function seedResilienceScores() {
     }
 
     // Warm laggards individually (countries the bulk ranking timed out on)
-    if (stillMissing.length > 0 && !WM_KEY) {
-      console.warn(`[resilience-scores] ${stillMissing.length} laggards found but neither WORLDMONITOR_API_KEY nor WORLDMONITOR_VALID_KEYS is set — skipping individual warmup`);
+    if (stillMissing.length > 0 && !SI_KEY) {
+      console.warn(`[resilience-scores] ${stillMissing.length} laggards found but neither STARTUP_INTELLIGENCE_API_KEY nor STARTUP_INTELLIGENCE_VALID_KEYS is set — skipping individual warmup`);
     }
     let laggardsWarmed = 0;
-    if (stillMissing.length > 0 && WM_KEY) {
+    if (stillMissing.length > 0 && SI_KEY) {
       console.log(`[resilience-scores] Warming ${stillMissing.length} laggards individually...`);
       const BATCH = 5;
       for (let i = 0; i < stillMissing.length; i += BATCH) {
@@ -215,7 +215,7 @@ async function seedResilienceScores() {
         const results = await Promise.allSettled(batch.map(async (cc) => {
           const scoreUrl = `${API_BASE}/api/resilience/v1/get-resilience-score?countryCode=${cc}`;
           const resp = await fetch(scoreUrl, {
-            headers: { 'User-Agent': SEED_UA, 'Accept': 'application/json', 'X-WorldMonitor-Key': WM_KEY },
+            headers: { 'User-Agent': SEED_UA, 'Accept': 'application/json', 'X-Startup-Intelligence-Key': SI_KEY },
             signal: AbortSignal.timeout(30_000),
           });
           if (!resp.ok) throw new Error(`${cc}: HTTP ${resp.status}`);
@@ -265,7 +265,7 @@ async function refreshRankingAggregate({ url, token, laggardsWarmed }) {
     // flow where a failed rebuild would leave the ranking absent instead of
     // stale-but-present.
     const rebuildHeaders = { 'User-Agent': SEED_UA, 'Accept': 'application/json' };
-    if (WM_KEY) rebuildHeaders['X-WorldMonitor-Key'] = WM_KEY;
+    if (SI_KEY) rebuildHeaders['X-Startup-Intelligence-Key'] = SI_KEY;
     const rebuildResp = await fetch(`${API_BASE}/api/resilience/v1/get-resilience-ranking?refresh=1`, {
       headers: rebuildHeaders,
       signal: AbortSignal.timeout(60_000),

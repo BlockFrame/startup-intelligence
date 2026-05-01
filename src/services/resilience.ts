@@ -6,7 +6,7 @@ import {
   type ResilienceDimension,
   type ResilienceRankingItem,
   type ScoreInterval,
-} from '@/generated/client/worldmonitor/resilience/v1/service_client';
+} from '@/generated/client/startup_intelligence/resilience/v1/service_client';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 
 export type ResilienceScoreResponse = GetResilienceScoreResponse;

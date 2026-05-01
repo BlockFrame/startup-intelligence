@@ -3,7 +3,7 @@ import {
   UnrestServiceClient,
   type UnrestEvent,
   type ListUnrestEventsResponse,
-} from '@/generated/client/worldmonitor/unrest/v1/service_client';
+} from '@/generated/client/startup_intelligence/unrest/v1/service_client';
 import type { SocialUnrestEvent, ProtestSeverity, ProtestEventType, ProtestSource } from '@/types';
 import { createCircuitBreaker } from '@/utils';
 import { getHydratedData } from '@/services/bootstrap';

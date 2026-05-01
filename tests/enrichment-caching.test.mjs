@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 
 // ─── Redis stub ──────────────────────────────────────────────────────────────
 
-const NEG_SENTINEL = '__WM_NEG__';
+const NEG_SENTINEL = '__SI_NEG__';
 
 function makeRedisStub() {
   const store = new Map();

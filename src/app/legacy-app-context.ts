@@ -9,7 +9,7 @@ import type {
   USNIFleetReport,
 } from '@/types';
 import type { AirportDelayAlert, PositionSample } from '@/services/aviation';
-import type { IranEvent } from '@/generated/client/worldmonitor/conflict/v1/service_client';
+import type { IranEvent } from '@/generated/client/startup_intelligence/conflict/v1/service_client';
 import type { SanctionsPressureResult } from '@/services/sanctions-pressure';
 import type { RadiationWatchResult } from '@/services/radiation';
 import type { SecurityAdvisory } from '@/services/security-advisories';

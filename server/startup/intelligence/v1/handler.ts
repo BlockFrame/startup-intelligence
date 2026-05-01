@@ -1,4 +1,4 @@
-import type { IntelligenceServiceHandler } from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
+import type { IntelligenceServiceHandler } from '../../../../src/generated/server/startup_intelligence/intelligence/v1/service_server';
 
 import { listSecurityAdvisories } from './list-security-advisories';
 import { listTelegramFeed } from './list-telegram-feed';

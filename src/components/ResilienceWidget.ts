@@ -459,15 +459,15 @@ export class ResilienceWidget {
 
   private openUpgradeFlow(): void {
     if (isDesktopRuntime()) {
-      void invokeTauri<void>('open_url', { url: 'https://worldmonitor.app/pro' })
-        .catch(() => window.open('https://worldmonitor.app/pro', '_blank'));
+      void invokeTauri<void>('open_url', { url: 'https://startupintelligence.app/pro' })
+        .catch(() => window.open('https://startupintelligence.app/pro', '_blank'));
       return;
     }
 
     import('@/services/checkout')
       .then((module) => module.startCheckout(DEFAULT_UPGRADE_PRODUCT))
       .catch(() => {
-        window.open('https://worldmonitor.app/pro', '_blank');
+        window.open('https://startupintelligence.app/pro', '_blank');
       });
   }
 }

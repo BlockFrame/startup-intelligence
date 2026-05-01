@@ -1,7 +1,7 @@
 /**
  * Fetch wrapper for premium RPC clients.
  *
- * Injects a Clerk Bearer token (or WORLDMONITOR_API_KEY as fallback) directly
+ * Injects a Clerk Bearer token (or STARTUP_INTELLIGENCE_API_KEY as fallback) directly
  * into every request. This is the source-of-truth auth injection for premium
  * market endpoints — no reliance on the global fetch patch.
  */
@@ -27,7 +27,7 @@ function reportServerError(res: Response, input: RequestInfo | URL): void {
   if (res.status < 500) return;
   try {
     const href = input instanceof Request ? input.url : String(input);
-    const path = new URL(href, globalThis.location?.href ?? 'https://worldmonitor.app').pathname;
+    const path = new URL(href, globalThis.location?.href ?? 'https://startupintelligence.app').pathname;
     Sentry.captureMessage(`API ${res.status}: ${path}`, {
       level: 'error',
       tags: { kind: 'api_5xx' },
@@ -69,18 +69,18 @@ export async function premiumFetch(
 ): Promise<Response> {
   // Skip injection if the caller already set an auth header.
   const existing = new Headers(init?.headers);
-  if (existing.has('Authorization') || existing.has('X-WorldMonitor-Key')) {
+  if (existing.has('Authorization') || existing.has('X-Startup-Intelligence-Key')) {
     const res = await globalThis.fetch(input, init);
     reportServerError(res, input);
     return res;
   }
 
-  // 1. WORLDMONITOR_API_KEY from env (desktop / test environments).
+  // 1. STARTUP_INTELLIGENCE_API_KEY from env (desktop / test environments).
   try {
     const { getRuntimeConfigSnapshot } = await import('@/services/runtime-config');
-    const wmKey = getRuntimeConfigSnapshot().secrets['WORLDMONITOR_API_KEY']?.value;
-    if (wmKey) {
-      existing.set('X-WorldMonitor-Key', wmKey);
+    const startupIntelligenceKey = getRuntimeConfigSnapshot().secrets['STARTUP_INTELLIGENCE_API_KEY']?.value;
+    if (startupIntelligenceKey) {
+      existing.set('X-Startup-Intelligence-Key', startupIntelligenceKey);
       const res = await globalThis.fetch(input, { ...init, headers: existing });
       reportServerError(res, input);
       return res;
@@ -90,12 +90,12 @@ export async function premiumFetch(
   // 2. Tester / widget keys from localStorage.
   // Must run BEFORE Clerk to prevent a free Clerk session from intercepting the
   // request and returning 403 before the tester key is ever checked.
-  // Try wm-pro-key first, then wm-widget-key. A relay-only pro key can be invalid
+  // Try si-pro-key first, then si-widget-key. A relay-only pro key can be invalid
   // for the gateway even when the widget key is valid for premium RPC access.
   const testerKeys = await loadTesterKeys();
   for (const testerKey of testerKeys) {
     const testerHeaders = new Headers(existing);
-    testerHeaders.set('X-WorldMonitor-Key', testerKey);
+    testerHeaders.set('X-Startup-Intelligence-Key', testerKey);
     const res = await globalThis.fetch(input, { ...init, headers: testerHeaders });
     if (res.status !== 401) {
       reportServerError(res, input);
@@ -105,7 +105,7 @@ export async function premiumFetch(
   }
 
   // 3. Clerk Pro session token (fallback for users without tester keys, or when
-  //    none of the tester keys are in WORLDMONITOR_VALID_KEYS).
+  //    none of the tester keys are in STARTUP_INTELLIGENCE_VALID_KEYS).
   try {
     let token: string | null = null;
     if (_testProviders?.getClerkToken) {

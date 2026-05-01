@@ -19,18 +19,5 @@ target/
 # Common local artifacts
 .DS_Store
 
-# Startup Intelligence deploy surface:
-# exclude retained non-core API domains that are still being refactored for
-# Startup Intelligence.
-api/cyber/
-api/infrastructure/
-api/supply-chain/
 api/bootstrap.js
 api/eia/
-
-# Exclude legacy server-side World Monitor handlers from Startup Intelligence
-# deployments while these retained domains are refactored into startup namespace.
-server/worldmonitor/cyber/
-server/worldmonitor/infrastructure/
-server/worldmonitor/intelligence/
-server/worldmonitor/supply-chain/

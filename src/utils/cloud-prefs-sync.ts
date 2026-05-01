@@ -19,10 +19,10 @@ import { getClerkToken } from '@/services/clerk';
 const ENABLED = import.meta.env.VITE_CLOUD_PREFS_ENABLED === 'true';
 
 // localStorage state keys — never uploaded to cloud
-const KEY_SYNC_VERSION = 'wm-cloud-sync-version';
-const KEY_LAST_SYNC_AT = 'wm-last-sync-at';
-const KEY_SYNC_STATE = 'wm-cloud-sync-state';
-const KEY_LAST_SIGNED_IN_AS = 'wm-last-signed-in-as';
+const KEY_SYNC_VERSION = 'si-cloud-sync-version';
+const KEY_LAST_SYNC_AT = 'si-last-sync-at';
+const KEY_SYNC_STATE = 'si-cloud-sync-state';
+const KEY_LAST_SIGNED_IN_AS = 'si-last-signed-in-as';
 
 const CURRENT_PREFS_SCHEMA_VERSION = 1;
 const MIGRATIONS: Record<number, (data: Record<string, unknown>) => Record<string, unknown>> = {
@@ -103,10 +103,10 @@ function applyMigrations(
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
 function showUndoToast(prevBlobJson: string): void {
-  document.querySelector('.wm-sync-restore-toast')?.remove();
+  document.querySelector('.si-sync-restore-toast')?.remove();
 
   const toast = document.createElement('div');
-  toast.className = 'wm-sync-restore-toast update-toast';
+  toast.className = 'si-sync-restore-toast update-toast';
   toast.innerHTML = `
     <div class="update-toast-body">
       <div class="update-toast-title">Settings restored</div>

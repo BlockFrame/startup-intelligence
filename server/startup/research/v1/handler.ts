@@ -2,11 +2,11 @@
  * Startup research handler composition.
  *
  * The individual RPC implementations still live in the legacy module tree for
- * now, but the startup edge surface no longer imports the worldmonitor
+ * now, but the startup edge surface no longer imports the startup_intelligence
  * composition barrel.
  */
 
-import type { ResearchServiceHandler } from '../../../../src/generated/server/worldmonitor/research/v1/service_server';
+import type { ResearchServiceHandler } from '../../../../src/generated/server/startup_intelligence/research/v1/service_server';
 
 import { listArxivPapers } from './list-arxiv-papers';
 import { listTrendingRepos } from './list-trending-repos';

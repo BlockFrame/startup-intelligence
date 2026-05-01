@@ -32,7 +32,7 @@ async function sha256Hex(input: string): Promise<string> {
  * standard NEG_SENTINEL for negative results.
  */
 export async function validateUserApiKey(key: string): Promise<UserKeyResult | null> {
-  if (!key || !key.startsWith('wm_')) return null;
+  if (!key || !key.startsWith('si_')) return null;
 
   const keyHash = await sha256Hex(key);
   const cacheKey = `${CACHE_KEY_PREFIX}${keyHash}`;
@@ -62,7 +62,7 @@ async function fetchFromConvex(keyHash: string): Promise<UserKeyResult | null> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'User-Agent': 'worldmonitor-gateway/1.0',
+      'User-Agent': 'startupintelligence-gateway/1.0',
       'x-convex-shared-secret': convexSharedSecret,
     },
     body: JSON.stringify({ keyHash }),

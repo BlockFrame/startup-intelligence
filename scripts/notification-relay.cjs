@@ -18,7 +18,7 @@ const CONVEX_SITE_URL = process.env.CONVEX_SITE_URL ?? CONVEX_URL.replace('.conv
 const RELAY_SECRET = process.env.RELAY_SHARED_SECRET ?? '';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? '';
-const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'WorldMonitor <alerts@worldmonitor.app>';
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'Startup Intelligence <alerts@startupintelligence.app>';
 // When QUIET_HOURS_BATCH_ENABLED=0, treat batch_on_wake as critical_only.
 // Useful during relay rollout to disable queued batching before drainBatchOnWake is fully tested.
 const QUIET_HOURS_BATCH_ENABLED = process.env.QUIET_HOURS_BATCH_ENABLED !== '0';
@@ -37,7 +37,7 @@ const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 async function upstashRest(...args) {
   const res = await fetch(`${UPSTASH_URL}/${args.map(encodeURIComponent).join('/')}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'User-Agent': 'worldmonitor-relay/1.0' },
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'User-Agent': 'startupintelligence-relay/1.0' },
   });
   if (!res.ok) {
     console.warn(`[relay] Upstash error ${res.status} for command ${args[0]}`);
@@ -69,7 +69,7 @@ async function deactivateChannel(userId, channelType) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${RELAY_SECRET}`,
-        'User-Agent': 'worldmonitor-relay/1.0',
+        'User-Agent': 'startupintelligence-relay/1.0',
       },
       body: JSON.stringify({ userId, channelType }),
       signal: AbortSignal.timeout(10000),
@@ -93,7 +93,7 @@ async function isUserPro(userId) {
   try {
     const res = await fetch(`${CONVEX_SITE_URL}/relay/entitlement`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RELAY_SECRET}`, 'User-Agent': 'worldmonitor-relay/1.0' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RELAY_SECRET}`, 'User-Agent': 'startupintelligence-relay/1.0' },
       body: JSON.stringify({ userId }),
       signal: AbortSignal.timeout(5000),
     });
@@ -150,19 +150,19 @@ async function drainHeldForUser(userId, variant, allowedChannelTypes) {
   const events = items.map(i => { try { return JSON.parse(i); } catch { return null; } }).filter(Boolean);
   if (events.length === 0) { await upstashRest('DEL', key); return; }
 
-  const lines = [`WorldMonitor — ${events.length} held alert${events.length !== 1 ? 's' : ''} from quiet hours`, ''];
+  const lines = [`StartupIntelligence — ${events.length} held alert${events.length !== 1 ? 's' : ''} from quiet hours`, ''];
   for (const ev of events) {
     lines.push(`[${(ev.severity ?? 'high').toUpperCase()}] ${ev.payload?.title ?? ev.eventType}`);
   }
-  lines.push('', 'View full dashboard → worldmonitor.app');
+  lines.push('', 'View full dashboard → startupintelligence.app');
   const text = lines.join('\n');
-  const subject = `WorldMonitor — ${events.length} held alert${events.length !== 1 ? 's' : ''}`;
+  const subject = `StartupIntelligence — ${events.length} held alert${events.length !== 1 ? 's' : ''}`;
 
   let channels = [];
   try {
     const chRes = await fetch(`${CONVEX_SITE_URL}/relay/channels`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RELAY_SECRET}`, 'User-Agent': 'worldmonitor-relay/1.0' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RELAY_SECRET}`, 'User-Agent': 'startupintelligence-relay/1.0' },
       body: JSON.stringify({ userId }),
       signal: AbortSignal.timeout(10000),
     });
@@ -263,7 +263,7 @@ async function sendTelegram(userId, chatId, text) {
   }
   const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-relay/1.0' },
+    headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-relay/1.0' },
     body: JSON.stringify({ chat_id: chatId, text }),
     signal: AbortSignal.timeout(10000),
   });
@@ -325,7 +325,7 @@ async function sendSlack(userId, webhookEnvelope, text) {
   }
   const res = await fetch(webhookUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-relay/1.0' },
+    headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-relay/1.0' },
     body: JSON.stringify({ text, unfurl_links: false }),
     signal: AbortSignal.timeout(10000),
   });
@@ -373,7 +373,7 @@ async function sendDiscord(userId, webhookEnvelope, text, retryCount = 0) {
     : text;
   const res = await fetch(webhookUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-relay/1.0' },
+    headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-relay/1.0' },
     body: JSON.stringify({ content }),
     signal: AbortSignal.timeout(10000),
   });
@@ -464,7 +464,7 @@ async function sendWebhook(userId, webhookEnvelope, event) {
   try {
     const resp = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-relay/1.0' },
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-relay/1.0' },
       body: payload,
       signal: AbortSignal.timeout(10000),
     });
@@ -533,7 +533,7 @@ async function processWelcome(event) {
   try {
     const chRes = await fetch(`${CONVEX_SITE_URL}/relay/channels`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RELAY_SECRET}`, 'User-Agent': 'worldmonitor-relay/1.0' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RELAY_SECRET}`, 'User-Agent': 'startupintelligence-relay/1.0' },
       body: JSON.stringify({ userId }),
       signal: AbortSignal.timeout(10000),
     });
@@ -544,13 +544,13 @@ async function processWelcome(event) {
   if (!ch) return;
 
   // Telegram welcome is sent directly by convex/http.ts after claimPairingToken succeeds.
-  const text = `✅ WorldMonitor connected! You'll receive breaking news alerts here.`;
+  const text = `✅ StartupIntelligence connected! You'll receive breaking news alerts here.`;
   if (channelType === 'slack' && ch.webhookEnvelope) {
     await sendSlack(userId, ch.webhookEnvelope, text);
   } else if (channelType === 'discord' && ch.webhookEnvelope) {
     await sendDiscord(userId, ch.webhookEnvelope, text);
   } else if (channelType === 'email' && ch.email) {
-    await sendEmail(ch.email, 'WorldMonitor Notifications Connected', text);
+    await sendEmail(ch.email, 'StartupIntelligence Notifications Connected', text);
   }
 }
 
@@ -589,7 +589,7 @@ async function shadowLogScore(event) {
       headers: {
         Authorization: `Bearer ${UPSTASH_TOKEN}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'worldmonitor-relay/1.0',
+        'User-Agent': 'startupintelligence-relay/1.0',
       },
       body: JSON.stringify([
         ['ZADD', SHADOW_SCORE_LOG_KEY, String(now), member],
@@ -732,7 +732,7 @@ async function processEvent(event) {
   if (skippedCount > 0) console.log(`[relay] Skipping ${skippedCount} non-PRO user(s)`);
 
   const text = formatMessage(event);
-  const subject = `WorldMonitor Alert: ${event.payload?.title ?? event.eventType}`;
+  const subject = `StartupIntelligence Alert: ${event.payload?.title ?? event.eventType}`;
   const eventSeverity = event.severity ?? 'high';
 
   for (const rule of matching) {
@@ -763,7 +763,7 @@ async function processEvent(event) {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${RELAY_SECRET}`,
-          'User-Agent': 'worldmonitor-relay/1.0',
+          'User-Agent': 'startupintelligence-relay/1.0',
         },
         body: JSON.stringify({ userId: rule.userId }),
         signal: AbortSignal.timeout(10000),

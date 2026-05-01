@@ -10,13 +10,13 @@ const sentryDsn = import.meta.env.VITE_SENTRY_DSN?.trim();
 // Initialize Sentry error tracking (early as possible)
 Sentry.init({
   dsn: sentryDsn || undefined,
-  release: `worldmonitor@${__APP_VERSION__}`,
-  environment: (location.hostname === 'worldmonitor.app' || location.hostname.endsWith('.worldmonitor.app')) ? 'production'
+  release: `startup_intelligence@${__APP_VERSION__}`,
+  environment: (location.hostname === 'startupintelligence.app' || location.hostname.endsWith('.startupintelligence.app')) ? 'production'
     : location.hostname.includes('vercel.app') ? 'preview'
     : 'development',
   enabled: Boolean(sentryDsn) && !location.hostname.startsWith('localhost') && !('__TAURI_INTERNALS__' in window),
   allowUrls: [
-    /https?:\/\/(www\.|tech\.|finance\.|commodity\.|happy\.)?worldmonitor\.app/,
+    /https?:\/\/(www\.|tech\.|finance\.|commodity\.|happy\.)?startup_intelligence\.app/,
     /https?:\/\/.*\.vercel\.app/,
   ],
   sendDefaultPii: true,
@@ -247,7 +247,7 @@ Sentry.init({
     /ConvexError: CONFLICT/, // Expected OCC rejection on concurrent preference saves
     /\[CONVEX [AQM]\(.+?\)\] Connection lost while action was in flight/, // Convex SDK transient WS disconnect
     /Response did not contain `success` or `data`/, // DuckDuckGo browser internal tracker/content-block response — never emitted by our code
-    /Cannot set properties of undefined \(setting 'bodyTouched'\)/, // Quark browser (Alibaba mobile) touch-tracking script injection (WORLDMONITOR-N1)
+    /Cannot set properties of undefined \(setting 'bodyTouched'\)/, // Quark browser (Alibaba mobile) touch-tracking script injection (STARTUP_INTELLIGENCE-N1)
   ],
   beforeSend(event) {
     const msg = event.exception?.values?.[0]?.value ?? '';
@@ -272,7 +272,7 @@ Sentry.init({
       if (nonInfraFrames.length > 0 && nonInfraFrames.every(f => /\/(map|maplibre|deck-stack)-[A-Za-z0-9_-]+\.js/.test(f.filename ?? ''))) return null;
     }
     // Suppress Three.js/globe.gl TypeError crashes in main bundle (reading 'type'/'pathType'/'count'/'__globeObjType' on undefined during WebGL traversal/raycast).
-    // __globeObjType is exclusively set by three-globe on its own objects and we have no user onClick/onHover handler, so it is always globe.gl internal even when the stack shows the bundled main chunk (WORLDMONITOR-ME).
+    // __globeObjType is exclusively set by three-globe on its own objects and we have no user onClick/onHover handler, so it is always globe.gl internal even when the stack shows the bundled main chunk (STARTUP_INTELLIGENCE-ME).
     if (/reading '__globeObjType'|__globeObjType/.test(msg)) return null;
     if (/reading '(?:type|pathType|count)'|can't access property "(?:type|pathType|count|__globeObjType)",? \w+ is (?:undefined|null)|undefined is not an object \(evaluating '\w+\.(?:pathType|count)'\)/.test(msg)) {
       if (!hasFirstParty) return null;
@@ -326,10 +326,10 @@ Sentry.init({
     // generic hasFirstParty gate below can't see it — match by function name.
     // Gated on excType === 'RangeError' (mirrors the sortedTrackListForMenu
     // pattern above) so an unrelated exception with a FireglassUtils frame
-    // isn't silently dropped (WORLDMONITOR-MK).
+    // isn't silently dropped (STARTUP_INTELLIGENCE-MK).
     if (excType === 'RangeError' && frames.some(f => /FireglassUtils/.test(f.function ?? ''))) return null;
     // Suppress Chrome Mobile WebView 105+ Request constructor quirk ONLY when
-    // the Dodo checkout lazy chunk is in the stack (WORLDMONITOR-MH). The
+    // the Dodo checkout lazy chunk is in the stack (STARTUP_INTELLIGENCE-MH). The
     // exact message is unique to the Fetch § Request() duplex requirement, but
     // src/services/runtime.ts (runtime fetch patch) also constructs `new
     // Request(init)` at lines 861/869/902 — without this provenance guard the
@@ -338,7 +338,7 @@ Sentry.init({
     // only when startCheckout runs) so a runtime.ts failure still surfaces.
     if (/Failed to construct 'Request': The `duplex` member must be specified/.test(msg)
         && frames.some(f => /\/assets\/checkout-[A-Za-z0-9_-]+\.js/.test(f.filename ?? ''))) return null;
-    // Suppress "options is not defined" from browser extension overriding Navigator getter (WORLDMONITOR-JN).
+    // Suppress "options is not defined" from browser extension overriding Navigator getter (STARTUP_INTELLIGENCE-JN).
     // Only suppress when stack has no first-party frames (filename=<anonymous> is the extension getter).
     if (/^options is not defined$/.test(msg) && frames.every(f => !f.filename || f.filename === '<anonymous>' || f.filename === '[native code]')) return null;
     // Suppress TransactionInactiveError only when no first-party frames are present
@@ -492,7 +492,7 @@ initMetaTags();
 
 // In desktop mode, route /api/* calls to the local Tauri sidecar backend.
 installRuntimeFetchPatch();
-// In web production, route RPC calls through api.worldmonitor.app (Cloudflare edge).
+// In web production, route RPC calls through api.startupintelligence.app (Cloudflare edge).
 installWebApiRedirect();
 loadDesktopSecrets().catch(() => {});
 
@@ -518,7 +518,7 @@ requestAnimationFrame(() => {
 });
 
 // Clear stale settings-open flag (survives ungraceful shutdown)
-localStorage.removeItem('wm-settings-open');
+localStorage.removeItem('si-settings-open');
 
 // Standalone windows: ?settings=1 = panel display settings, ?live-channels=1 = channel management
 // Both need i18n initialized so t() does not return undefined.
@@ -563,13 +563,13 @@ if (SITE_VARIANT !== 'startup') {
 // Beta mode toggle: type `beta=true` / `beta=false` in console
 Object.defineProperty(window, 'beta', {
   get() {
-    const on = localStorage.getItem('worldmonitor-beta-mode') === 'true';
+    const on = localStorage.getItem('startupintelligence-beta-mode') === 'true';
     console.log(`[Beta] ${on ? 'ON' : 'OFF'}`);
     return on;
   },
   set(v: boolean) {
-    if (v) localStorage.setItem('worldmonitor-beta-mode', 'true');
-    else localStorage.removeItem('worldmonitor-beta-mode');
+    if (v) localStorage.setItem('startupintelligence-beta-mode', 'true');
+    else localStorage.removeItem('startupintelligence-beta-mode');
     location.reload();
   },
 });
@@ -589,8 +589,8 @@ if (import.meta.env.PROD && !('__TAURI_INTERNALS__' in window) && !('__TAURI__' 
 
   const SW_UPDATE_SUCCESS_INTERVAL_MS = 60 * 60 * 1000;
   const SW_UPDATE_FAILURE_INTERVAL_MS = 5 * 60 * 1000;
-  const SW_UPDATE_LAST_CHECK_KEY = 'wm-sw-last-update-check';
-  const SW_UPDATE_LAST_RESULT_KEY = 'wm-sw-last-update-ok';
+  const SW_UPDATE_LAST_CHECK_KEY = 'si-sw-last-update-check';
+  const SW_UPDATE_LAST_RESULT_KEY = 'si-sw-last-update-ok';
 
   const readStorageNum = (key: string): number => {
     try {
@@ -667,7 +667,7 @@ if (import.meta.env.PROD && !('__TAURI_INTERNALS__' in window) && !('__TAURI__' 
 // It runs once per user (guarded by a localStorage key), nukes all SWs and caches, then reloads.
 // IMPORTANT: This causes a visible double-load for every new/unkeyed user. Remove once rollout is complete.
 //
-// const nukeKey = 'wm-sw-nuked-v3';
+// const nukeKey = 'si-sw-nuked-v3';
 // let alreadyNuked = false;
 // try { alreadyNuked = !!localStorage.getItem(nukeKey); } catch {}
 // if (!alreadyNuked) {

@@ -6,7 +6,7 @@ import type {
   ServerContext,
   GetBlsSeriesRequest,
   GetBlsSeriesResponse,
-} from '../../../../src/generated/server/worldmonitor/economic/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/economic/v1/service_server';
 import { getCachedJson } from '../../../_shared/redis';
 
 const BLS_KEY_PREFIX = 'bls:series';

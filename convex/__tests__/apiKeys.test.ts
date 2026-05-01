@@ -24,7 +24,7 @@ function makeKeyArgs(n: number) {
   const hash = hex.repeat(13).slice(0, 64); // 64-char hex
   return {
     name: `test-key-${n}`,
-    keyPrefix: `wm_${hex}`,
+    keyPrefix: `si_${hex}`,
     keyHash: hash,
   };
 }
@@ -106,7 +106,7 @@ describe("createApiKey", () => {
 
     expect(result).toMatchObject({
       name: "test-key-1",
-      keyPrefix: "wm_00001",
+      keyPrefix: "si_00001",
     });
     expect(result.id).toBeTruthy();
   });
@@ -165,7 +165,7 @@ describe("createApiKey", () => {
     await expect(
       t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, {
         name: "test",
-        keyPrefix: "wm_toolong00",
+        keyPrefix: "si_toolong00",
         keyHash: "a".repeat(64),
       }),
     ).rejects.toThrow(/INVALID_PREFIX/);
@@ -178,7 +178,7 @@ describe("createApiKey", () => {
     await expect(
       t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, {
         name: "test",
-        keyPrefix: "wm_abcde",
+        keyPrefix: "si_abcde",
         keyHash: "not-a-valid-hash",
       }),
     ).rejects.toThrow(/INVALID_HASH/);
@@ -191,7 +191,7 @@ describe("createApiKey", () => {
     await expect(
       t.withIdentity(API_USER).mutation(api.apiKeys.createApiKey, {
         name: "   ",
-        keyPrefix: "wm_abcde",
+        keyPrefix: "si_abcde",
         keyHash: "a".repeat(64),
       }),
     ).rejects.toThrow(/INVALID_NAME/);

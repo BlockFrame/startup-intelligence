@@ -174,16 +174,16 @@ describe('renderBriefMagazine — chrome invariants', () => {
   it('logo symbol is emitted exactly once; all placements reference it via <use>', () => {
     const env = envelope();
     const html = renderBriefMagazine(env);
-    const symbolDefs = html.match(/<symbol id="wm-logo-core"/g) || [];
+    const symbolDefs = html.match(/<symbol id="si-logo-core"/g) || [];
     assert.equal(symbolDefs.length, 1, 'exactly one symbol definition');
 
     // 1 cover + 4 digest pages + N story chromes + 1 back cover = N + 6 logo references
-    const useRefs = html.match(/<use href="#wm-logo-core"\s*\/>/g) || [];
+    const useRefs = html.match(/<use href="#si-logo-core"\s*\/>/g) || [];
     const expected = 1 + 4 + env.data.stories.length + 1;
     assert.equal(useRefs.length, expected);
 
     // Every reference still carries the aria label for a11y.
-    const ariaLabels = html.match(/aria-label="WorldMonitor"/g) || [];
+    const ariaLabels = html.match(/aria-label="StartupIntelligence"/g) || [];
     assert.equal(ariaLabels.length, expected);
   });
 

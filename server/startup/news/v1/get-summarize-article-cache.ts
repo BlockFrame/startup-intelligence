@@ -2,13 +2,13 @@ import type {
   ServerContext,
   GetSummarizeArticleCacheRequest,
   SummarizeArticleResponse,
-} from '../../../../src/generated/server/worldmonitor/news/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/news/v1/service_server';
 
 import { getCachedJson } from '../../../_shared/redis';
 import { markNoCacheResponse } from '../../../_shared/response-headers';
 
 const CACHE_KEY_PATTERN = /^summary:v\d+:[a-z0-9:_-]{3,120}$/;
-const NEG_SENTINEL = '__WM_NEG__';
+const NEG_SENTINEL = '__SI_NEG__';
 
 const EMPTY_MISS: SummarizeArticleResponse = {
   summary: '',

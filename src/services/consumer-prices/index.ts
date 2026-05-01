@@ -12,7 +12,7 @@ import {
   type RetailerSpread,
   type BasketPoint,
   type RetailerFreshnessInfo,
-} from '@/generated/client/worldmonitor/consumer_prices/v1/service_client';
+} from '@/generated/client/startup_intelligence/consumer_prices/v1/service_client';
 import { createCircuitBreaker } from '@/utils';
 import { getHydratedData } from '@/services/bootstrap';
 

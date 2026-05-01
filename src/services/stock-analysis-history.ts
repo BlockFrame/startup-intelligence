@@ -2,7 +2,7 @@ import { getRpcBaseUrl } from '@/services/rpc-client';
 import {
   MarketServiceClient,
   type AnalyzeStockResponse,
-} from '@/generated/client/worldmonitor/market/v1/service_client';
+} from '@/generated/client/startup_intelligence/market/v1/service_client';
 import { premiumFetch } from '@/services/premium-fetch';
 
 export type StockAnalysisSnapshot = AnalyzeStockResponse;

@@ -64,7 +64,7 @@ async function publishWelcome(userId: string): Promise<void> {
   const msg = JSON.stringify({ eventType: 'channel_welcome', userId, channelType: 'discord' });
   await fetch(`${UPSTASH_URL}/lpush/wm:events:queue/${encodeURIComponent(msg)}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'User-Agent': 'worldmonitor-edge/1.0' },
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'User-Agent': 'startupintelligence-edge/1.0' },
     signal: AbortSignal.timeout(5000),
   }).catch(() => {});
 }

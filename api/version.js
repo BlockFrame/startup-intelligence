@@ -5,7 +5,7 @@ export const config = { runtime: 'edge' };
 
 export default async function handler() {
   try {
-    const release = await fetchLatestRelease('WorldMonitor-Version-Check');
+    const release = await fetchLatestRelease('StartupIntelligence-Version-Check');
     if (!release) {
       return jsonResponse({ error: 'upstream' }, 502);
     }

@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Globale Lage mit KI-Erkenntnissen"
   },
   "countryBrief": {
@@ -497,7 +497,7 @@
         "some": "Für einige Funktionen sind API-Schlüssel erforderlich"
       },
       "openSettings": "Öffnen Sie Einstellungen",
-      "skipSetup": "Überspringen Sie das Setup — eine einzige World Monitor-Lizenz schaltet alles frei. Tragen Sie sich in die Warteliste ein, um frühzeitigen Zugang zu erhalten.",
+      "skipSetup": "Überspringen Sie das Setup — eine einzige Startup Intelligence-Lizenz schaltet alles frei. Tragen Sie sich in die Warteliste ein, um frühzeitigen Zugang zu erhalten.",
       "summary": {
         "desktop": "Desktop-Modus",
         "web": "Webmodus (schreibgeschützt, serververwaltete Anmeldeinformationen)",
@@ -642,13 +642,13 @@
       },
       "sidecarUnreachable": "Beiwagen nicht erreichbar.",
       "logCleared": "Protokoll gelöscht.",
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "Ein Schlüssel. Alles inklusive.",
-        "heroDescription": "Eine einzige World Monitor-Lizenz ersetzt jeden API-Schlüssel und LLM-Anbieter, den Sie sonst selbst konfigurieren müssten. KI-Zusammenfassungen, Echtzeit-Intelligence, Marktdaten, Konfliktverfolgung, Branderkennung, Satellitenbilder — alles betrieben, alles verwaltet, kein Setup.",
+        "heroDescription": "Eine einzige Startup Intelligence-Lizenz ersetzt jeden API-Schlüssel und LLM-Anbieter, den Sie sonst selbst konfigurieren müssten. KI-Zusammenfassungen, Echtzeit-Intelligence, Marktdaten, Konfliktverfolgung, Branderkennung, Satellitenbilder — alles betrieben, alles verwaltet, kein Setup.",
         "apiKey": {
           "title": "Lizenzschlüssel",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "Fügen Sie Ihre Lizenz ein, um alle Datenquellen und KI-Funktionen sofort freizuschalten.",
           "statusValid": "LIZENZIERT",
           "statusMissing": "KEINE LIZENZ"
@@ -656,7 +656,7 @@
         "dividerOr": "ODER",
         "register": {
           "title": "Reservieren Sie Ihren Platz",
-          "description": "Wir bereiten den Start von World Monitor-Lizenzen vor. Melden Sie sich jetzt an und seien Sie der Erste — frühe Mitglieder erhalten bevorzugten Zugang und Gründermitglied-Preise.",
+          "description": "Wir bereiten den Start von Startup Intelligence-Lizenzen vor. Melden Sie sich jetzt an und seien Sie der Erste — frühe Mitglieder erhalten bevorzugten Zugang und Gründermitglied-Preise.",
           "emailPlaceholder": "ihre@email.com",
           "submitBtn": "Auf die Warteliste setzen",
           "submitting": "Wird übermittelt...",
@@ -1767,7 +1767,7 @@
       "infoTooltip": "<strong>Airline-Aufklärung</strong> Betriebsdaten von Fluggesellschaften in Echtzeit: Routenaussetzungen, Luftraumsperrungen, Carrier-Hinweise und Notfallumleitungen. Quelle: NOTAM der Luftfahrtbehörden und Carrier-Bulletins."
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>WM Analyst</strong> KI-Analyst mit Live-Kontext über geopolitische, Markt-, Militär- und Wirtschaftsbereiche. Betrieben durch Claude mit Echtzeitdaten aus aktiven WorldMonitor-Feeds."
+      "infoTooltip": "<strong>WM Analyst</strong> KI-Analyst mit Live-Kontext über geopolitische, Markt-, Militär- und Wirtschaftsbereiche. Betrieben durch Claude mit Echtzeitdaten aus aktiven StartupIntelligence-Feeds."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>CFTC COT Positionierung</strong> Commitments of Traders-Bericht: Nettopositionen von Commercials, großen Spekulanten und kleinen Händlern in Rohstoff- und Finanz-Futures. Wöchentlich veröffentlicht (Freitag). Quelle: CFTC."
@@ -1797,7 +1797,7 @@
       "infoTooltip": "<strong>Makro-Indikatoren</strong> Wichtige makroökonomische Indikatoren für die USA und den Euroraum: CPI, Arbeitslosigkeit, GDP und Zentralbankzinsen. Werte mit Delta zum Vorperiodenzeitraum. Quelle: FRED (Federal Reserve Economic Data)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Stichwort-Monitore</strong> Fügen Sie einen beliebigen Begriff hinzu, um Live-Nachrichtenerwähnungen über alle WorldMonitor-Quellen zu verfolgen. Ergebnisse werden in Echtzeit aktualisiert, wenn passende Artikel aufgenommen werden."
+      "infoTooltip": "<strong>Stichwort-Monitore</strong> Fügen Sie einen beliebigen Begriff hinzu, um Live-Nachrichtenerwähnungen über alle StartupIntelligence-Quellen zu verfolgen. Ergebnisse werden in Echtzeit aktualisiert, wenn passende Artikel aufgenommen werden."
     },
     "renewable": {
       "infoTooltip": "<strong>Erneuerbare Energie</strong> Globale Pipeline für Erneuerbare-Energien-Projekte: Solar-, Wind-, Wasser- und Speicherkapazitätserweiterungen. Verfolgt angekündigte, im Bau befindliche und in Betrieb genommene Projekte nach Region und Technologietyp."

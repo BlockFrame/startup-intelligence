@@ -5,8 +5,8 @@
  * pause streams after inactivity to reduce CPU/bandwidth.
  */
 
-const STORAGE_KEY_LIVE_STREAMS_ALWAYS_ON = 'wm-live-streams-always-on';
-const EVENT_NAME = 'wm-live-streams-settings-changed';
+const STORAGE_KEY_LIVE_STREAMS_ALWAYS_ON = 'si-live-streams-always-on';
+const EVENT_NAME = 'si-live-streams-settings-changed';
 
 function readBool(key: string, defaultValue: boolean): boolean {
   try {

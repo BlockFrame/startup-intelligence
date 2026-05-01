@@ -7,7 +7,7 @@ import type {
   ServerContext,
   ListGulfQuotesRequest,
   ListGulfQuotesResponse,
-} from '../../../../src/generated/server/worldmonitor/market/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/market/v1/service_server';
 import { getCachedJson } from '../../../_shared/redis';
 
 const SEED_CACHE_KEY = 'market:gulf-quotes:v1';

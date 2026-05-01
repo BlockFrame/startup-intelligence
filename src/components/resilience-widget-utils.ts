@@ -196,7 +196,7 @@ export function formatResilienceDataVersion(dataVersion: string | null | undefin
 
 // Short labels for each of the 13 dimensions so the compact grid does
 // not wrap. Keys match `ResilienceDimensionId` from
-// server/worldmonitor/resilience/v1/_dimension-scorers.ts. The doc
+// server/startup_intelligence/resilience/v1/_dimension-scorers.ts. The doc
 // linter test (resilience-methodology-lint.test.mts) already pins the
 // scorer side, so any new dimension must land in both places together.
 const DIMENSION_LABELS: Record<string, string> = {

@@ -1,7 +1,7 @@
 /**
  * GlobeMap - 3D interactive globe using globe.gl
  *
- * Matches World Monitor's MapContainer API so it can be used as a drop-in
+ * Matches Startup Intelligence's MapContainer API so it can be used as a drop-in
  * replacement within MapContainer when the user enables globe mode.
  *
  * Architecture mirrors Sentinel (sentinel.axonia.us):
@@ -35,7 +35,7 @@ import type { MapLayers, Hotspot, MilitaryFlight, MilitaryVessel, MilitaryVessel
 import type { Earthquake } from '@/services/earthquakes';
 import type { AirportDelayAlert } from '@/services/aviation';
 import { MapPopup } from './MapPopup';
-import type { GetChokepointStatusResponse } from '@/services/supply-chain';
+import type { GetChokepointStatusResponse } from '@/generated/client/startup_intelligence/supply_chain/v1/service_client';
 import type { MapContainerState, MapView, TimeRange } from './map-container-contract';
 import type { CountryClickPayload } from './DeckGLMap';
 import type { WeatherAlert } from '@/services/weather';
@@ -44,10 +44,10 @@ import type { DisplacementFlow } from '@/services/displacement';
 import type { ClimateAnomaly } from '@/services/climate';
 import type { GpsJamHex } from '@/services/gps-interference';
 import type { SatellitePosition } from '@/services/satellites';
-import type { ImageryScene } from '@/generated/server/worldmonitor/imagery/v1/service_server';
+import type { ImageryScene } from '@/generated/server/startup_intelligence/imagery/v1/service_server';
 import { isAllowedPreviewUrl } from '@/utils/imagery-preview';
-import type { WebcamEntry, WebcamCluster } from '@/generated/client/worldmonitor/webcam/v1/service_client';
-import type { TrafficAnomaly as ProtoTrafficAnomaly, DdosLocationHit } from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
+import type { WebcamEntry, WebcamCluster } from '@/generated/client/startup_intelligence/webcam/v1/service_client';
+import type { TrafficAnomaly as ProtoTrafficAnomaly, DdosLocationHit } from '@/generated/client/startup_intelligence/infrastructure/v1/service_client';
 import type { RadiationObservation } from '@/services/radiation';
 import type { ScenarioVisualState } from '@/config/scenario-templates';
 
@@ -524,7 +524,7 @@ export class GlobeMap {
   private satelliteFootprintMarkers: SatFootprintMarker[] = [];
   private imagerySceneMarkers: ImagerySceneMarker[] = [];
   private webcamMarkers: (WebcamMarkerData | WebcamClusterData)[] = [];
-  private webcamMarkerMode: string = localStorage.getItem('wm-webcam-marker-mode') || 'icon';
+  private webcamMarkerMode: string = localStorage.getItem('si-webcam-marker-mode') || 'icon';
   private imageryFootprintPolygons: GlobePolygon[] = [];
   private lastImageryCenter: { lat: number; lon: number } | null = null;
   private imageryFetchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1816,7 +1816,7 @@ export class GlobeMap {
 
   private createLayerToggles(): void {
     const layerDefs = getLayersForVariant((SITE_VARIANT || 'full') as MapVariant, 'globe');
-    const _wmKey = getSecretState('WORLDMONITOR_API_KEY').present;
+    const _wmKey = getSecretState('STARTUP_INTELLIGENCE_API_KEY').present;
     const layers = layerDefs.map(def => ({
       key: def.key,
       label: resolveLayerLabel(def, t),
@@ -1876,7 +1876,7 @@ export class GlobeMap {
       const modeRow = document.createElement('div');
       modeRow.className = 'webcam-mode-row';
       modeRow.style.cssText = 'display:none;padding:2px 6px 4px 24px;font-size:10px;color:#aaa;';
-      const currentMode = (): string => localStorage.getItem('wm-webcam-marker-mode') || 'icon';
+      const currentMode = (): string => localStorage.getItem('si-webcam-marker-mode') || 'icon';
       const renderModeLabel = (): string => currentMode() === 'emoji' ? '&#128247; icon mode' : '&#128512; emoji mode';
       const modeBtn = document.createElement('button');
       modeBtn.style.cssText = 'background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:#00d4ff;font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer;margin-left:2px;';
@@ -1885,7 +1885,7 @@ export class GlobeMap {
       modeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const next = currentMode() === 'icon' ? 'emoji' : 'icon';
-        localStorage.setItem('wm-webcam-marker-mode', next);
+        localStorage.setItem('si-webcam-marker-mode', next);
         this.webcamMarkerMode = next;
         modeBtn.innerHTML = renderModeLabel();
         this.flushMarkers();

@@ -1,7 +1,7 @@
 import type {
   ListConsumerPriceMoversRequest,
   ListConsumerPriceMoversResponse,
-} from '../../../../src/generated/server/worldmonitor/consumer_prices/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/consumer_prices/v1/service_server';
 
 import { getCachedJson } from '../../../_shared/redis';
 

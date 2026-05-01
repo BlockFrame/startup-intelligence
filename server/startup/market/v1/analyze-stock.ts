@@ -6,7 +6,7 @@ import type {
   UpgradeDowngrade,
   ServerContext,
   StockAnalysisHeadline,
-} from '../../../../src/generated/server/worldmonitor/market/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/market/v1/service_server';
 import { callLlm } from '../../../_shared/llm';
 import { cachedFetchJson } from '../../../_shared/redis';
 import { CHROME_UA, yahooGate } from '../../../_shared/constants';

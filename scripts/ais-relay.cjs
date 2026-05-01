@@ -938,7 +938,7 @@ function categorizeOrefThreat(threat) {
 async function tzevaAdomFetchAlerts() {
   try {
     const resp = await fetch(TZEVA_ADOM_URL, {
-      headers: { 'User-Agent': 'WorldMonitor/1.0', Accept: 'application/json' },
+      headers: { 'User-Agent': 'StartupIntelligence/1.0', Accept: 'application/json' },
       signal: AbortSignal.timeout(12_000),
     });
     if (!resp.ok) return null;
@@ -3607,7 +3607,7 @@ const CLASSIFY_LLM_PROVIDERS = [
     envKey: 'OPENROUTER_API_KEY',
     apiUrl: 'https://openrouter.ai/api/v1/chat/completions',
     model: 'google/gemini-2.5-flash',
-    headers: (key) => ({ Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://worldmonitor.app', 'X-Title': 'World Monitor', 'User-Agent': CHROME_UA }),
+    headers: (key) => ({ Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://startupintelligence.app', 'X-Title': 'Startup Intelligence', 'User-Agent': CHROME_UA }),
     timeout: 30000,
   },
 ];
@@ -3678,7 +3678,7 @@ async function classifyFetchLlm(titles) {
 let classifyInFlight = false;
 
 async function seedClassifyForVariant(variant, seenTitles) {
-  const digestUrl = `https://api.worldmonitor.app/api/news/v1/list-feed-digest?variant=${variant}&lang=en`;
+  const digestUrl = `https://api.startupintelligence.app/api/news/v1/list-feed-digest?variant=${variant}&lang=en`;
   let digest;
   try {
     const resp = await new Promise((resolve, reject) => {
@@ -3898,48 +3898,6 @@ async function startClassifySeedLoop() {
     seedClassify().catch((e) => console.warn('[Classify] Seed error:', e?.message || e));
   }, CLASSIFY_SEED_INTERVAL_MS).unref?.();
 }
-
-// ─────────────────────────────────────────────────────────────
-// Service Statuses Seed — warm-pings Vercel RPC every 15 min
-// so service statuses are always cached (TTL is 30 min).
-// ─────────────────────────────────────────────────────────────
-const SERVICE_STATUSES_SEED_INTERVAL_MS = 15 * 60 * 1000; // 15 min (TTL/2)
-const SERVICE_STATUSES_RPC_URL = 'https://api.worldmonitor.app/api/infrastructure/v1/list-service-statuses';
-
-async function seedServiceStatuses() {
-  try {
-    const resp = await fetch(SERVICE_STATUSES_RPC_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': CHROME_UA,
-        Origin: 'https://worldmonitor.app',
-      },
-      body: '{}',
-      signal: AbortSignal.timeout(60_000),
-    });
-    if (!resp.ok) {
-      console.warn(`[ServiceStatuses] Seed ping failed: HTTP ${resp.status}`);
-      return;
-    }
-    const data = await resp.json();
-    const count = data?.statuses?.length || 0;
-    console.log(`[ServiceStatuses] Seed ping OK — ${count} statuses`);
-    // seed-meta is written by listServiceStatuses handler only when fresh data
-    // is scraped; writing it here would mark fallback responses as fresh.
-  } catch (e) {
-    console.warn('[ServiceStatuses] Seed ping error:', e?.message || e);
-  }
-}
-
-function startServiceStatusesSeedLoop() {
-  console.log(`[ServiceStatuses] Seed loop starting (interval ${SERVICE_STATUSES_SEED_INTERVAL_MS / 1000 / 60}min)`);
-  seedServiceStatuses().catch((e) => console.warn('[ServiceStatuses] Initial seed error:', e?.message || e));
-  setInterval(() => {
-    seedServiceStatuses().catch((e) => console.warn('[ServiceStatuses] Seed error:', e?.message || e));
-  }, SERVICE_STATUSES_SEED_INTERVAL_MS).unref?.();
-}
-
 
 // ─────────────────────────────────────────────────────────────
 // Theater Posture Seed — fetches OpenSky directly via localhost
@@ -4484,14 +4442,14 @@ function startTheaterPostureSeedLoop() {
 // The RPC handler itself refreshes the stale key on every call.
 // ─────────────────────────────────────────────────────────────
 const CII_WARM_PING_INTERVAL_MS = 8 * 60 * 1000; // 8 min (live cache TTL is 10 min)
-const CII_RPC_URL = 'https://api.worldmonitor.app/api/intelligence/v1/get-risk-scores';
+const CII_RPC_URL = 'https://api.startupintelligence.app/api/intelligence/v1/get-risk-scores';
 
 async function seedCiiWarmPing() {
   try {
     const resp = await fetch(CII_RPC_URL, {
       headers: {
         'User-Agent': CHROME_UA,
-        Origin: 'https://worldmonitor.app',
+        Origin: 'https://startupintelligence.app',
       },
       signal: AbortSignal.timeout(60_000),
     });
@@ -4516,83 +4474,6 @@ function startCiiWarmPingLoop() {
   setInterval(() => {
     seedCiiWarmPing().catch((e) => console.warn('[CII] Warm-ping error:', e?.message || e));
   }, CII_WARM_PING_INTERVAL_MS).unref?.();
-}
-
-// ─────────────────────────────────────────────────────────────
-// Chokepoint Status Warm-Ping — keeps supply_chain:chokepoints:v4
-// fresh so health.js does not report STALE_SEED. The RPC handler
-// (get-chokepoint-status.ts) writes seed-meta on every live fetch.
-// Interval matches health.js maxStaleMin (60 min) with a 2× margin.
-// ─────────────────────────────────────────────────────────────
-const CHOKEPOINT_WARM_PING_INTERVAL_MS = 30 * 60 * 1000; // 30 min
-const CHOKEPOINT_RPC_URL = 'https://api.worldmonitor.app/api/supply-chain/v1/get-chokepoint-status';
-
-async function seedChokepointWarmPing() {
-  try {
-    const resp = await fetch(CHOKEPOINT_RPC_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': CHROME_UA, Origin: 'https://worldmonitor.app' },
-      body: '{}',
-      signal: AbortSignal.timeout(60_000),
-    });
-    if (!resp.ok) {
-      console.warn(`[Chokepoints] Warm-ping failed: HTTP ${resp.status}`);
-      return;
-    }
-    const data = await resp.json();
-    const count = data?.chokepoints?.length || 0;
-    console.log(`[Chokepoints] Warm-ping OK: ${count} chokepoints`);
-    // seed-meta is written by the RPC handler when it fetches fresh data;
-    // no direct write needed here.
-  } catch (e) {
-    console.warn('[Chokepoints] Warm-ping error:', e?.message || e);
-  }
-}
-
-function startChokepointWarmPingLoop() {
-  console.log(`[Chokepoints] Warm-ping loop starting (interval ${CHOKEPOINT_WARM_PING_INTERVAL_MS / 1000 / 60}min)`);
-  seedChokepointWarmPing().catch((e) => console.warn('[Chokepoints] Initial warm-ping error:', e?.message || e));
-  setInterval(() => {
-    seedChokepointWarmPing().catch((e) => console.warn('[Chokepoints] Warm-ping error:', e?.message || e));
-  }, CHOKEPOINT_WARM_PING_INTERVAL_MS).unref?.();
-}
-
-// ─────────────────────────────────────────────────────────────
-// Cable Health Warm-Ping — keeps cable-health-v1 fresh so
-// health.js does not report STALE_SEED. The RPC handler writes
-// seed-meta on every live fetch; we just need to call it regularly.
-// ─────────────────────────────────────────────────────────────
-const CABLE_HEALTH_WARM_PING_INTERVAL_MS = 30 * 60 * 1000; // 30 min
-const CABLE_HEALTH_RPC_URL = 'https://api.worldmonitor.app/api/infrastructure/v1/get-cable-health';
-
-async function seedCableHealthWarmPing() {
-  try {
-    const resp = await fetch(CABLE_HEALTH_RPC_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': CHROME_UA, Origin: 'https://worldmonitor.app' },
-      body: '{}',
-      signal: AbortSignal.timeout(60_000),
-    });
-    if (!resp.ok) {
-      console.warn(`[CableHealth] Warm-ping failed: HTTP ${resp.status}`);
-      return;
-    }
-    const data = await resp.json();
-    const count = data?.cables ? Object.keys(data.cables).length : 0;
-    console.log(`[CableHealth] Warm-ping OK: ${count} cables`);
-    // seed-meta is written by getCableHealth handler only when source === 'fresh';
-    // writing it here would mark stale/cached responses as fresh.
-  } catch (e) {
-    console.warn('[CableHealth] Warm-ping error:', e?.message || e);
-  }
-}
-
-function startCableHealthWarmPingLoop() {
-  console.log(`[CableHealth] Warm-ping loop starting (interval ${CABLE_HEALTH_WARM_PING_INTERVAL_MS / 1000 / 60}min)`);
-  seedCableHealthWarmPing().catch((e) => console.warn('[CableHealth] Initial warm-ping error:', e?.message || e));
-  setInterval(() => {
-    seedCableHealthWarmPing().catch((e) => console.warn('[CableHealth] Warm-ping error:', e?.message || e));
-  }, CABLE_HEALTH_WARM_PING_INTERVAL_MS).unref?.();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -5145,7 +5026,7 @@ const WB_RENEWABLE_REGION_NAMES = {
 function wbFetchJson(url) {
   return new Promise((resolve, reject) => {
     const req = https.get(url, {
-      headers: { 'User-Agent': 'WorldMonitor-Seed/1.0', Accept: 'application/json' },
+      headers: { 'User-Agent': 'StartupIntelligence-Seed/1.0', Accept: 'application/json' },
       timeout: 30000,
     }, (resp) => {
       if (resp.statusCode < 200 || resp.statusCode >= 300) {
@@ -5443,7 +5324,6 @@ async function seedCorridorRisk() {
     const ok = await envelopeWrite(CORRIDOR_RISK_REDIS_KEY, result, CORRIDOR_RISK_TTL, { recordCount: Object.keys(result).length, sourceVersion: 'corridor-risk' });
     await upstashSet('seed-meta:supply_chain:corridorrisk', { fetchedAt: Date.now(), recordCount: Object.keys(result).length }, 604800);
     console.log(`[CorridorRisk] Seeded ${Object.keys(result).length} corridors (redis: ${ok ? 'OK' : 'FAIL'}) in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
-    seedTransitSummaries().catch(e => console.warn('[TransitSummary] Post-CorridorRisk seed error:', e?.message || e));
     for (const [corridorId, c] of Object.entries(result)) {
       if (c.riskScore < 50) continue;
       const label = corridorId.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
@@ -5828,7 +5708,7 @@ const SOCIAL_VELOCITY_RETRY_MS = 20 * 60 * 1000;
 async function fetchRedditHot(subreddit) {
   const url = `https://www.reddit.com/r/${subreddit}/hot.json?limit=25&raw_json=1`;
   const resp = await fetch(url, {
-    headers: { Accept: 'application/json', 'User-Agent': 'WorldMonitor/1.0 (contact: info@worldmonitor.app)' },
+    headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0 (contact: info@startupintelligence.app)' },
     signal: AbortSignal.timeout(10000),
   });
   if (!resp.ok) { console.warn(`[SocialVelocity] Reddit r/${subreddit} HTTP ${resp.status}`); return []; }
@@ -6402,10 +6282,10 @@ const DODO_PRODUCT_IDS = [
 ];
 
 const DODO_TIER_CONFIG = {
-  free: { name: 'Free', description: 'Get started with the essentials', features: ['Core dashboard panels', 'Global news feed', 'Earthquake & weather alerts', 'Basic map view'], cta: 'Get Started', href: 'https://worldmonitor.app', highlighted: false },
+  free: { name: 'Free', description: 'Get started with the essentials', features: ['Core dashboard panels', 'Global news feed', 'Earthquake & weather alerts', 'Basic map view'], cta: 'Get Started', href: 'https://startupintelligence.app', highlighted: false },
   pro: { name: 'Pro', description: 'Full intelligence dashboard', features: ['Everything in Free', 'AI stock analysis & backtesting', 'Daily market briefs', 'Military & geopolitical tracking', 'Custom widget builder', 'MCP data connectors', 'Priority data refresh'], highlighted: true },
   api_starter: { name: 'API', description: 'Programmatic access to intelligence data', features: ['REST API access', 'Real-time data streams', '1,000 requests/day', 'Webhook notifications', 'Custom data exports'], highlighted: false },
-  enterprise: { name: 'Enterprise', description: 'Custom solutions for organizations', features: ['Everything in Pro + API', 'Unlimited API requests', 'Dedicated support', 'Custom integrations', 'SLA guarantee', 'On-premise option'], cta: 'Contact Sales', href: 'mailto:enterprise@worldmonitor.app', highlighted: false },
+  enterprise: { name: 'Enterprise', description: 'Custom solutions for organizations', features: ['Everything in Pro + API', 'Unlimited API requests', 'Dedicated support', 'Custom integrations', 'SLA guarantee', 'On-premise option'], cta: 'Contact Sales', href: 'mailto:enterprise@startupintelligence.app', highlighted: false },
 };
 
 const DODO_PRODUCT_META = {
@@ -7366,117 +7246,6 @@ setInterval(() => {
   seedChokepointTransits().catch(err => console.error('[Transit] Seed error:', err.message));
 }, CHOKEPOINT_TRANSIT_INTERVAL_MS).unref?.();
 
-// --- Pre-assembled Transit Summaries (Railway advantage: avoids large Redis reads on Vercel) ---
-const TRANSIT_SUMMARY_REDIS_KEY = 'supply_chain:transit-summaries:v1';
-const TRANSIT_SUMMARY_TTL = 3600; // 1h — 6x interval; survives ~5 consecutive missed pings
-const TRANSIT_SUMMARY_INTERVAL_MS = 10 * 60 * 1000;
-
-// Threat levels for anomaly detection.
-// IMPORTANT: Must stay in sync with CHOKEPOINTS[].threatLevel in
-// server/worldmonitor/supply-chain/v1/get-chokepoint-status.ts
-// Only war_zone and critical trigger anomaly signals.
-const CHOKEPOINT_THREAT_LEVELS = {
-  suez: 'high', malacca_strait: 'normal', hormuz_strait: 'war_zone',
-  bab_el_mandeb: 'critical', panama: 'normal', taiwan_strait: 'elevated',
-  cape_of_good_hope: 'normal', gibraltar: 'normal', bosphorus: 'elevated',
-  korea_strait: 'normal', dover_strait: 'normal', kerch_strait: 'war_zone',
-  lombok_strait: 'normal',
-};
-
-// ID mapping: relay geofence name -> canonical ID
-const RELAY_NAME_TO_ID = {
-  'Suez Canal': 'suez', 'Malacca Strait': 'malacca_strait',
-  'Strait of Hormuz': 'hormuz_strait', 'Bab el-Mandeb Strait': 'bab_el_mandeb',
-  'Panama Canal': 'panama', 'Taiwan Strait': 'taiwan_strait',
-  'Cape of Good Hope': 'cape_of_good_hope', 'Gibraltar Strait': 'gibraltar',
-  'Bosporus Strait': 'bosphorus', 'Korea Strait': 'korea_strait',
-  'Dover Strait': 'dover_strait', 'Kerch Strait': 'kerch_strait',
-  'Lombok Strait': 'lombok_strait',
-  'South China Sea': null, 'Black Sea': null, // area geofences, not chokepoints
-};
-
-// Duplicated from server/worldmonitor/supply-chain/v1/_scoring.mjs because
-// ais-relay.cjs is CJS and cannot import .mjs modules. Keep in sync.
-function detectTrafficAnomalyRelay(history, threatLevel) {
-  if (!history || history.length < 37) return { dropPct: 0, signal: false };
-  const sorted = [...history].sort((a, b) => b.date.localeCompare(a.date));
-  let recent7 = 0, baseline30 = 0;
-  for (let i = 0; i < 7 && i < sorted.length; i++) recent7 += sorted[i].total;
-  for (let i = 7; i < 37 && i < sorted.length; i++) baseline30 += sorted[i].total;
-  const baselineAvg7 = (baseline30 / Math.min(30, sorted.length - 7)) * 7;
-  if (baselineAvg7 < 14) return { dropPct: 0, signal: false };
-  const dropPct = Math.round(((baselineAvg7 - recent7) / baselineAvg7) * 100);
-  const isHighThreat = threatLevel === 'war_zone' || threatLevel === 'critical';
-  return { dropPct, signal: dropPct >= 50 && isHighThreat };
-}
-
-async function seedTransitSummaries() {
-  const pw = await envelopeRead(PORTWATCH_REDIS_KEY);
-  if (!pw || typeof pw !== 'object' || Object.keys(pw).length === 0) return;
-
-  if (!latestCorridorRiskData) {
-    const persisted = await envelopeRead(CORRIDOR_RISK_REDIS_KEY);
-    if (persisted && typeof persisted === 'object' && Object.keys(persisted).length > 0) {
-      latestCorridorRiskData = persisted;
-      console.log(`[TransitSummary] Hydrated CorridorRisk from Redis (${Object.keys(persisted).length} corridors)`);
-    }
-  }
-
-  const now = Date.now();
-  const summaries = {};
-
-  for (const [cpId, cpData] of Object.entries(pw)) {
-    const threatLevel = CHOKEPOINT_THREAT_LEVELS[cpId] || 'normal';
-    const anomaly = detectTrafficAnomalyRelay(cpData.history, threatLevel);
-
-    // Get relay transit counts for this chokepoint
-    let relayTransit = null;
-    for (const [relayName, canonicalId] of Object.entries(RELAY_NAME_TO_ID)) {
-      if (canonicalId === cpId) {
-        const crossings = chokepointCrossings.get(relayName) || [];
-        const recent = crossings.filter(c => now - c.ts < TRANSIT_WINDOW_MS);
-        if (recent.length > 0) {
-          relayTransit = {
-            tanker: recent.filter(c => c.type === 'tanker').length,
-            cargo: recent.filter(c => c.type === 'cargo').length,
-            other: recent.filter(c => c.type === 'other').length,
-            total: recent.length,
-          };
-        }
-        break;
-      }
-    }
-
-    const cr = latestCorridorRiskData?.[cpId];
-    summaries[cpId] = {
-      todayTotal: relayTransit?.total ?? 0,
-      todayTanker: relayTransit?.tanker ?? 0,
-      todayCargo: relayTransit?.cargo ?? 0,
-      todayOther: relayTransit?.other ?? 0,
-      wowChangePct: cpData.wowChangePct ?? 0,
-      history: cpData.history ?? [],
-      riskLevel: cr?.riskLevel ?? '',
-      incidentCount7d: cr?.incidentCount7d ?? 0,
-      disruptionPct: cr?.disruptionPct ?? 0,
-      riskSummary: cr?.riskSummary ?? '',
-      riskReportAction: cr?.riskReportAction ?? '',
-      anomaly,
-    };
-  }
-
-  const ok = await envelopeWrite(TRANSIT_SUMMARY_REDIS_KEY, { summaries, fetchedAt: now }, TRANSIT_SUMMARY_TTL, { recordCount: Object.keys(summaries).length, sourceVersion: 'transit-summaries' });
-  await upstashSet('seed-meta:supply_chain:transit-summaries', { fetchedAt: now, recordCount: Object.keys(summaries).length }, 604800);
-  console.log(`[TransitSummary] Seeded ${Object.keys(summaries).length} summaries (redis: ${ok ? 'OK' : 'FAIL'})`);
-}
-
-// Seed transit summaries every 10 min (same as transit counter)
-setTimeout(() => {
-  seedTransitSummaries().catch(e => console.warn('[TransitSummary] Initial seed error:', e?.message || e));
-}, 35_000);
-setInterval(() => {
-  seedTransitSummaries().catch(e => console.warn('[TransitSummary] Seed error:', e?.message || e));
-}, TRANSIT_SUMMARY_INTERVAL_MS).unref?.();
-
 // UCDP GED Events cache (persistent in-memory — Railway advantage)
 const UCDP_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 const UCDP_RELAY_MAX_PAGES = 12;
@@ -7835,7 +7604,7 @@ function _attemptOpenSkyTokenFetch(clientId, clientSecret) {
   const reqHeaders = {
     'Content-Type': 'application/x-www-form-urlencoded',
     'Content-Length': Buffer.byteLength(postData),
-    'User-Agent': 'WorldMonitor/1.0',
+    'User-Agent': 'StartupIntelligence/1.0',
   };
 
   if (OPENSKY_PROXY_ENABLED) {
@@ -7966,7 +7735,7 @@ function _openskyRawFetch(url, token) {
   const reqHeaders = {
     'Accept': 'application/json',
     'Accept-Encoding': 'gzip, deflate, br',
-    'User-Agent': 'WorldMonitor/1.0',
+    'User-Agent': 'StartupIntelligence/1.0',
     'Authorization': `Bearer ${token}`,
   };
 
@@ -8317,7 +8086,7 @@ function handleWorldBankRequest(req, res) {
   const request = https.get(wbUrl, {
     headers: {
       'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (compatible; WorldMonitor/1.0; +https://worldmonitor.app)',
+      'User-Agent': 'Mozilla/5.0 (compatible; StartupIntelligence/1.0; +https://startupintelligence.app)',
     },
     timeout: 15000,
   }, (response) => {
@@ -9048,9 +8817,9 @@ function handleNotamProxyRequest(req, res) {
 
 // CORS origin allowlist — only our domains can use this relay
 const ALLOWED_ORIGINS = [
-  'https://worldmonitor.app',
-  'https://tech.worldmonitor.app',
-  'https://finance.worldmonitor.app',
+  'https://startupintelligence.app',
+  'https://tech.startupintelligence.app',
+  'https://finance.startupintelligence.app',
   'http://localhost:5173',   // Vite dev
   'http://localhost:5174',   // Vite dev alt port
   'http://localhost:4173',   // Vite preview
@@ -9061,10 +8830,10 @@ const ALLOWED_ORIGINS = [
 function getCorsOrigin(req) {
   const origin = req.headers.origin || '';
   if (ALLOWED_ORIGINS.includes(origin)) return origin;
-  // Wildcard: any *.worldmonitor.app subdomain (for variant subdomains)
+  // Wildcard: any *.startupintelligence.app subdomain (for variant subdomains)
   try {
     const url = new URL(origin);
-    if (url.hostname.endsWith('.worldmonitor.app') && url.protocol === 'https:') return origin;
+    if (url.hostname.endsWith('.startupintelligence.app') && url.protocol === 'https:') return origin;
   } catch { /* invalid origin — fall through */ }
   // Optional: allow Vercel preview deployments when explicitly enabled.
   if (ALLOW_VERCEL_PREVIEW_ORIGINS && origin.endsWith('.vercel.app')) return origin;
@@ -10031,8 +9800,8 @@ function isWidgetInjectionAttempt(text) {
     /disregard\s+(all\s+)?(previous|prior|above)\s+(instructions?|rules?)/.test(t) ||
     /forget\s+(all\s+)?(previous|prior|above)\s+(instructions?|rules?)/.test(t) ||
     // Role hijacking
-    /you\s+are\s+now\s+(a|an)\s+(?!worldmonitor)/.test(t) ||
-    /act\s+as\s+(a|an)\s+(?!worldmonitor)/.test(t) ||
+    /you\s+are\s+now\s+(a|an)\s+(?!startup_intelligence)/.test(t) ||
+    /act\s+as\s+(a|an)\s+(?!startup_intelligence)/.test(t) ||
     /pretend\s+(you\s+are|to\s+be)\s+/.test(t) ||
     /your\s+new\s+(role|persona|identity|name)\s+is/.test(t) ||
     // Prompt exfiltration
@@ -10076,8 +9845,8 @@ function isWidgetEndpointAllowed(endpoint) {
 }
 
 const WIDGET_FETCH_TOOL = {
-  name: 'fetch_worldmonitor_data',
-  description: 'Fetch live data from WorldMonitor APIs. Only pre-approved endpoint paths are allowed.',
+  name: 'fetch_startup_intelligence_data',
+  description: 'Fetch live data from StartupIntelligence APIs. Only pre-approved endpoint paths are allowed.',
   input_schema: {
     type: 'object',
     properties: {
@@ -10088,7 +9857,7 @@ const WIDGET_FETCH_TOOL = {
   },
 };
 
-const WIDGET_SYSTEM_PROMPT = `You are a WorldMonitor widget builder. Your job is to fetch live data and generate a display-only HTML widget using the WorldMonitor design system.
+const WIDGET_SYSTEM_PROMPT = `You are a StartupIntelligence widget builder. Your job is to fetch live data and generate a display-only HTML widget using the StartupIntelligence design system.
 
 ## Scope enforcement — NON-NEGOTIABLE
 You ONLY build data visualization widgets. Refuse everything else, silently and immediately:
@@ -10102,7 +9871,7 @@ When refusing, output ONLY this — no explanation, no apology:
 
 ## Available data tools
 
-### fetch_worldmonitor_data — ALWAYS use first. Only fall back to search_web if no bootstrap key or RPC matches.
+### fetch_startup_intelligence_data — ALWAYS use first. Only fall back to search_web if no bootstrap key or RPC matches.
 
 ## Tool budget — CRITICAL
 Make at most 3 tool calls total. After 2 calls without usable data, generate the widget immediately using whatever you have — even if sparse. NEVER keep probing.
@@ -10262,7 +10031,7 @@ Status: status-active, status-notified, status-terminated, panel-tabs, panel-tab
 3. Generate ONLY display-only HTML. No <script>, no onclick/oninput/onload, no <iframe>.
 4. No interactive elements (no buttons, no tabs, no inputs).
 5. Tables use class="trade-tariffs-table". Lists use class="trade-restrictions-list".
-6. Always include a source footer: <div class="economic-footer"><span class="economic-source">Source: WorldMonitor</span></div>
+6. Always include a source footer: <div class="economic-footer"><span class="economic-source">Source: StartupIntelligence</span></div>
 7. If tool returns no data or an error: use <div class="economic-empty">No live data available</div> — NEVER write prose explanations.
 8. If tool response contains "<!DOCTYPE" or "<html": it is an error — treat as no data and use the empty state HTML.
 9. The dashboard already provides the outer widget shell. Generate only the inner widget body markup.
@@ -10272,7 +10041,7 @@ For modify requests: make targeted changes to improve the widget as requested.`;
 
 const WIDGET_SEARCH_TOOL = {
   name: 'search_web',
-  description: 'Search the web for current news, live data, or any topic not covered by WorldMonitor RPCs. Returns up to 8 results with title, URL, snippet, and publish date. Use this for topics like breaking news, weather, specific events, prices not in RPC catalog, etc.',
+  description: 'Search the web for current news, live data, or any topic not covered by StartupIntelligence RPCs. Returns up to 8 results with title, URL, snippet, and publish date. Use this for topics like breaking news, weather, specific events, prices not in RPC catalog, etc.',
   input_schema: {
     type: 'object',
     properties: {
@@ -10607,7 +10376,7 @@ async function handleWidgetAgentRequest(req, res) {
             continue;
           }
 
-          if (block.name !== 'fetch_worldmonitor_data') continue;
+          if (block.name !== 'fetch_startup_intelligence_data') continue;
           const { endpoint, params = {} } = block.input;
           sendWidgetSSE(res, 'tool_call', { endpoint });
 
@@ -10617,12 +10386,12 @@ async function handleWidgetAgentRequest(req, res) {
           }
 
           try {
-            const url = new URL(endpoint, 'https://api.worldmonitor.app');
+            const url = new URL(endpoint, 'https://api.startupintelligence.app');
             for (const [k, v] of Object.entries(params)) {
               url.searchParams.set(k, String(v));
             }
             const dataRes = await fetch(url.toString(), {
-              headers: { 'User-Agent': 'WorldMonitor-WidgetAgent/1.0' },
+              headers: { 'User-Agent': 'StartupIntelligence-WidgetAgent/1.0' },
               signal: AbortSignal.timeout(15_000),
             });
             const data = await dataRes.text();
@@ -10672,7 +10441,7 @@ async function handleWidgetAgentRequest(req, res) {
   }
 }
 
-const WIDGET_PRO_SYSTEM_PROMPT = `You are a WorldMonitor PRO widget builder. Your job is to fetch live data and generate an interactive HTML widget body with inline JavaScript.
+const WIDGET_PRO_SYSTEM_PROMPT = `You are a StartupIntelligence PRO widget builder. Your job is to fetch live data and generate an interactive HTML widget body with inline JavaScript.
 
 ## Scope enforcement — NON-NEGOTIABLE
 You ONLY build data visualization widgets. Refuse everything else, silently and immediately:
@@ -10686,7 +10455,7 @@ When refusing, output ONLY this — no explanation, no apology:
 
 ## Available data tools
 
-### fetch_worldmonitor_data — ALWAYS use first. Only fall back to search_web if no bootstrap key or RPC matches.
+### fetch_startup_intelligence_data — ALWAYS use first. Only fall back to search_web if no bootstrap key or RPC matches.
 
 ## Tool budget — CRITICAL
 Make at most 3 tool calls total. After 2 calls without usable data, generate the widget immediately using whatever you have. NEVER keep probing.
@@ -10775,7 +10544,7 @@ CSS variables are pre-defined in the iframe: --bg, --surface, --text, --text-sec
 - Positive values: color: var(--green) | Negative values: color: var(--red)
 - Design for 400px height with overflow-y: auto for larger content
 - NEVER add a <style> block — use the pre-defined classes below and inline styles only
-- Always include a source footer: <div style="font-size:10px;color:var(--text-muted);padding:6px 8px">Source: WorldMonitor</div>
+- Always include a source footer: <div style="font-size:10px;color:var(--text-muted);padding:6px 8px">Source: StartupIntelligence</div>
 
 ## Pre-defined CSS classes — use these, do NOT reinvent them
 
@@ -10945,11 +10714,8 @@ server.listen(PORT, () => {
   // Cyber seed disabled — standalone cron seed-cyber-threats.mjs handles this
   // (avoids burning 12 extra AbuseIPDB calls/day from duplicate relay loop)
   startCiiWarmPingLoop();
-  startChokepointWarmPingLoop();
-  startCableHealthWarmPingLoop();
   startPositiveEventsSeedLoop();
   startClassifySeedLoop();
-  startServiceStatusesSeedLoop();
   startTheaterPostureSeedLoop();
 
   startWeatherSeedLoop();

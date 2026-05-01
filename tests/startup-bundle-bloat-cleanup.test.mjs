@@ -90,12 +90,12 @@ test('startup build uses only the main HTML entry', () => {
   assert.match(viteSource, /liveChannels: resolve\(__dirname, 'live-channels\.html'\)/);
 });
 
-test('startup html metadata does not advertise the legacy WorldMonitor product', () => {
+test('startup html metadata does not advertise the legacy StartupIntelligence product', () => {
   const htmlSource = source('index.html');
-  assert.doesNotMatch(htmlSource, /World Monitor App/);
+  assert.doesNotMatch(htmlSource, /Startup Intelligence App/);
   assert.doesNotMatch(htmlSource, /WM Intelligence/);
   assert.doesNotMatch(htmlSource, /global intelligence dashboard with 3D globe/);
-  assert.doesNotMatch(htmlSource, /github\.com\/koala73\/worldmonitor/);
+  assert.doesNotMatch(htmlSource, /github\.com\/koala73\/startup-intelligence/);
   assert.doesNotMatch(htmlSource, /hreflang="(ar|bg|cs|de|el|es|fr|it|ja|ko|nl|pl|pt|ro|ru|sv|th|tr|vi|zh)"/);
 });
 

@@ -3,7 +3,7 @@ import { getRpcBaseUrl } from '@/services/rpc-client';
 import {
   MarketServiceClient,
   type AnalyzeStockResponse,
-} from '@/generated/client/worldmonitor/market/v1/service_client';
+} from '@/generated/client/startup_intelligence/market/v1/service_client';
 import { getMarketWatchlistEntries } from '@/services/market-watchlist';
 import { runThrottledTargetRequests } from '@/services/throttled-target-requests';
 import { premiumFetch } from '@/services/premium-fetch';

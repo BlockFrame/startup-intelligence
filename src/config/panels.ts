@@ -57,7 +57,6 @@ const FULL_PANELS: Record<string, PanelConfig> = {
   'chat-analyst': { name: 'WM Analyst', enabled: true, priority: 1, premium: 'locked' as const },
   economic: { name: 'Macro Stress', enabled: true, priority: 1 },
   'trade-policy': { name: 'Trade Policy', enabled: true, priority: 1 },
-  'supply-chain': { name: 'Supply Chain', enabled: true, priority: 1, ...(_desktop && { premium: 'enhanced' as const }) },
   finance: { name: 'Financial', enabled: true, priority: 1 },
   tech: { name: 'Technology', enabled: true, priority: 2 },
   crypto: { name: 'Crypto', enabled: true, priority: 2 },
@@ -79,7 +78,6 @@ const FULL_PANELS: Record<string, PanelConfig> = {
   'liquidity-shifts': { name: 'Liquidity Shifts', enabled: true, priority: 2 },
   'positioning-247': { name: '24/7 Positioning', enabled: true, priority: 2 },
   'gold-intelligence': { name: 'Gold Intelligence', enabled: true, priority: 60 },
-  'hormuz-tracker': { name: 'Hormuz Trade Tracker', enabled: true, priority: 2 },
   'energy-crisis': { name: 'Energy Crisis Tracker', enabled: true, priority: 2 },
   'gulf-economies': { name: 'Gulf Economies', enabled: false, priority: 2 },
   'consumer-prices': { name: 'Consumer Prices', enabled: false, priority: 2 },
@@ -441,7 +439,6 @@ const FINANCE_PANELS: Record<string, PanelConfig> = {
   economic: { name: 'Macro Stress', enabled: true, priority: 1 },
   'trade-policy': { name: 'Trade Policy', enabled: true, priority: 1 },
   'sanctions-pressure': { name: 'Sanctions Pressure', enabled: true, priority: 1 },
-  'supply-chain': { name: 'Supply Chain', enabled: true, priority: 1 },
   'economic-news': { name: 'Economic News', enabled: true, priority: 2 },
   ipo: { name: 'IPOs, Earnings & M&A', enabled: true, priority: 1 },
   heatmap: { name: 'Sector Heatmap', enabled: true, priority: 1 },
@@ -756,7 +753,6 @@ const COMMODITY_PANELS: Record<string, PanelConfig> = {
   'critical-minerals': { name: 'Critical Minerals', enabled: true, priority: 1 },
   'base-metals': { name: 'Base Metals', enabled: true, priority: 1 },
   'mining-companies': { name: 'Mining Companies', enabled: true, priority: 1 },
-  'supply-chain': { name: 'Supply Chain & Logistics', enabled: true, priority: 1 },
   'commodity-regulation': { name: 'Regulation & Policy', enabled: true, priority: 1 },
   markets: { name: 'Commodity Markets', enabled: true, priority: 1 },
   commodities: { name: 'Live Metals & Materials', enabled: true, priority: 1 },
@@ -979,7 +975,7 @@ export function isPanelEntitled(key: string, config: PanelConfig, isPro = false)
   if (isEntitled()) return true;
   const apiKeyPanels = ['stock-analysis', 'stock-backtest', 'daily-market-brief', 'market-implications', 'regional-intelligence', 'deduction', 'chat-analyst', 'wsb-ticker-scanner'];
   if (apiKeyPanels.includes(key)) {
-    return getSecretState('WORLDMONITOR_API_KEY').present || isPro;
+    return getSecretState('STARTUP_INTELLIGENCE_API_KEY').present || isPro;
   }
   if (config.premium === 'locked') {
     return isDesktopRuntime();
@@ -1063,7 +1059,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   marketsFinance: {
     labelKey: 'header.panelCatMarketsFinance',
-    panelKeys: ['commodities', 'energy-complex', 'markets', 'economic', 'trade-policy', 'sanctions-pressure', 'supply-chain', 'finance', 'polymarket', 'macro-signals', 'gulf-economies', 'etf-flows', 'stablecoins', 'crypto', 'heatmap'],
+    panelKeys: ['commodities', 'energy-complex', 'markets', 'economic', 'trade-policy', 'sanctions-pressure', 'finance', 'polymarket', 'macro-signals', 'gulf-economies', 'etf-flows', 'stablecoins', 'crypto', 'heatmap'],
   },
   topical: {
     labelKey: 'header.panelCatTopical',
@@ -1111,7 +1107,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   centralBanksEcon: {
     labelKey: 'header.panelCatCentralBanks',
-    panelKeys: ['centralbanks', 'economic', 'energy-complex', 'trade-policy', 'sanctions-pressure', 'supply-chain', 'economic-news'],
+    panelKeys: ['centralbanks', 'economic', 'energy-complex', 'trade-policy', 'sanctions-pressure', 'economic-news'],
   },
   dealsInstitutional: {
     labelKey: 'header.panelCatDeals',
@@ -1130,7 +1126,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   miningIndustry: {
     labelKey: 'header.panelCatMining',
-    panelKeys: ['commodity-news', 'mining-news', 'mining-companies', 'supply-chain', 'commodity-regulation'],
+    panelKeys: ['commodity-news', 'mining-news', 'mining-companies', 'commodity-regulation'],
   },
   commodityEcon: {
     labelKey: 'header.panelCatCommodityEcon',
@@ -1164,8 +1160,8 @@ export const MONITOR_COLORS = [
 ];
 
 export const STORAGE_KEYS = {
-  panels: 'worldmonitor-panels',
-  monitors: 'worldmonitor-monitors',
-  mapLayers: 'worldmonitor-layers',
-  disabledFeeds: 'worldmonitor-disabled-feeds',
+  panels: 'startupintelligence-panels',
+  monitors: 'startupintelligence-monitors',
+  mapLayers: 'startupintelligence-layers',
+  disabledFeeds: 'startupintelligence-disabled-feeds',
 } as const;

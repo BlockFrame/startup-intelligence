@@ -176,14 +176,14 @@ export const getCustomerPortalUrl = action({
  *
  * LIMITATION: Until Clerk auth is wired into the ConvexClient, anonymous
  * purchases are keyed to a `crypto.randomUUID()` stored in localStorage
- * (`wm-anon-id`). If the user clears storage, switches browsers, or later
+ * (`si-anon-id`). If the user clears storage, switches browsers, or later
  * creates a real account, there is no automatic way to link the purchase.
  *
  * This mutation provides the migration path: once authenticated, the client
  * calls claimSubscription(anonId) to reassign all payment records from the
  * anonymous ID to the real user ID.
  *
- * @see https://github.com/koala73/worldmonitor/issues/2078
+ * @see https://github.com/koala73/startup-intelligence/issues/2078
  */
 export const claimSubscription = mutation({
   args: { anonId: v.string() },

@@ -3,7 +3,7 @@ import {
   ClimateServiceClient,
   type AirQualityStation,
   type ListAirQualityDataResponse,
-} from '@/generated/client/worldmonitor/climate/v1/service_client';
+} from '@/generated/client/startup_intelligence/climate/v1/service_client';
 
 export type { AirQualityStation, ListAirQualityDataResponse };
 

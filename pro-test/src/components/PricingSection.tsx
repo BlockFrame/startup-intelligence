@@ -21,7 +21,7 @@ interface Tier {
   annualProductId?: string;
 }
 
-const CATALOG_API = 'https://api.worldmonitor.app/api/product-catalog';
+const CATALOG_API = 'https://api.startupintelligence.app/api/product-catalog';
 
 function usePricingData(): Tier[] {
   const [tiers, setTiers] = useState<Tier[]>(fallbackTiers as Tier[]);
@@ -89,7 +89,7 @@ export function PricingSection({ refCode }: { refCode?: string }) {
   }, [refCode]);
 
   return (
-    <section id="pricing" className="py-24 px-6 border-t border-wm-border bg-[#060606]">
+    <section id="pricing" className="py-24 px-6 border-t border-si-border bg-[#060606]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -103,7 +103,7 @@ export function PricingSection({ refCode }: { refCode?: string }) {
             Choose Your Plan
           </motion.h2>
           <motion.p
-            className="text-wm-muted max-w-xl mx-auto mb-8"
+            className="text-si-muted max-w-xl mx-auto mb-8"
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -115,7 +115,7 @@ export function PricingSection({ refCode }: { refCode?: string }) {
 
           {/* Billing toggle */}
           <motion.div
-            className="inline-flex items-center gap-3 bg-wm-card border border-wm-border rounded-sm p-1"
+            className="inline-flex items-center gap-3 bg-si-card border border-si-border rounded-sm p-1"
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -125,8 +125,8 @@ export function PricingSection({ refCode }: { refCode?: string }) {
               onClick={() => setBilling('monthly')}
               className={`px-4 py-2 rounded-sm font-mono text-xs uppercase tracking-wider transition-colors ${
                 billing === 'monthly'
-                  ? 'bg-wm-green text-wm-bg font-bold'
-                  : 'text-wm-muted hover:text-wm-text'
+                  ? 'bg-si-green text-si-bg font-bold'
+                  : 'text-si-muted hover:text-si-text'
               }`}
             >
               Monthly
@@ -135,15 +135,15 @@ export function PricingSection({ refCode }: { refCode?: string }) {
               onClick={() => setBilling('annual')}
               className={`px-4 py-2 rounded-sm font-mono text-xs uppercase tracking-wider transition-colors flex items-center gap-2 ${
                 billing === 'annual'
-                  ? 'bg-wm-green text-wm-bg font-bold'
-                  : 'text-wm-muted hover:text-wm-text'
+                  ? 'bg-si-green text-si-bg font-bold'
+                  : 'text-si-muted hover:text-si-text'
               }`}
             >
               Annual
               <span className={`text-[10px] px-1.5 py-0.5 rounded-sm ${
                 billing === 'annual'
-                  ? 'bg-wm-bg/20 text-wm-bg'
-                  : 'bg-wm-green/10 text-wm-green'
+                  ? 'bg-si-bg/20 text-si-bg'
+                  : 'bg-si-green/10 text-si-green'
               }`}>
                 Save 17%
               </span>
@@ -162,8 +162,8 @@ export function PricingSection({ refCode }: { refCode?: string }) {
                 key={tier.name}
                 className={`relative bg-zinc-900 rounded-lg p-6 flex flex-col ${
                   tier.highlighted
-                    ? 'border-2 border-wm-green shadow-lg shadow-wm-green/10'
-                    : 'border border-wm-border'
+                    ? 'border-2 border-si-green shadow-lg shadow-si-green/10'
+                    : 'border border-si-border'
                 }`}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -172,7 +172,7 @@ export function PricingSection({ refCode }: { refCode?: string }) {
               >
                 {/* Most Popular badge */}
                 {tier.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-wm-green text-wm-bg px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 bg-si-green text-si-bg px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider">
                     <Zap className="w-3 h-3" aria-hidden="true" />
                     Most Popular
                   </div>
@@ -180,18 +180,18 @@ export function PricingSection({ refCode }: { refCode?: string }) {
 
                 {/* Tier name */}
                 <h3 className={`font-display text-lg font-bold mb-1 ${
-                  tier.highlighted ? 'text-wm-green' : 'text-wm-text'
+                  tier.highlighted ? 'text-si-green' : 'text-si-text'
                 }`}>
                   {tier.name}
                 </h3>
 
                 {/* Description */}
-                <p className="text-xs text-wm-muted mb-4">{tier.description}</p>
+                <p className="text-xs text-si-muted mb-4">{tier.description}</p>
 
                 {/* Price */}
                 <div className="mb-6">
                   <span className="text-4xl font-display font-bold">{price.amount}</span>
-                  <span className="text-sm text-wm-muted ml-1">/{price.suffix}</span>
+                  <span className="text-sm text-si-muted ml-1">/{price.suffix}</span>
                 </div>
 
                 {/* Features */}
@@ -199,9 +199,9 @@ export function PricingSection({ refCode }: { refCode?: string }) {
                   {tier.features.map((feature, fi) => (
                     <li key={fi} className="flex items-start gap-2 text-sm">
                       <Check className={`w-4 h-4 shrink-0 mt-0.5 ${
-                        tier.highlighted ? 'text-wm-green' : 'text-wm-muted'
+                        tier.highlighted ? 'text-si-green' : 'text-si-muted'
                       }`} aria-hidden="true" />
-                      <span className="text-wm-muted">{feature}</span>
+                      <span className="text-si-muted">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -214,8 +214,8 @@ export function PricingSection({ refCode }: { refCode?: string }) {
                     rel={cta.external ? "noreferrer" : undefined}
                     className={`block text-center py-3 rounded-sm font-mono text-xs uppercase tracking-wider font-bold transition-colors ${
                       tier.highlighted
-                        ? 'bg-wm-green text-wm-bg hover:bg-green-400'
-                        : 'border border-wm-border text-wm-muted hover:text-wm-text hover:border-wm-text'
+                        ? 'bg-si-green text-si-bg hover:bg-green-400'
+                        : 'border border-si-border text-si-muted hover:text-si-text hover:border-si-text'
                     }`}
                   >
                     {cta.label} <ArrowRight className="w-3.5 h-3.5 inline-block ml-1" aria-hidden="true" />
@@ -225,8 +225,8 @@ export function PricingSection({ refCode }: { refCode?: string }) {
                     onClick={() => handleCheckout(cta.productId)}
                     className={`block w-full text-center py-3 rounded-sm font-mono text-xs uppercase tracking-wider font-bold transition-colors cursor-pointer ${
                       tier.highlighted
-                        ? 'bg-wm-green text-wm-bg hover:bg-green-400'
-                        : 'border border-wm-border text-wm-muted hover:text-wm-text hover:border-wm-text'
+                        ? 'bg-si-green text-si-bg hover:bg-green-400'
+                        : 'border border-si-border text-si-muted hover:text-si-text hover:border-si-text'
                     }`}
                   >
                     {cta.label} <ArrowRight className="w-3.5 h-3.5 inline-block ml-1" aria-hidden="true" />
@@ -238,7 +238,7 @@ export function PricingSection({ refCode }: { refCode?: string }) {
         </div>
 
         {/* Discount code note */}
-        <p className="text-center text-xs text-wm-muted font-mono mt-8">
+        <p className="text-center text-xs text-si-muted font-mono mt-8">
           Have a promo code? Enter it during checkout.
         </p>
       </div>

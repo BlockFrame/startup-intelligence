@@ -10,13 +10,13 @@ import {
 
 loadEnvFile(import.meta.url);
 
-const API_BASE = process.env.API_BASE_URL || 'https://api.worldmonitor.app';
-// Reuse WORLDMONITOR_VALID_KEYS when a dedicated WORLDMONITOR_API_KEY isn't set.
+const API_BASE = process.env.API_BASE_URL || 'https://api.startupintelligence.app';
+// Reuse STARTUP_INTELLIGENCE_VALID_KEYS when a dedicated STARTUP_INTELLIGENCE_API_KEY isn't set.
 // See seed-resilience-scores.mjs for the rationale.
-const WM_KEY = process.env.WORLDMONITOR_API_KEY
-  || (process.env.WORLDMONITOR_VALID_KEYS ?? '').split(',').map((k) => k.trim()).filter(Boolean)[0]
+const SI_KEY = process.env.STARTUP_INTELLIGENCE_API_KEY
+  || (process.env.STARTUP_INTELLIGENCE_VALID_KEYS ?? '').split(',').map((k) => k.trim()).filter(Boolean)[0]
   || '';
-const SEED_UA = 'Mozilla/5.0 (compatible; WorldMonitor-Seed/1.0)';
+const SEED_UA = 'Mozilla/5.0 (compatible; StartupIntelligence-Seed/1.0)';
 
 const INTERVAL_KEY_PREFIX = 'resilience:intervals:v1:';
 const INTERVAL_TTL_SECONDS = 7 * 24 * 60 * 60;
@@ -70,7 +70,7 @@ async function redisPipeline(url, token, commands) {
 
 async function fetchRanking() {
   const headers = { 'User-Agent': SEED_UA, Accept: 'application/json' };
-  if (WM_KEY) headers['X-WorldMonitor-Key'] = WM_KEY;
+  if (SI_KEY) headers['X-Startup-Intelligence-Key'] = SI_KEY;
   const resp = await fetch(`${API_BASE}/api/resilience/v1/get-resilience-ranking`, {
     headers,
     signal: AbortSignal.timeout(60_000),
@@ -81,7 +81,7 @@ async function fetchRanking() {
 
 async function fetchScore(countryCode) {
   const headers = { 'User-Agent': SEED_UA, Accept: 'application/json' };
-  if (WM_KEY) headers['X-WorldMonitor-Key'] = WM_KEY;
+  if (SI_KEY) headers['X-Startup-Intelligence-Key'] = SI_KEY;
   const url = `${API_BASE}/api/resilience/v1/get-resilience-score?countryCode=${countryCode}`;
   const resp = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
   if (!resp.ok) throw new Error(`Score endpoint returned HTTP ${resp.status} for ${countryCode}`);

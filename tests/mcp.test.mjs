@@ -4,15 +4,15 @@ import { strict as assert } from 'node:assert';
 const originalFetch = globalThis.fetch;
 const originalEnv = { ...process.env };
 
-const VALID_KEY = 'wm_test_key_123';
-const BASE_URL = 'https://api.worldmonitor.app/mcp';
+const VALID_KEY = 'si_test_key_123';
+const BASE_URL = 'https://api.startupintelligence.app/mcp';
 
 function makeReq(method = 'POST', body = null, headers = {}) {
   return new Request(BASE_URL, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'X-WorldMonitor-Key': VALID_KEY,
+      'X-Startup-Intelligence-Key': VALID_KEY,
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -32,7 +32,7 @@ let evaluateFreshness;
 
 describe('api/mcp.ts — PRO MCP Server', () => {
   beforeEach(async () => {
-    process.env.WORLDMONITOR_VALID_KEYS = VALID_KEY;
+    process.env.STARTUP_INTELLIGENCE_VALID_KEYS = VALID_KEY;
     // No UPSTASH vars — rate limiter gracefully skipped, Redis reads return null
     delete process.env.UPSTASH_REDIS_REST_URL;
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -60,13 +60,13 @@ describe('api/mcp.ts — PRO MCP Server', () => {
     });
     const res = await handler(req);
     assert.equal(res.status, 401);
-    assert.ok(res.headers.get('www-authenticate')?.includes('Bearer realm="worldmonitor"'), 'must include WWW-Authenticate header');
+    assert.ok(res.headers.get('www-authenticate')?.includes('Bearer realm="startup_intelligence"'), 'must include WWW-Authenticate header');
     const body = await res.json();
     assert.equal(body.error?.code, -32001);
   });
 
   it('returns JSON-RPC -32001 when invalid API key provided', async () => {
-    const req = makeReq('POST', initBody(), { 'X-WorldMonitor-Key': 'wrong_key' });
+    const req = makeReq('POST', initBody(), { 'X-Startup-Intelligence-Key': 'wrong_key' });
     const res = await handler(req);
     assert.equal(res.status, 200);
     const body = await res.json();
@@ -76,7 +76,7 @@ describe('api/mcp.ts — PRO MCP Server', () => {
   // --- Protocol ---
 
   it('OPTIONS returns 204 with CORS headers', async () => {
-    const req = new Request(BASE_URL, { method: 'OPTIONS', headers: { origin: 'https://worldmonitor.app' } });
+    const req = new Request(BASE_URL, { method: 'OPTIONS', headers: { origin: 'https://startupintelligence.app' } });
     const res = await handler(req);
     assert.equal(res.status, 204);
     assert.ok(res.headers.get('access-control-allow-methods'));
@@ -89,7 +89,7 @@ describe('api/mcp.ts — PRO MCP Server', () => {
     assert.equal(body.jsonrpc, '2.0');
     assert.equal(body.id, 1);
     assert.equal(body.result?.protocolVersion, '2025-03-26');
-    assert.equal(body.result?.serverInfo?.name, 'worldmonitor');
+    assert.equal(body.result?.serverInfo?.name, 'startup_intelligence');
     assert.ok(res.headers.get('mcp-session-id'), 'Mcp-Session-Id header must be present');
   });
 
@@ -108,7 +108,7 @@ describe('api/mcp.ts — PRO MCP Server', () => {
   it('malformed body returns JSON-RPC -32600', async () => {
     const req = new Request(BASE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-WorldMonitor-Key': VALID_KEY },
+      headers: { 'Content-Type': 'application/json', 'X-Startup-Intelligence-Key': VALID_KEY },
       body: '{bad json',
     });
     const res = await handler(req);

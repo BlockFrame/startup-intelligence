@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Submit all worldmonitor.app URLs to IndexNow after deploy.
+ * Submit all startupintelligence.app URLs to IndexNow after deploy.
  * Run once after deploying the IndexNow key file:
  *   node scripts/seo-indexnow-submit.mjs
  *
@@ -12,33 +12,33 @@ const KEY = 'a7f3e9d1b2c44e8f9a0b1c2d3e4f5a6b';
 
 const BATCHES = [
   {
-    host: 'www.worldmonitor.app',
+    host: 'startupintelligence.app',
     urls: [
-      'https://www.worldmonitor.app/',
-      'https://www.worldmonitor.app/pro',
-      'https://www.worldmonitor.app/blog/',
-      'https://www.worldmonitor.app/blog/posts/what-is-worldmonitor-real-time-global-intelligence/',
-      'https://www.worldmonitor.app/blog/posts/five-dashboards-one-platform-worldmonitor-variants/',
-      'https://www.worldmonitor.app/blog/posts/track-global-conflicts-in-real-time/',
-      'https://www.worldmonitor.app/blog/posts/cyber-threat-intelligence-for-security-teams/',
-      'https://www.worldmonitor.app/blog/posts/osint-for-everyone-open-source-intelligence-democratized/',
-      'https://www.worldmonitor.app/blog/posts/natural-disaster-monitoring-earthquakes-fires-volcanoes/',
-      'https://www.worldmonitor.app/blog/posts/real-time-market-intelligence-for-traders-and-analysts/',
-      'https://www.worldmonitor.app/blog/posts/monitor-global-supply-chains-and-commodity-disruptions/',
-      'https://www.worldmonitor.app/blog/posts/satellite-imagery-orbital-surveillance/',
-      'https://www.worldmonitor.app/blog/posts/live-webcams-from-geopolitical-hotspots/',
-      'https://www.worldmonitor.app/blog/posts/prediction-markets-ai-forecasting-geopolitics/',
-      'https://www.worldmonitor.app/blog/posts/command-palette-search-everything-instantly/',
-      'https://www.worldmonitor.app/blog/posts/worldmonitor-in-21-languages-global-intelligence-for-everyone/',
-      'https://www.worldmonitor.app/blog/posts/ai-powered-intelligence-without-the-cloud/',
-      'https://www.worldmonitor.app/blog/posts/build-on-worldmonitor-developer-api-open-source/',
-      'https://www.worldmonitor.app/blog/posts/worldmonitor-vs-traditional-intelligence-tools/',
-      'https://www.worldmonitor.app/blog/posts/tracking-global-trade-routes-chokepoints-freight-costs/',
+      'https://startupintelligence.app/',
+      'https://startupintelligence.app/pro',
+      'https://startupintelligence.app/blog/',
+      'https://startupintelligence.app/blog/posts/what-is-startupintelligence-real-time-global-intelligence/',
+      'https://startupintelligence.app/blog/posts/five-dashboards-one-platform-startup-intelligence-variants/',
+      'https://startupintelligence.app/blog/posts/track-global-conflicts-in-real-time/',
+      'https://startupintelligence.app/blog/posts/cyber-threat-intelligence-for-security-teams/',
+      'https://startupintelligence.app/blog/posts/osint-for-everyone-open-source-intelligence-democratized/',
+      'https://startupintelligence.app/blog/posts/natural-disaster-monitoring-earthquakes-fires-volcanoes/',
+      'https://startupintelligence.app/blog/posts/real-time-market-intelligence-for-traders-and-analysts/',
+      'https://startupintelligence.app/blog/posts/monitor-global-supply-chains-and-commodity-disruptions/',
+      'https://startupintelligence.app/blog/posts/satellite-imagery-orbital-surveillance/',
+      'https://startupintelligence.app/blog/posts/live-webcams-from-geopolitical-hotspots/',
+      'https://startupintelligence.app/blog/posts/prediction-markets-ai-forecasting-geopolitics/',
+      'https://startupintelligence.app/blog/posts/command-palette-search-everything-instantly/',
+      'https://startupintelligence.app/blog/posts/startupintelligence-in-21-languages-global-intelligence-for-everyone/',
+      'https://startupintelligence.app/blog/posts/ai-powered-intelligence-without-the-cloud/',
+      'https://startupintelligence.app/blog/posts/build-on-startupintelligence-developer-api-open-source/',
+      'https://startupintelligence.app/blog/posts/startupintelligence-vs-traditional-intelligence-tools/',
+      'https://startupintelligence.app/blog/posts/tracking-global-trade-routes-chokepoints-freight-costs/',
     ],
   },
-  { host: 'tech.worldmonitor.app', urls: ['https://tech.worldmonitor.app/'] },
-  { host: 'finance.worldmonitor.app', urls: ['https://finance.worldmonitor.app/'] },
-  { host: 'happy.worldmonitor.app', urls: ['https://happy.worldmonitor.app/'] },
+  { host: 'tech.startupintelligence.app', urls: ['https://tech.startupintelligence.app/'] },
+  { host: 'finance.startupintelligence.app', urls: ['https://finance.startupintelligence.app/'] },
+  { host: 'happy.startupintelligence.app', urls: ['https://happy.startupintelligence.app/'] },
 ];
 
 const ENDPOINTS = [

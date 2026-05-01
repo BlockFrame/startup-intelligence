@@ -28,7 +28,7 @@ import type {
   Trigger,
   RegionalNarrative,
   NarrativeSection,
-} from '../src/generated/client/worldmonitor/intelligence/v1/service_client';
+} from '../src/generated/client/startup_intelligence/intelligence/v1/service_client';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Fixtures

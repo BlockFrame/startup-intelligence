@@ -14,7 +14,7 @@
 // whole seed was rejected on every run. If WEO republishes BX/BM with
 // broader coverage, re-add them + restore the tradeBalance join.
 //
-// Per WorldMonitor #3027 — feeds Trade Flows card.
+// Per StartupIntelligence #3027 — feeds Trade Flows card.
 
 import { loadEnvFile, runSeed, loadSharedConfig, imfSdmxFetchIndicator } from './_seed-utils.mjs';
 

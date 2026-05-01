@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Global Situation with AI Insights"
   },
   "widgets": {
@@ -22,7 +22,7 @@
     "generatedWidget": "Generated widget: {{title}}",
     "checkingConnection": "Checking widget access…",
     "preflightConnected": "Connected to the widget agent",
-    "preflightInvalidKey": "Widget key rejected. Update wm-widget-key and reload.",
+    "preflightInvalidKey": "Widget key rejected. Update si-widget-key and reload.",
     "preflightUnavailable": "Widget agent is temporarily unavailable.",
     "preflightAiUnavailable": "AI backend is unavailable. Try again later.",
     "readyToGenerate": "Ready to generate. Pick an example or describe your widget.",
@@ -39,18 +39,18 @@
     "phaseError": "Error",
     "previewCheckingHeading": "Connecting the widget builder",
     "previewReadyHeading": "Describe the widget you want",
-    "previewFetchingHeading": "Fetching live WorldMonitor data",
+    "previewFetchingHeading": "Fetching live StartupIntelligence data",
     "previewComposingHeading": "Composing the widget layout",
     "previewErrorHeading": "The preview needs attention",
     "previewCheckingCopy": "We are validating your widget key and backend availability before enabling generation.",
     "previewReadyCopy": "Use a prompt example or describe the exact live view you want. The preview will update here before you save it.",
-    "previewFetchingCopy": "The agent is calling approved WorldMonitor endpoints and shaping the dataset for the widget.",
+    "previewFetchingCopy": "The agent is calling approved StartupIntelligence endpoints and shaping the dataset for the widget.",
     "previewComposingCopy": "The preview is rendering with the latest live data and dashboard styling.",
     "previewErrorCopy": "Fix the issue, then retry. Your existing widgets are unaffected.",
     "createInteractive": "Create Interactive Widget",
     "proBadge": "PRO",
     "preflightProUnavailable": "PRO widget agent unavailable. Check PRO_WIDGET_KEY on the server.",
-    "preflightInvalidProKey": "PRO key rejected. Update wm-pro-key and reload.",
+    "preflightInvalidProKey": "PRO key rejected. Update si-pro-key and reload.",
     "examples": {
       "oilGold": "Show me today's crude oil price versus gold",
       "cryptoMovers": "Create a widget for the top crypto movers in the last 24 hours",
@@ -670,7 +670,7 @@
       },
       "openSettings": "Open Settings",
       "reserveEarlyAccess": "Reserve Your Early Access",
-      "skipSetup": "Skip the setup — a single World Monitor license unlocks everything. Join the waitlist for early access.",
+      "skipSetup": "Skip the setup — a single Startup Intelligence license unlocks everything. Join the waitlist for early access.",
       "summary": {
         "desktop": "Desktop mode",
         "web": "Web mode (read-only, server-managed credentials)",
@@ -716,13 +716,13 @@
       "noTraffic": "No traffic recorded yet.",
       "sidecarUnreachable": "Sidecar not reachable.",
       "logCleared": "Log cleared.",
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "One key. Everything included.",
-        "heroDescription": "A single World Monitor license replaces every API key and LLM provider you'd otherwise configure yourself. AI summaries, real-time intelligence, market data, conflict tracking, fire detection, satellite imagery — all powered, all managed, zero setup.",
+        "heroDescription": "A single Startup Intelligence license replaces every API key and LLM provider you'd otherwise configure yourself. AI summaries, real-time intelligence, market data, conflict tracking, fire detection, satellite imagery — all powered, all managed, zero setup.",
         "apiKey": {
           "title": "License Key",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "Paste your license to unlock every data source and AI feature instantly.",
           "statusValid": "LICENSED",
           "statusMissing": "NO LICENSE"
@@ -730,7 +730,7 @@
         "dividerOr": "OR",
         "register": {
           "title": "Reserve Your Spot",
-          "description": "We're preparing to launch World Monitor licenses. Sign up now and be first in line — early members get priority access and founding-member pricing.",
+          "description": "We're preparing to launch Startup Intelligence licenses. Sign up now and be first in line — early members get priority access and founding-member pricing.",
           "emailPlaceholder": "your@email.com",
           "submitBtn": "Join Waitlist",
           "submitting": "Submitting...",
@@ -2145,7 +2145,7 @@
       "loadError": "Climate news temporarily unavailable"
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>WM Analyst</strong> AI analyst with live context across geopolitical, market, military, and economic domains. Powered by Claude with real-time data injected from active WorldMonitor feeds."
+      "infoTooltip": "<strong>WM Analyst</strong> AI analyst with live context across geopolitical, market, military, and economic domains. Powered by Claude with real-time data injected from active StartupIntelligence feeds."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>CFTC COT Positioning</strong> Commitments of Traders report: net positioning of commercials, large speculators, and small traders across commodity and financial futures. Published weekly (Friday). Source: CFTC."
@@ -2204,7 +2204,7 @@
       "infoTooltip": "<strong>Macro Indicators</strong> Key macroeconomic indicators for the US and Euro Area: CPI, unemployment, GDP, and central bank rates. Values shown with prior period delta. Source: FRED (Federal Reserve Economic Data)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Keyword Monitors</strong> Add any term to track live news mentions across all WorldMonitor sources. Results update in real time as matching articles are ingested."
+      "infoTooltip": "<strong>Keyword Monitors</strong> Add any term to track live news mentions across all StartupIntelligence sources. Results update in real time as matching articles are ingested."
     },
     "renewable": {
       "infoTooltip": "<strong>Renewable Energy</strong> Global renewable energy project pipeline: solar, wind, hydro, and storage capacity additions. Tracks announced, under-construction, and commissioned projects by region and technology type."
@@ -2932,7 +2932,7 @@
   },
   "premium": {
     "pro": "PRO",
-    "lockedDesc": "Requires a World Monitor license key",
+    "lockedDesc": "Requires a Startup Intelligence license key",
     "joinWaitlist": "Join Waitlist",
     "signInToUnlock": "Sign in to unlock premium features",
     "signIn": "Sign In to Unlock",

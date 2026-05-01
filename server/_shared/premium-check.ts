@@ -12,15 +12,15 @@ import { validateUserApiKey } from './user-api-key';
 export async function isCallerPremium(request: Request): Promise<boolean> {
   // Browser tester keys — validateApiKey returns required:false for trusted origins
   // even when a valid key is present, so we check the header directly first.
-  const wmKey = request.headers.get('X-WorldMonitor-Key') ?? '';
-  if (wmKey) {
-    const validKeys = (process.env.WORLDMONITOR_VALID_KEYS ?? '')
+  const startupIntelligenceKey = request.headers.get('X-Startup-Intelligence-Key') ?? '';
+  if (startupIntelligenceKey) {
+    const validKeys = (process.env.STARTUP_INTELLIGENCE_VALID_KEYS ?? '')
       .split(',').map((k) => k.trim()).filter(Boolean);
-    if (validKeys.length > 0 && validKeys.includes(wmKey)) return true;
+    if (validKeys.length > 0 && validKeys.includes(startupIntelligenceKey)) return true;
 
-    // Check user-owned API keys (wm_ prefix) via Convex lookup.
+    // Check user-owned API keys (si_ prefix) via Convex lookup.
     // Key existence alone is not sufficient — verify the owner's entitlement.
-    const userKey = await validateUserApiKey(wmKey);
+    const userKey = await validateUserApiKey(startupIntelligenceKey);
     if (userKey) {
       const ent = await getEntitlements(userKey.userId);
       if (ent && ent.features.apiAccess === true) return true;

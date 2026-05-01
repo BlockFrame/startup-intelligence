@@ -28,7 +28,7 @@ import {
   type AnalysisPanelId,
 } from '@/services/analysis-framework-store';
 
-const DESKTOP_RELEASES_URL = 'https://github.com/koala73/worldmonitor/releases';
+const DESKTOP_RELEASES_URL = 'https://github.com/koala73/startup-intelligence/releases';
 
 export interface PreferencesHost {
   isDesktopApp: boolean;
@@ -107,9 +107,9 @@ export function renderPreferences(host: PreferencesHost): PreferencesResult {
   let html = '';
 
   // ── Display group ──
-  html += `<details class="wm-pref-group" open>`;
+  html += `<details class="si-pref-group" open>`;
   html += `<summary>${t('preferences.display')}</summary>`;
-  html += `<div class="wm-pref-group-content">`;
+  html += `<div class="si-pref-group-content">`;
 
   // Appearance
   const currentThemePref = getThemePreference();
@@ -210,9 +210,9 @@ export function renderPreferences(host: PreferencesHost): PreferencesResult {
   html += `</div></details>`;
 
   // ── Intelligence group ──
-  html += `<details class="wm-pref-group">`;
+  html += `<details class="si-pref-group">`;
   html += `<summary>${t('preferences.intelligence')}</summary>`;
-  html += `<div class="wm-pref-group-content">`;
+  html += `<div class="si-pref-group-content">`;
 
   if (!host.isDesktopApp) {
     html += toggleRowHtml('us-cloud', t('components.insights.aiFlowCloudLabel'), t('components.insights.aiFlowCloudDesc'), settings.cloudLlm);
@@ -232,9 +232,9 @@ export function renderPreferences(host: PreferencesHost): PreferencesResult {
   html += `</div></details>`;
 
   // ── Analysis Frameworks group ──
-  html += `<details class="wm-pref-group">`;
+  html += `<details class="si-pref-group">`;
   html += `<summary>${t('components.insights.analysisFrameworksLabel')}</summary>`;
-  html += `<div class="wm-pref-group-content">`;
+  html += `<div class="si-pref-group-content">`;
 
   // Per-panel active framework display
   const panelIds: Array<{ id: AnalysisPanelId; label: string }> = [
@@ -303,9 +303,9 @@ export function renderPreferences(host: PreferencesHost): PreferencesResult {
   html += `</div></details>`;
 
   // ── Media group ──
-  html += `<details class="wm-pref-group">`;
+  html += `<details class="si-pref-group">`;
   html += `<summary>${t('preferences.media')}</summary>`;
-  html += `<div class="wm-pref-group-content">`;
+  html += `<div class="si-pref-group-content">`;
 
   const currentQuality = getStreamQuality();
   html += `<div class="ai-flow-toggle-row">
@@ -331,9 +331,9 @@ export function renderPreferences(host: PreferencesHost): PreferencesResult {
   html += `</div></details>`;
 
   // ── Panels group ──
-  html += `<details class="wm-pref-group">`;
+  html += `<details class="si-pref-group">`;
   html += `<summary>${t('preferences.panels')}</summary>`;
-  html += `<div class="wm-pref-group-content">`;
+  html += `<div class="si-pref-group-content">`;
   html += toggleRowHtml('us-badge-anim', t('components.insights.badgeAnimLabel'), t('components.insights.badgeAnimDesc'), settings.badgeAnimation);
   html += `</div></details>`;
 
@@ -345,24 +345,24 @@ export function renderPreferences(host: PreferencesHost): PreferencesResult {
       ? new Date(lastSync).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
       : 'Never';
 
-    html += `<details class="wm-pref-group">`;
+    html += `<details class="si-pref-group">`;
     html += `<summary>Cloud Sync</summary>`;
-    html += `<div class="wm-pref-group-content">`;
-    html += `<div class="wm-sync-status-row">
-      <div class="wm-sync-status-info">
-        <span class="wm-sync-status-dot" id="usSyncDot" style="background:${SYNC_STATE_COLORS[syncState] ?? SYNC_STATE_COLORS.error}"></span>
-        <span class="wm-sync-status-label" id="usSyncLabel">${SYNC_STATE_LABELS[syncState] ?? 'Unknown'}</span>
-        <span class="wm-sync-status-time" id="usSyncTime">Last synced: ${escapeHtml(lastSyncStr)}</span>
+    html += `<div class="si-pref-group-content">`;
+    html += `<div class="si-sync-status-row">
+      <div class="si-sync-status-info">
+        <span class="si-sync-status-dot" id="usSyncDot" style="background:${SYNC_STATE_COLORS[syncState] ?? SYNC_STATE_COLORS.error}"></span>
+        <span class="si-sync-status-label" id="usSyncLabel">${SYNC_STATE_LABELS[syncState] ?? 'Unknown'}</span>
+        <span class="si-sync-status-time" id="usSyncTime">Last synced: ${escapeHtml(lastSyncStr)}</span>
       </div>
-      <button type="button" class="settings-btn settings-btn-secondary wm-sync-now-btn" id="usSyncNowBtn">Sync now</button>
+      <button type="button" class="settings-btn settings-btn-secondary si-sync-now-btn" id="usSyncNowBtn">Sync now</button>
     </div>`;
     html += `</div></details>`;
   }
 
   // ── Data & Community group ──
-  html += `<details class="wm-pref-group">`;
+  html += `<details class="si-pref-group">`;
   html += `<summary>${t('preferences.dataAndCommunity')}</summary>`;
-  html += `<div class="wm-pref-group-content">`;
+  html += `<div class="si-pref-group-content">`;
   html += `
     <div class="us-data-mgmt">
       <button type="button" class="settings-btn settings-btn-secondary" id="usExportBtn">${t('components.settings.exportSettings')}</button>

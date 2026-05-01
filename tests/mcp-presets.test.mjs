@@ -210,11 +210,11 @@ describe(`MCP Presets — live connectivity (${LIVE ? 'ENABLED' : 'SKIPPED — s
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json, text/event-stream',
-          'User-Agent': 'WorldMonitor-MCP-Proxy/1.0',
+          'User-Agent': 'StartupIntelligence-MCP-Proxy/1.0',
         },
         body: JSON.stringify({
           jsonrpc: '2.0', id: 1, method: 'initialize',
-          params: { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 'worldmonitor', version: '1.0' } },
+          params: { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 'startup_intelligence', version: '1.0' } },
         }),
         signal: controller.signal,
       });

@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 
-import type { StockAnalysisHeadline } from '../../../../src/generated/server/worldmonitor/market/v1/service_server';
+import type { StockAnalysisHeadline } from '../../../../src/generated/server/startup_intelligence/market/v1/service_server';
 import { CHROME_UA } from '../../../_shared/constants';
 import { cachedFetchJson } from '../../../_shared/redis';
 import { UPSTREAM_TIMEOUT_MS } from './_shared';

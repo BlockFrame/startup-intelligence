@@ -5,7 +5,7 @@
 // (wrapped via Railway cron). Spacing them within one bundle keeps API
 // bursts low and shares the seed-bundle observability surface.
 //
-// Per WorldMonitor #3027.
+// Per StartupIntelligence #3027.
 
 import { runBundle, DAY } from './_bundle-runner.mjs';
 

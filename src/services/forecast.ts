@@ -1,5 +1,5 @@
-import { ForecastServiceClient } from '@/generated/client/worldmonitor/forecast/v1/service_client';
-import type { Forecast } from '@/generated/client/worldmonitor/forecast/v1/service_client';
+import { ForecastServiceClient } from '@/generated/client/startup_intelligence/forecast/v1/service_client';
+import type { Forecast } from '@/generated/client/startup_intelligence/forecast/v1/service_client';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 
 export type { Forecast };

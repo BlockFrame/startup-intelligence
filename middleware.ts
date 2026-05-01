@@ -20,10 +20,10 @@ const SOCIAL_IMAGE_UA =
   /Slack-ImgProxy|Slackbot|twitterbot|facebookexternalhit|linkedinbot|telegrambot|whatsapp|discordbot|redditbot/i;
 
 const VARIANT_HOST_MAP: Record<string, string> = {
-  'tech.worldmonitor.app': 'tech',
-  'finance.worldmonitor.app': 'finance',
-  'commodity.worldmonitor.app': 'commodity',
-  'happy.worldmonitor.app': 'happy',
+  'tech.startupintelligence.app': 'tech',
+  'finance.startupintelligence.app': 'finance',
+  'commodity.startupintelligence.app': 'commodity',
+  'happy.startupintelligence.app': 'happy',
 };
 
 // Source of truth: src/config/variant-meta.ts — keep in sync when variant metadata changes.
@@ -31,31 +31,31 @@ const VARIANT_OG: Record<string, { title: string; description: string; image: st
   tech: {
     title: 'Tech Monitor - Real-Time AI & Tech Industry Dashboard',
     description: 'Real-time AI and tech industry dashboard tracking tech giants, AI labs, startup ecosystems, funding rounds, and tech events worldwide.',
-    image: 'https://tech.worldmonitor.app/favico/tech/og-image.png',
-    url: 'https://tech.worldmonitor.app/',
+    image: 'https://tech.startupintelligence.app/favico/tech/og-image.png',
+    url: 'https://tech.startupintelligence.app/',
   },
   finance: {
     title: 'Finance Monitor - Real-Time Markets & Trading Dashboard',
     description: 'Real-time finance and trading dashboard tracking global markets, stock exchanges, central banks, commodities, forex, crypto, and economic indicators worldwide.',
-    image: 'https://finance.worldmonitor.app/favico/finance/og-image.png',
-    url: 'https://finance.worldmonitor.app/',
+    image: 'https://finance.startupintelligence.app/favico/finance/og-image.png',
+    url: 'https://finance.startupintelligence.app/',
   },
   commodity: {
     title: 'Commodity Monitor - Real-Time Commodity Markets & Supply Chain Dashboard',
     description: 'Real-time commodity markets dashboard tracking mining sites, processing plants, commodity ports, supply chains, and global commodity trade flows.',
-    image: 'https://commodity.worldmonitor.app/favico/commodity/og-image.png',
-    url: 'https://commodity.worldmonitor.app/',
+    image: 'https://commodity.startupintelligence.app/favico/commodity/og-image.png',
+    url: 'https://commodity.startupintelligence.app/',
   },
   happy: {
     title: 'Happy Monitor - Good News & Global Progress',
     description: 'Curated positive news, progress data, and uplifting stories from around the world.',
-    image: 'https://happy.worldmonitor.app/favico/happy/og-image.png',
-    url: 'https://happy.worldmonitor.app/',
+    image: 'https://happy.startupintelligence.app/favico/happy/og-image.png',
+    url: 'https://happy.startupintelligence.app/',
   },
 };
 
 const ALLOWED_HOSTS = new Set([
-  'worldmonitor.app',
+  'startupintelligence.app',
   ...Object.keys(VARIANT_HOST_MAP),
 ]);
 const VERCEL_PREVIEW_RE = /^[a-z0-9-]+-[a-z0-9]{8,}\.vercel\.app$/;

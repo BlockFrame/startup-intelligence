@@ -1,4 +1,4 @@
-# World Monitor - protect API routes from crawlers
+# Startup Intelligence - protect API routes from crawlers
 User-agent: *
 Allow: /
 Allow: /api/story
@@ -6,5 +6,5 @@ Allow: /api/og-story
 Disallow: /api/
 Disallow: /tests/
 
-Sitemap: https://www.worldmonitor.app/sitemap.xml
-Sitemap: https://www.worldmonitor.app/blog/sitemap-index.xml
+Sitemap: https://startupintelligence.app/sitemap.xml
+Sitemap: https://startupintelligence.app/blog/sitemap-index.xml

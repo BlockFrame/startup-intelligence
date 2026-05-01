@@ -38,7 +38,7 @@ async function _createCheckoutSession(
   user: UserInfo,
 ) {
   // Validate returnUrl to prevent open-redirect attacks.
-  const siteUrl = process.env.SITE_URL ?? "https://worldmonitor.app";
+  const siteUrl = process.env.SITE_URL ?? "https://startupintelligence.app";
   let returnUrl = siteUrl;
   if (args.returnUrl) {
     let parsedReturnUrl: URL;
@@ -49,18 +49,18 @@ async function _createCheckoutSession(
     }
 
     const allowedOrigins = new Set([
-      "https://worldmonitor.app",
-      "https://www.worldmonitor.app",
-      "https://app.worldmonitor.app",
-      "https://tech.worldmonitor.app",
-      "https://finance.worldmonitor.app",
-      "https://commodity.worldmonitor.app",
-      "https://happy.worldmonitor.app",
+      "https://startupintelligence.app",
+      "https://startupintelligence.app",
+      "https://app.startupintelligence.app",
+      "https://tech.startupintelligence.app",
+      "https://finance.startupintelligence.app",
+      "https://commodity.startupintelligence.app",
+      "https://happy.startupintelligence.app",
       new URL(siteUrl).origin,
     ]);
     if (!allowedOrigins.has(parsedReturnUrl.origin)) {
       throw new ConvexError(
-        "Invalid returnUrl: must use a trusted worldmonitor.app origin",
+        "Invalid returnUrl: must use a trusted startupintelligence.app origin",
       );
     }
     returnUrl = parsedReturnUrl.toString();
@@ -68,8 +68,8 @@ async function _createCheckoutSession(
 
   // Build metadata: HMAC-signed userId for the webhook identity bridge.
   const metadata: Record<string, string> = {};
-  metadata.wm_user_id = user.userId;
-  metadata.wm_user_id_sig = await signUserId(user.userId);
+  metadata.si_user_id = user.userId;
+  metadata.si_user_id_sig = await signUserId(user.userId);
   if (args.referralCode) {
     metadata.affonso_referral = args.referralCode;
   }
@@ -81,7 +81,7 @@ async function _createCheckoutSession(
         return_url: returnUrl,
         // Note: deliberately not passing `customer` block — Dodo locks
         // those fields as read-only. User identity is tracked via
-        // metadata.wm_user_id + HMAC signature instead.
+        // metadata.si_user_id + HMAC signature instead.
         ...(args.discountCode ? { discount_code: args.discountCode } : {}),
         ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
         feature_flags: {

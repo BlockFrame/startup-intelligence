@@ -1,5 +1,5 @@
-import type { MarketServiceClient } from '@/generated/client/worldmonitor/market/v1/service_client';
-import type { EconomicServiceClient, GetEuFsiResponse } from '@/generated/client/worldmonitor/economic/v1/service_client';
+import type { MarketServiceClient } from '@/generated/client/startup_intelligence/market/v1/service_client';
+import type { EconomicServiceClient, GetEuFsiResponse } from '@/generated/client/startup_intelligence/economic/v1/service_client';
 import { Panel } from './Panel';
 import { t } from '@/services/i18n';
 import { escapeHtml } from '@/utils/sanitize';
@@ -8,7 +8,7 @@ import { getHydratedData } from '@/services/bootstrap';
 let _marketClient: MarketServiceClient | null = null;
 async function getMarketClient(): Promise<MarketServiceClient> {
   if (!_marketClient) {
-    const { MarketServiceClient } = await import('@/generated/client/worldmonitor/market/v1/service_client');
+    const { MarketServiceClient } = await import('@/generated/client/startup_intelligence/market/v1/service_client');
     const { getRpcBaseUrl } = await import('@/services/rpc-client');
     _marketClient = new MarketServiceClient(getRpcBaseUrl(), { fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args) });
   }
@@ -18,7 +18,7 @@ async function getMarketClient(): Promise<MarketServiceClient> {
 let _economicClient: EconomicServiceClient | null = null;
 async function getEconomicClient(): Promise<EconomicServiceClient> {
   if (!_economicClient) {
-    const { EconomicServiceClient } = await import('@/generated/client/worldmonitor/economic/v1/service_client');
+    const { EconomicServiceClient } = await import('@/generated/client/startup_intelligence/economic/v1/service_client');
     const { getRpcBaseUrl } = await import('@/services/rpc-client');
     _economicClient = new EconomicServiceClient(getRpcBaseUrl(), { fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args) });
   }

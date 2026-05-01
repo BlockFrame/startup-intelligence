@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Informații globale și monitorizare geopolitică bazată pe AI"
   },
   "countryBrief": {
@@ -497,7 +497,7 @@
         "some": "Unele funcții necesită chei API"
       },
       "openSettings": "Deschide Setări",
-      "skipSetup": "Omiteți configurarea — o singură licență World Monitor deblochează totul. Alăturați-vă listei de așteptare pentru acces anticipat.",
+      "skipSetup": "Omiteți configurarea — o singură licență Startup Intelligence deblochează totul. Alăturați-vă listei de așteptare pentru acces anticipat.",
       "summary": {
         "desktop": "Modul desktop",
         "web": "Mod web (numai citire, acreditări gestionate de server)",
@@ -541,13 +541,13 @@
       "noTraffic": "Nu s-a înregistrat încă trafic.",
       "sidecarUnreachable": "Sidecar nu este accesibil.",
       "logCleared": "Jurnalul a fost șters.",
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "O singură cheie. Totul inclus.",
-        "heroDescription": "O o singură licență World Monitor înlocuiește toate cheile API. Analize AI, informații în timp real, date de piață, satelit și incendii.",
+        "heroDescription": "O o singură licență Startup Intelligence înlocuiește toate cheile API. Analize AI, informații în timp real, date de piață, satelit și incendii.",
         "apiKey": {
           "title": "Cheie de licență",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "Lipiți-vă licența pentru a debloca instantaneu fiecare sursă de date și funcția AI.",
           "statusValid": "LICENȚAT",
           "statusMissing": "FĂRĂ LICENȚĂ"
@@ -555,7 +555,7 @@
         "dividerOr": "SAU",
         "register": {
           "title": "Rezervă-ți Locul",
-          "description": "Ne pregătim să lansăm licențe World Monitor. Înscrieți-vă acum și fiți pe primul loc – membrii primii au acces prioritar și prețuri pentru membrii fondatori.",
+          "description": "Ne pregătim să lansăm licențe Startup Intelligence. Înscrieți-vă acum și fiți pe primul loc – membrii primii au acces prioritar și prețuri pentru membrii fondatori.",
           "emailPlaceholder": "your@email.com",
           "submitBtn": "Alăturați-vă listei de așteptare",
           "submitting": "Se trimite...",
@@ -1767,7 +1767,7 @@
       "infoTooltip": "<strong>Informații aeronautice</strong> Date operaționale ale companiilor aeriene în timp real: suspendări de rute, închideri ale spațiului aerian, avize ale transportatorilor și devieri de urgență. Sursă: NOTAM ale autorităților aeronautice și buletine ale transportatorilor."
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>Analist WM</strong> Analist AI cu context în timp real în domeniile geopolitic, piețe, militar și economic. Alimentat de Claude cu date în timp real injectate din fluxurile active WorldMonitor."
+      "infoTooltip": "<strong>Analist WM</strong> Analist AI cu context în timp real în domeniile geopolitic, piețe, militar și economic. Alimentat de Claude cu date în timp real injectate din fluxurile active StartupIntelligence."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>Poziționare CFTC COT</strong> Raportul angajamentelor traderilor: poziționarea netă a comercialilor, speculanților mari și traderilor mici în contractele futures pe mărfuri și financiare. Publicat săptămânal (vineri). Sursă: CFTC."
@@ -1797,7 +1797,7 @@
       "infoTooltip": "<strong>Indicatori macro</strong> Indicatori macroeconomici cheie pentru SUA și zona euro: CPI, șomaj, GDP și ratele băncilor centrale. Valori afișate cu delta față de perioada anterioară. Sursă: FRED (Federal Reserve Economic Data)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Monitoare de cuvinte cheie</strong> Adăugați orice termen pentru a urmări mențiunile în știri în timp real din toate sursele WorldMonitor. Rezultatele se actualizează în timp real pe măsură ce articolele corespunzătoare sunt ingerate."
+      "infoTooltip": "<strong>Monitoare de cuvinte cheie</strong> Adăugați orice termen pentru a urmări mențiunile în știri în timp real din toate sursele StartupIntelligence. Rezultatele se actualizează în timp real pe măsură ce articolele corespunzătoare sunt ingerate."
     },
     "renewable": {
       "infoTooltip": "<strong>Energie regenerabilă</strong> Pipeline global de proiecte de energie regenerabilă: adăugiri de capacitate solară, eoliană, hidro și de stocare. Urmărește proiectele anunțate, în construcție și comisionate pe regiune și tip de tehnologie."

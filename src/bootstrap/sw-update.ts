@@ -22,19 +22,19 @@ export interface SwUpdateHandlerOptions {
   setTimer?: (cb: () => void, ms: number) => ReturnType<typeof setTimeout>;
   /** Override clearTimeout for testing. */
   clearTimer?: (id: ReturnType<typeof setTimeout> | null) => void;
-  /** Enable debug logging. Defaults to localStorage.getItem('wm-debug-sw') === '1'. */
+  /** Enable debug logging. Defaults to localStorage.getItem('si-debug-sw') === '1'. */
   debug?: boolean;
   /** App version string included in debug log entries. */
   version?: string;
 }
 
 // ---------------------------------------------------------------------------
-// Debug logging (opt-in via localStorage.setItem('wm-debug-sw', '1'))
+// Debug logging (opt-in via localStorage.setItem('si-debug-sw', '1'))
 // Persists a rolling 30-entry log in sessionStorage so it survives page reloads.
-// Copy with: JSON.parse(sessionStorage.getItem('wm-sw-debug-log'))
+// Copy with: JSON.parse(sessionStorage.getItem('si-sw-debug-log'))
 // ---------------------------------------------------------------------------
 
-export const SW_DEBUG_LOG_KEY = 'wm-sw-debug-log';
+export const SW_DEBUG_LOG_KEY = 'si-sw-debug-log';
 const SW_DEBUG_LOG_MAX = 30;
 
 function appendDebugLog(entry: Record<string, unknown>): void {
@@ -73,7 +73,7 @@ export function installSwUpdateHandler(options: SwUpdateHandlerOptions = {}): vo
   const clearTimer = options.clearTimer ?? ((id: ReturnType<typeof setTimeout> | null) => { if (id !== null) clearTimeout(id); });
 
   const debugEnabled = options.debug ?? (() => {
-    try { return localStorage.getItem('wm-debug-sw') === '1'; } catch { return false; }
+    try { return localStorage.getItem('si-debug-sw') === '1'; } catch { return false; }
   })();
   const version = options.version;
 

@@ -113,7 +113,6 @@ export const COMMANDS: Command[] = [
   { id: 'panel:economic', keywords: ['economic', 'economy', 'fred'], label: 'Panel: Economic Indicators', icon: '\u{1F4CA}', category: 'panels' },
   { id: 'panel:trade-policy', keywords: ['trade', 'tariffs', 'wto', 'trade policy', 'sanctions', 'restrictions'], label: 'Panel: Trade Policy', icon: '\u{1F4CA}', category: 'panels' },
   { id: 'panel:sanctions-pressure', keywords: ['sanctions pressure', 'ofac', 'designation', 'sanctions'], label: 'Panel: Sanctions Pressure', icon: '\u{1F6AB}', category: 'panels' },
-  { id: 'panel:supply-chain', keywords: ['supply chain', 'shipping', 'chokepoint', 'minerals', 'freight', 'logistics'], label: 'Panel: Supply Chain', icon: '\u{1F6A2}', category: 'panels' },
   { id: 'maritime-activity', keywords: ['maritime activity', 'port activity', 'tanker traffic', 'trade volumes', 'port calls'], label: 'Maritime Activity', icon: '\u26F3', category: 'panels' },
   { id: 'panel:energy-profile', keywords: ['energy profile', 'country energy', 'oil imports', 'energy exposure', 'jodi', 'iea energy', 'energy shock'], label: 'Energy Profile', icon: '⚡', category: 'panels' },
   { id: 'panel:finance', keywords: ['financial', 'finance news'], label: 'Panel: Financial', icon: '\u{1F4B5}', category: 'panels' },
@@ -129,7 +128,6 @@ export const COMMANDS: Command[] = [
   { id: 'panel:fear-greed', keywords: ['fear', 'greed', 'fear and greed', 'sentiment', 'fear greed index'], label: 'Panel: Fear & Greed', icon: '\u{1F4CA}', category: 'panels' },
   { id: 'panel:aaii-sentiment', keywords: ['aaii', 'investor sentiment', 'bull bear', 'sentiment survey', 'aaii survey', 'contrarian'], label: 'Panel: AAII Investor Sentiment', icon: '\u{1F4CA}', category: 'panels' },
   { id: 'panel:market-breadth', keywords: ['breadth', 'market breadth', 'advance decline', 'above sma', 'stocks above moving average', '200 day', '50 day'], label: 'Panel: Market Breadth', icon: '\u{1F4CA}', category: 'panels' },
-  { id: 'panel:hormuz-tracker', keywords: ['hormuz', 'strait of hormuz', 'shipping', 'crude oil', 'lng', 'fertilizer', 'tanker', 'wto'], label: 'Panel: Hormuz Trade Tracker', icon: '\u{1F6A2}', category: 'panels' },
   { id: 'panel:etf-flows', keywords: ['etf', 'etf flows', 'fund flows'], label: 'Panel: BTC ETF Tracker', icon: '\u{1F4B9}', category: 'panels' },
   { id: 'panel:stablecoins', keywords: ['stablecoins', 'usdt', 'usdc'], label: 'Panel: Stablecoins', icon: '\u{1FA99}', category: 'panels' },
   { id: 'panel:monitors', keywords: ['monitors', 'my monitors', 'watchlist'], label: 'Panel: My Monitors', icon: '\u{1F4CB}', category: 'panels' },
@@ -251,7 +249,6 @@ export const COMMANDS: Command[] = [
   { id: 'view:settings', keywords: ['settings', 'config', 'api keys'], label: 'Open settings', icon: '\u2699\uFE0F', category: 'view' },
   { id: 'view:refresh', keywords: ['refresh', 'reload', 'refresh all'], label: 'Refresh all data', icon: '\u{1F504}', category: 'view' },
   { id: 'view:resilience', keywords: ['resilience', 'resilience score', 'baseline', 'stress', 'country resilience'], label: 'Toggle resilience score', icon: '\u{1F6E1}\uFE0F', category: 'view' },
-  { id: 'view:route-explorer', keywords: ['route', 'explorer', 'ship', 'shipping', 'freight', 'cargo', 'lane', 'hs code', 'hs2', 'import', 'export', 'plan a shipment'], label: 'Route Explorer \u2014 plan a shipment', icon: '\u{1F6A2}', category: 'view' },
 
   // Time range
   { id: 'time:1h', keywords: ['1h', 'last hour', '1 hour'], label: 'Show events from last hour', icon: '\u{1F550}', category: 'actions' },

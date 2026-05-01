@@ -1,4 +1,4 @@
-# DevOps Guide - WorldMonitor / Startup Intelligence
+# DevOps Guide - StartupIntelligence / Startup Intelligence
 
 This project follows a modern DevOps workflow using GitHub Actions for CI/CD and a standard branching strategy.
 

@@ -1,6 +1,6 @@
 const ALLOWED_ORIGIN_PATTERNS = [
-  /^https:\/\/(.*\.)?worldmonitor\.app$/,
-  /^https:\/\/worldmonitor-[a-z0-9-]+-elie-[a-z0-9]+\.vercel\.app$/,
+  /^https:\/\/(.*\.)?startupintelligence\.app$/,
+  /^https:\/\/startupintelligence-[a-z0-9-]+-elie-[a-z0-9]+\.vercel\.app$/,
   /^https?:\/\/tauri\.localhost(:\d+)?$/,
   /^https?:\/\/[a-z0-9-]+\.tauri\.localhost(:\d+)?$/i,
   /^tauri:\/\/localhost$/,
@@ -18,11 +18,11 @@ function isAllowedOrigin(origin) {
 
 export function getCorsHeaders(req, methods = 'GET, OPTIONS') {
   const origin = req.headers.get('origin') || '';
-  const allowOrigin = isAllowedOrigin(origin) ? origin : 'https://worldmonitor.app';
+  const allowOrigin = isAllowedOrigin(origin) ? origin : 'https://startupintelligence.app';
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': methods,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-WorldMonitor-Key, X-Widget-Key, X-Pro-Key',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Startup-Intelligence-Key, X-Widget-Key, X-Pro-Key',
     'Access-Control-Max-Age': '3600',
     'Vary': 'Origin',
   };
@@ -40,7 +40,7 @@ export function getPublicCorsHeaders(methods = 'GET, OPTIONS') {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': methods,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-WorldMonitor-Key, X-Widget-Key, X-Pro-Key',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Startup-Intelligence-Key, X-Widget-Key, X-Pro-Key',
     'Access-Control-Max-Age': '3600',
   };
 }

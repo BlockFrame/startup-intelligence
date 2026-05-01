@@ -1,7 +1,7 @@
 /**
- * Publish job: builds compact WorldMonitor snapshot payloads and writes to Redis.
+ * Publish job: builds compact StartupIntelligence snapshot payloads and writes to Redis.
  * Runs as an independent Railway cron service (02:30 UTC daily) after aggregate.
- * This is the handoff point between consumer-prices-core and WorldMonitor.
+ * This is the handoff point between consumer-prices-core and StartupIntelligence.
  */
 import {
   buildBasketSeriesSnapshot,
@@ -10,7 +10,7 @@ import {
   buildMoversSnapshot,
   buildOverviewSnapshot,
   buildRetailerSpreadSnapshot,
-} from '../snapshots/worldmonitor.js';
+} from '../snapshots/startup_intelligence.js';
 import { loadAllBasketConfigs, loadAllRetailerConfigs } from '../config/loader.js';
 import { closePool } from '../db/client.js';
 

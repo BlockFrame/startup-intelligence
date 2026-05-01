@@ -3,7 +3,7 @@ import type {
   BacktestStockResponse,
   BacktestStockEvaluation,
   MarketServiceHandler,
-} from '../../../../src/generated/server/worldmonitor/market/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/market/v1/service_server';
 import { cachedFetchJson } from '../../../_shared/redis';
 import {
   buildAnalysisResponse,

@@ -17,7 +17,7 @@ import type {
   ListTechEventsResponse,
   TechEvent,
   TechEventCoords,
-} from '../../../../src/generated/server/worldmonitor/research/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/research/v1/service_server';
 import { CITY_COORDS } from '../../../../api/data/city-coords';
 import { CHROME_UA, clampInt } from '../../../_shared/constants';
 import { cachedFetchJson } from '../../../_shared/redis';

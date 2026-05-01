@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package startup_intelligence.trade.v1;
+
+import "startup_intelligence/trade/v1/trade_data.proto";
+
+message GetCustomsRevenueRequest {}
+
+message GetCustomsRevenueResponse {
+  repeated CustomsRevenueMonth months = 1;
+  string fetched_at = 2;
+  bool upstream_unavailable = 3;
+}

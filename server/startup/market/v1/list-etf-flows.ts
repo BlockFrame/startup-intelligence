@@ -7,7 +7,7 @@ import type {
   ServerContext,
   ListEtfFlowsRequest,
   ListEtfFlowsResponse,
-} from '../../../../src/generated/server/worldmonitor/market/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/market/v1/service_server';
 import { getCachedJson } from '../../../_shared/redis';
 
 const SEED_CACHE_KEY = 'market:etf-flows:v1';

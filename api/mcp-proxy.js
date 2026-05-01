@@ -28,7 +28,7 @@ function buildInitPayload() {
     params: {
       protocolVersion: MCP_PROTOCOL_VERSION,
       capabilities: {},
-      clientInfo: { name: 'worldmonitor', version: '1.0' },
+      clientInfo: { name: 'startup_intelligence', version: '1.0' },
     },
   };
 }
@@ -46,7 +46,7 @@ function buildHeaders(customHeaders) {
   const h = {
     'Content-Type': 'application/json',
     'Accept': 'application/json, text/event-stream',
-    'User-Agent': 'WorldMonitor-MCP-Proxy/1.0',
+    'User-Agent': 'StartupIntelligence-MCP-Proxy/1.0',
   };
   if (customHeaders && typeof customHeaders === 'object') {
     for (const [k, v] of Object.entries(customHeaders)) {
@@ -292,7 +292,7 @@ async function mcpListToolsSse(serverUrl, customHeaders) {
     const initResp = await session.send(1, 'initialize', {
       protocolVersion: MCP_PROTOCOL_VERSION,
       capabilities: {},
-      clientInfo: { name: 'worldmonitor', version: '1.0' },
+      clientInfo: { name: 'startup_intelligence', version: '1.0' },
     });
     if (initResp.error) throw new Error(`Initialize error: ${initResp.error.message}`);
     await session.notify('notifications/initialized', {});
@@ -312,7 +312,7 @@ async function mcpCallToolSse(serverUrl, toolName, toolArgs, customHeaders) {
     const initResp = await session.send(1, 'initialize', {
       protocolVersion: MCP_PROTOCOL_VERSION,
       capabilities: {},
-      clientInfo: { name: 'worldmonitor', version: '1.0' },
+      clientInfo: { name: 'startup_intelligence', version: '1.0' },
     });
     if (initResp.error) throw new Error(`Initialize error: ${initResp.error.message}`);
     await session.notify('notifications/initialized', {});

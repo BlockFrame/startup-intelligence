@@ -2,7 +2,7 @@
 
 /**
  * Seed script: fetches compact snapshot payloads from consumer-prices-core
- * and writes them to Upstash Redis for WorldMonitor bootstrap hydration.
+ * and writes them to Upstash Redis for StartupIntelligence bootstrap hydration.
  *
  * Run manually: node scripts/seed-consumer-prices.mjs --force
  *
@@ -112,17 +112,17 @@ async function run() {
   // Fetch all snapshots in parallel
   const [overview, movers30d, movers7d, spread, freshness, series30d, series7d, series90d,
          categories30d, categories7d, categories90d] = await Promise.all([
-    fetchSnapshot(`/wm/consumer-prices/v1/overview?market=${MARKET}`),
-    fetchSnapshot(`/wm/consumer-prices/v1/movers?market=${MARKET}&days=30`),
-    fetchSnapshot(`/wm/consumer-prices/v1/movers?market=${MARKET}&days=7`),
-    fetchSnapshot(`/wm/consumer-prices/v1/retailer-spread?market=${MARKET}&basket=${BASKET}`),
-    fetchSnapshot(`/wm/consumer-prices/v1/freshness?market=${MARKET}`),
-    fetchSnapshot(`/wm/consumer-prices/v1/basket-series?market=${MARKET}&basket=${BASKET}&range=30d`),
-    fetchSnapshot(`/wm/consumer-prices/v1/basket-series?market=${MARKET}&basket=${BASKET}&range=7d`),
-    fetchSnapshot(`/wm/consumer-prices/v1/basket-series?market=${MARKET}&basket=${BASKET}&range=90d`),
-    fetchSnapshot(`/wm/consumer-prices/v1/categories?market=${MARKET}&range=30d`),
-    fetchSnapshot(`/wm/consumer-prices/v1/categories?market=${MARKET}&range=7d`),
-    fetchSnapshot(`/wm/consumer-prices/v1/categories?market=${MARKET}&range=90d`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/overview?market=${MARKET}`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/movers?market=${MARKET}&days=30`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/movers?market=${MARKET}&days=7`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/retailer-spread?market=${MARKET}&basket=${BASKET}`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/freshness?market=${MARKET}`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/basket-series?market=${MARKET}&basket=${BASKET}&range=30d`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/basket-series?market=${MARKET}&basket=${BASKET}&range=7d`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/basket-series?market=${MARKET}&basket=${BASKET}&range=90d`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/categories?market=${MARKET}&range=30d`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/categories?market=${MARKET}&range=7d`),
+    fetchSnapshot(`/startup-intelligence/consumer-prices/v1/categories?market=${MARKET}&range=90d`),
   ]);
 
   const writes = [

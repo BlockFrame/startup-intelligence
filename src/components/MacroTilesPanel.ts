@@ -1,4 +1,4 @@
-import type { EconomicServiceClient } from '@/generated/client/worldmonitor/economic/v1/service_client';
+import type { EconomicServiceClient } from '@/generated/client/startup_intelligence/economic/v1/service_client';
 import { Panel } from './Panel';
 import { t } from '@/services/i18n';
 import { escapeHtml } from '@/utils/sanitize';
@@ -8,7 +8,7 @@ import type { GetEurostatCountryDataResponse } from '@/services/economic';
 let _client: EconomicServiceClient | null = null;
 async function getEconomicClient(): Promise<EconomicServiceClient> {
   if (!_client) {
-    const { EconomicServiceClient } = await import('@/generated/client/worldmonitor/economic/v1/service_client');
+    const { EconomicServiceClient } = await import('@/generated/client/startup_intelligence/economic/v1/service_client');
     const { getRpcBaseUrl } = await import('@/services/rpc-client');
     _client = new EconomicServiceClient(getRpcBaseUrl(), { fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args) });
   }

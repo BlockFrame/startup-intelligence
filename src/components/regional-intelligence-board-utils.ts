@@ -17,7 +17,7 @@ import type {
   RegionalNarrative,
   RegimeTransition,
   RegionalBrief,
-} from '@/generated/client/worldmonitor/intelligence/v1/service_client';
+} from '@/generated/client/startup_intelligence/intelligence/v1/service_client';
 
 /** Non-global regions available in the dropdown. Matches shared/geography.js REGIONS. */
 export const BOARD_REGIONS: ReadonlyArray<{ id: string; label: string }> = [

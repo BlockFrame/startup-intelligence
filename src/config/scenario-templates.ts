@@ -1,14 +1,29 @@
-/**
- * Re-exports scenario template types for use within src/.
- * The authoritative source is server/worldmonitor/supply-chain/v1/scenario-templates.ts
- * (kept there so API edge functions can import it without crossing the src/ boundary).
- */
+export type ScenarioType = 'supply_chain' | 'tariff_shock';
 
-export type {
-  ScenarioType,
-  ScenarioTemplate,
-  ScenarioVisualState,
-  ScenarioResult,
-} from '../../server/worldmonitor/supply-chain/v1/scenario-templates';
+export interface ScenarioTemplate {
+  id: string;
+  name: string;
+  type: ScenarioType;
+  description: string;
+  affectedChokepointIds: string[];
+}
 
-export { SCENARIO_TEMPLATES } from '../../server/worldmonitor/supply-chain/v1/scenario-templates';
+export interface ScenarioVisualState {
+  scenarioId: string;
+  disruptedChokepointIds: string[];
+  affectedIso2s: string[];
+}
+
+export interface ScenarioImpactCountry {
+  iso2: string;
+  name?: string;
+  score?: number;
+  impactPct: number;
+}
+
+export interface ScenarioResult {
+  affectedChokepointIds: string[];
+  topImpactCountries: ScenarioImpactCountry[];
+}
+
+export const SCENARIO_TEMPLATES: ScenarioTemplate[] = [];

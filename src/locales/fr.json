@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Informations détaillées et données pour des pays spécifiques."
   },
   "countryBrief": {
@@ -525,7 +525,7 @@
         "OLLAMA_API_URL": "e.g. http://127.0.0.1:11434 (Ollama) or http://127.0.0.1:1234/v1 (LM Studio) — OpenAI-compatible endpoint.",
         "OLLAMA_MODEL": "e.g. llama3.1:8b — model tag to use for summarization."
       },
-      "skipSetup": "Passez la configuration — une seule licence World Monitor débloque tout. Rejoignez la liste d'attente pour un accès anticipé."
+      "skipSetup": "Passez la configuration — une seule licence Startup Intelligence débloque tout. Rejoignez la liste d'attente pour un accès anticipé."
     },
     "settingsWindow": {
       "validating": "Validation des clés API...",
@@ -548,13 +548,13 @@
         "status": "Statut",
         "duration": "Durée"
       },
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "Une clé. Tout inclus.",
-        "heroDescription": "Une seule licence World Monitor remplace chaque clé API et fournisseur LLM que vous auriez à configurer vous-même. Résumés IA, renseignement en temps réel, données de marché, suivi des conflits, détection d'incendies, imagerie satellite — tout est alimenté, tout est géré, zéro configuration.",
+        "heroDescription": "Une seule licence Startup Intelligence remplace chaque clé API et fournisseur LLM que vous auriez à configurer vous-même. Résumés IA, renseignement en temps réel, données de marché, suivi des conflits, détection d'incendies, imagerie satellite — tout est alimenté, tout est géré, zéro configuration.",
         "apiKey": {
           "title": "Clé de licence",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "Collez votre licence pour débloquer instantanément toutes les sources de données et fonctionnalités IA.",
           "statusValid": "SOUS LICENCE",
           "statusMissing": "PAS DE LICENCE"
@@ -562,7 +562,7 @@
         "dividerOr": "OU",
         "register": {
           "title": "Réservez votre place",
-          "description": "Nous préparons le lancement des licences World Monitor. Inscrivez-vous maintenant pour être en première ligne — les premiers membres bénéficient d'un accès prioritaire et d'un tarif fondateur.",
+          "description": "Nous préparons le lancement des licences Startup Intelligence. Inscrivez-vous maintenant pour être en première ligne — les premiers membres bénéficient d'un accès prioritaire et d'un tarif fondateur.",
           "emailPlaceholder": "votre@email.com",
           "submitBtn": "Rejoindre la liste d'attente",
           "submitting": "Envoi en cours...",
@@ -1776,7 +1776,7 @@
       "infoTooltip": "<strong>Renseignement aérien</strong> Données opérationnelles des compagnies aériennes en temps réel : suspensions de routes, fermetures d'espace aérien, avis des transporteurs et déroutements d'urgence. Source : NOTAM des autorités aéronautiques et bulletins des transporteurs."
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>Analyste WM</strong> Analyste IA avec contexte en direct dans les domaines géopolitique, marchés, militaire et économique. Alimenté par Claude avec des données en temps réel issues des flux actifs de WorldMonitor."
+      "infoTooltip": "<strong>Analyste WM</strong> Analyste IA avec contexte en direct dans les domaines géopolitique, marchés, militaire et économique. Alimenté par Claude avec des données en temps réel issues des flux actifs de StartupIntelligence."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>Positionnement CFTC COT</strong> Rapport des engagements des opérateurs : positionnement net des commerciaux, grands spéculateurs et petits opérateurs sur les contrats à terme de matières premières et financiers. Publié chaque semaine (vendredi). Source : CFTC."
@@ -1806,7 +1806,7 @@
       "infoTooltip": "<strong>Indicateurs macro</strong> Indicateurs macroéconomiques clés pour les États-Unis et la zone euro : CPI, chômage, GDP et taux des banques centrales. Valeurs affichées avec delta par rapport à la période précédente. Source : FRED (Federal Reserve Economic Data)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Moniteurs de mots-clés</strong> Ajoutez n'importe quel terme pour suivre les mentions dans les actualités en temps réel à travers toutes les sources WorldMonitor. Les résultats se mettent à jour en temps réel à mesure que les articles correspondants sont ingérés."
+      "infoTooltip": "<strong>Moniteurs de mots-clés</strong> Ajoutez n'importe quel terme pour suivre les mentions dans les actualités en temps réel à travers toutes les sources StartupIntelligence. Les résultats se mettent à jour en temps réel à mesure que les articles correspondants sont ingérés."
     },
     "renewable": {
       "infoTooltip": "<strong>Énergie renouvelable</strong> Pipeline mondial de projets d'énergie renouvelable : ajouts de capacité solaire, éolienne, hydraulique et de stockage. Suit les projets annoncés, en construction et mis en service par région et type de technologie."

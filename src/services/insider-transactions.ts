@@ -2,7 +2,7 @@ import { getRpcBaseUrl } from '@/services/rpc-client';
 import {
   MarketServiceClient,
   type GetInsiderTransactionsResponse,
-} from '@/generated/client/worldmonitor/market/v1/service_client';
+} from '@/generated/client/startup_intelligence/market/v1/service_client';
 import { premiumFetch } from '@/services/premium-fetch';
 
 const client = new MarketServiceClient(getRpcBaseUrl(), { fetch: premiumFetch });

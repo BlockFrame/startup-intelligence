@@ -43,7 +43,7 @@ import {
   type OilStocksRegionalSummaryEurope,
   type OilStocksRegionalSummaryAsiaPacific,
   type OilStocksRegionalSummaryNorthAmerica,
-} from '@/generated/client/worldmonitor/economic/v1/service_client';
+} from '@/generated/client/startup_intelligence/economic/v1/service_client';
 import { createCircuitBreaker } from '@/utils';
 import { getCSSColor } from '@/utils';
 import { isFeatureAvailable } from '../runtime-config';

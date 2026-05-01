@@ -42,7 +42,7 @@ export default async function handler(req: Request): Promise<Response> {
   let skillData: Record<string, unknown>;
   try {
     const res = await fetch(skillUrl.toString(), {
-      headers: { 'Accept': 'application/json', 'User-Agent': 'WorldMonitor/1.0' },
+      headers: { 'Accept': 'application/json', 'User-Agent': 'StartupIntelligence/1.0' },
       redirect: 'manual',
       signal: AbortSignal.timeout(8_000),
     });

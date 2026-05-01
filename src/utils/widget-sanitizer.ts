@@ -38,11 +38,11 @@ function stripLeadingPanelHeader(html: string): string {
 }
 
 export function wrapWidgetHtml(html: string, extraClass = ''): string {
-  const shellClass = ['wm-widget-shell', extraClass].filter(Boolean).join(' ');
+  const shellClass = ['si-widget-shell', extraClass].filter(Boolean).join(' ');
   return `
     <div class="${shellClass}">
-      <div class="wm-widget-body">
-        <div class="wm-widget-generated">${sanitizeWidgetHtml(stripLeadingPanelHeader(html))}</div>
+      <div class="si-widget-body">
+        <div class="si-widget-generated">${sanitizeWidgetHtml(stripLeadingPanelHeader(html))}</div>
       </div>
     </div>
   `;
@@ -105,7 +105,7 @@ function mountProWidget(iframe: HTMLIFrameElement): void {
   // re-navigates the iframe after its DOM position changes (drag/drop).
   iframe.addEventListener('load', () => {
     const storedHtml = iframeHtmlStore.get(iframe);
-    if (storedHtml) iframe.contentWindow?.postMessage({ type: 'wm-html', html: storedHtml }, '*');
+    if (storedHtml) iframe.contentWindow?.postMessage({ type: 'si-html', html: storedHtml }, '*');
   });
 }
 
@@ -117,7 +117,7 @@ if (typeof document !== 'undefined') {
         if (node instanceof HTMLIFrameElement && node.dataset.wmId) {
           mountProWidget(node);
         } else {
-          node.querySelectorAll<HTMLIFrameElement>('iframe[data-wm-id]').forEach(mountProWidget);
+          node.querySelectorAll<HTMLIFrameElement>('iframe[data-si-id]').forEach(mountProWidget);
         }
       }
     }
@@ -133,7 +133,7 @@ if (typeof document !== 'undefined') {
 }
 
 export function wrapProWidgetHtml(bodyContent: string): string {
-  const id = `wm-${Math.random().toString(36).slice(2)}`;
+  const id = `si-${Math.random().toString(36).slice(2)}`;
   widgetBodyStore.set(id, stripLeadingPanelHeader(bodyContent));
-  return `<div class="wm-widget-shell wm-widget-pro"><iframe src="/wm-widget-sandbox.html" data-wm-id="${id}" sandbox="allow-scripts" style="width:100%;height:400px;border:none;display:block;" title="Interactive widget"></iframe></div>`;
+  return `<div class="si-widget-shell si-widget-pro"><iframe src="/startup-widget-sandbox.html" data-si-id="${id}" sandbox="allow-scripts" style="width:100%;height:400px;border:none;display:block;" title="Interactive widget"></iframe></div>`;
 }

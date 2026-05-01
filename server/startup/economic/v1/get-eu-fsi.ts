@@ -3,7 +3,7 @@ import type {
   GetEuFsiRequest,
   GetEuFsiResponse,
   EuFsiObservation,
-} from '../../../../src/generated/server/worldmonitor/economic/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/economic/v1/service_server';
 import { getCachedJson } from '../../../_shared/redis';
 
 const SEED_CACHE_KEY = 'economic:fsi-eu:v1';

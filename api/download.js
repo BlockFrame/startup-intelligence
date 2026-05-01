@@ -3,7 +3,7 @@ import { fetchLatestRelease } from './_github-release.js';
 // Non-sebuf: returns XML/HTML, stays as standalone Vercel function
 export const config = { runtime: 'edge' };
 
-const RELEASES_PAGE = 'https://github.com/koala73/worldmonitor/releases/latest';
+const RELEASES_PAGE = 'https://github.com/koala73/startup-intelligence/releases/latest';
 
 const PLATFORM_PATTERNS = {
   'windows-exe': (name) => name.endsWith('_x64-setup.exe'),
@@ -15,8 +15,8 @@ const PLATFORM_PATTERNS = {
 };
 
 const VARIANT_IDENTIFIERS = {
-  full: ['worldmonitor'],
-  world: ['worldmonitor'],
+  full: ['startup_intelligence'],
+  world: ['startup_intelligence'],
   tech: ['techmonitor'],
   finance: ['financemonitor'],
 };
@@ -49,7 +49,7 @@ export default async function handler(req) {
   }
 
   try {
-    const release = await fetchLatestRelease('WorldMonitor-Download-Redirect');
+    const release = await fetchLatestRelease('StartupIntelligence-Download-Redirect');
     if (!release) {
       return Response.redirect(RELEASES_PAGE, 302);
     }

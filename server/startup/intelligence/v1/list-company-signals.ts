@@ -9,8 +9,8 @@ import type {
   ListCompanySignalsRequest,
   ListCompanySignalsResponse,
   CompanySignal,
-} from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
-import { ValidationError } from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/intelligence/v1/service_server';
+import { ValidationError } from '../../../../src/generated/server/startup_intelligence/intelligence/v1/service_server';
 import { fetchJson } from '../../../_shared/fetch-json';
 import { cachedFetchJson } from '../../../_shared/redis';
 

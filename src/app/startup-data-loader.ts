@@ -170,7 +170,6 @@ export class DataLoaderManager implements AppModule {
   loadMarketImplications(): Promise<void> { return Promise.resolve(); }
   loadWsbTickers(): Promise<void> { return Promise.resolve(); }
   loadTradePolicy(): Promise<void> { return Promise.resolve(); }
-  loadSupplyChain(): Promise<void> { return Promise.resolve(); }
   loadCrossSourceSignals(): Promise<void> { return Promise.resolve(); }
   loadTelegramIntel(): Promise<void> { return Promise.resolve(); }
   loadAaiiSentiment(): Promise<void> { return Promise.resolve(); }

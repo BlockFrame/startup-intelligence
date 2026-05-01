@@ -27,10 +27,10 @@ function overrideGlobal(name, value) {
 
 function installBrowserEnv() {
   const location = {
-    hostname: 'worldmonitor.app',
+    hostname: 'startupintelligence.app',
     protocol: 'https:',
-    host: 'worldmonitor.app',
-    origin: 'https://worldmonitor.app',
+    host: 'startupintelligence.app',
+    origin: 'https://startupintelligence.app',
   };
   const navigator = { userAgent: 'node-test', onLine: true };
   const window = { location, navigator };

@@ -7,7 +7,7 @@ import type {
   ServerContext,
   ListHackernewsItemsRequest,
   ListHackernewsItemsResponse,
-} from '../../../../src/generated/server/worldmonitor/research/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/research/v1/service_server';
 
 import { clampInt } from '../../../_shared/constants';
 import { getCachedJson } from '../../../_shared/redis';

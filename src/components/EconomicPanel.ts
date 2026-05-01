@@ -9,7 +9,7 @@ import type { SpendingSummary } from '@/services/usa-spending';
 import { formatAwardAmount, getAwardTypeIcon } from '@/services/usa-spending';
 import { getCSSColor } from '@/utils';
 import { sparkline } from '@/utils/sparkline';
-import type { GetEconomicStressResponse, EconomicStressComponent } from '@/generated/client/worldmonitor/economic/v1/service_client';
+import type { GetEconomicStressResponse, EconomicStressComponent } from '@/generated/client/startup_intelligence/economic/v1/service_client';
 
 type TabId = 'indicators' | 'spending' | 'centralBanks' | 'labor' | 'stress';
 

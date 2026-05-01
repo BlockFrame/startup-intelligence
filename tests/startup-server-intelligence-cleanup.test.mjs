@@ -12,7 +12,7 @@ const mcpSource = source('api/mcp.ts');
 
 test('startup intelligence API routes to startup handler namespace', () => {
   assert.match(apiIntelligenceSource, /server\/startup\/intelligence\/v1\/handler/);
-  assert.doesNotMatch(apiIntelligenceSource, /server\/worldmonitor\/intelligence\/v1\/handler/);
+  assert.doesNotMatch(apiIntelligenceSource, /server\/startup_intelligence\/intelligence\/v1\/handler/);
 });
 
 test('startup intelligence handler keeps startup capabilities and disables legacy world-risk RPCs', () => {
@@ -52,7 +52,7 @@ test('startup intelligence handler keeps startup capabilities and disables legac
 
 test('startup target intelligence tests point at startup server handlers', () => {
   assert.match(source('tests/market-implications.test.mts'), /server\/startup\/intelligence\/v1\/list-market-implications/);
-  assert.doesNotMatch(source('tests/market-implications.test.mts'), /server\/worldmonitor\/intelligence\/v1\/list-market-implications/);
+  assert.doesNotMatch(source('tests/market-implications.test.mts'), /server\/startup_intelligence\/intelligence\/v1\/list-market-implications/);
 
   const enrichmentTest = source('tests/enrichment-caching.test.mjs');
   assert.match(enrichmentTest, /server\/startup\/intelligence\/v1\/get-company-enrichment\.ts/);

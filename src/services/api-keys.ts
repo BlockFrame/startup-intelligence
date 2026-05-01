@@ -27,12 +27,12 @@ export interface CreateApiKeyResult {
   key: string;
 }
 
-/** Generate a random key: wm_<40 hex chars> (20 bytes = 160 bits). */
+/** Generate a random key: si_<40 hex chars> (20 bytes = 160 bits). */
 function generateKey(): string {
   const raw = new Uint8Array(20);
   crypto.getRandomValues(raw);
   const hex = Array.from(raw, (b) => b.toString(16).padStart(2, '0')).join('');
-  return `wm_${hex}`;
+  return `si_${hex}`;
 }
 
 /** SHA-256 hex digest of a string. */

@@ -40,7 +40,7 @@ const CONVEX_SITE_URL =
 const RELAY_SECRET = process.env.RELAY_SHARED_SECRET ?? '';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? '';
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? '';
-const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'WorldMonitor <alerts@worldmonitor.app>';
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'Startup Intelligence <alerts@startupintelligence.app>';
 
 if (process.env.DIGEST_CRON_ENABLED === '0') {
   console.log('[digest] DIGEST_CRON_ENABLED=0 — skipping run');
@@ -74,7 +74,7 @@ async function upstashRest(...args) {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${UPSTASH_TOKEN}`,
-      'User-Agent': 'worldmonitor-digest/1.0',
+      'User-Agent': 'startupintelligence-digest/1.0',
     },
     signal: AbortSignal.timeout(10000),
   });
@@ -93,7 +93,7 @@ async function upstashPipeline(commands) {
     headers: {
       Authorization: `Bearer ${UPSTASH_TOKEN}`,
       'Content-Type': 'application/json',
-      'User-Agent': 'worldmonitor-digest/1.0',
+      'User-Agent': 'startupintelligence-digest/1.0',
     },
     body: JSON.stringify(commands),
     signal: AbortSignal.timeout(15000),
@@ -300,7 +300,7 @@ function formatDigest(stories, nowMs) {
     month: 'long', day: 'numeric', year: 'numeric',
   }).format(new Date(nowMs));
 
-  const lines = [`WorldMonitor Daily Digest — ${dateStr}`, ''];
+  const lines = [`StartupIntelligence Daily Digest — ${dateStr}`, ''];
 
   const buckets = { critical: [], high: [], medium: [] };
   for (const s of stories) {
@@ -324,7 +324,7 @@ function formatDigest(stories, nowMs) {
     lines.push('');
   }
 
-  lines.push('View full dashboard \u2192 worldmonitor.app');
+  lines.push('View full dashboard \u2192 startupintelligence.app');
   return lines.join('\n');
 }
 
@@ -393,7 +393,7 @@ function formatDigestHtml(stories, nowMs) {
             <table cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td style="width: 36px; height: 36px; vertical-align: middle;">
-                  <img src="https://www.worldmonitor.app/favico/android-chrome-192x192.png" width="36" height="36" alt="WorldMonitor" style="border-radius: 50%; display: block;" />
+                  <img src="https://startupintelligence.app/favico/android-chrome-192x192.png" width="36" height="36" alt="StartupIntelligence" style="border-radius: 50%; display: block;" />
                 </td>
                 <td style="padding-left: 10px;">
                   <div style="font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.3px;">WORLD MONITOR</div>
@@ -427,17 +427,17 @@ function formatDigestHtml(stories, nowMs) {
       </table>
       ${sectionsHtml}
       <div style="text-align: center; padding: 12px 0 36px;">
-        <a href="https://worldmonitor.app" style="display: inline-block; background: #4ade80; color: #0a0a0a; padding: 12px 32px; text-decoration: none; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; border-radius: 3px;">Open Dashboard</a>
+        <a href="https://startupintelligence.app" style="display: inline-block; background: #4ade80; color: #0a0a0a; padding: 12px 32px; text-decoration: none; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; border-radius: 3px;">Open Dashboard</a>
       </div>
     </div>
     <div style="background: #0a0a0a; border-top: 1px solid #1a1a1a; padding: 20px 36px; text-align: center;">
       <div style="margin-bottom: 12px;">
-        <a href="https://x.com/worldmonitorapp" style="color: #555; text-decoration: none; font-size: 11px; margin: 0 10px;">X / Twitter</a>
-        <a href="https://github.com/koala73/worldmonitor" style="color: #555; text-decoration: none; font-size: 11px; margin: 0 10px;">GitHub</a>
+        <a href="https://x.com/startup_intelligenceapp" style="color: #555; text-decoration: none; font-size: 11px; margin: 0 10px;">X / Twitter</a>
+        <a href="https://github.com/koala73/startup-intelligence" style="color: #555; text-decoration: none; font-size: 11px; margin: 0 10px;">GitHub</a>
         <a href="https://discord.gg/re63kWKxaz" style="color: #555; text-decoration: none; font-size: 11px; margin: 0 10px;">Discord</a>
       </div>
       <p style="font-size: 10px; color: #444; margin: 0; line-height: 1.5;">
-        <a href="https://worldmonitor.app" style="color: #4ade80; text-decoration: none;">worldmonitor.app</a>
+        <a href="https://startupintelligence.app" style="color: #4ade80; text-decoration: none;">startupintelligence.app</a>
       </p>
     </div>
   </div>
@@ -503,7 +503,7 @@ async function generateAISummary(stories, rule) {
     return `${i + 1}. [${(s.severity ?? 'high').toUpperCase()}]${phase} ${s.title}${src}`;
   }).join('\n');
 
-  const systemPrompt = `You are WorldMonitor's intelligence analyst. Today is ${dateStr} UTC.
+  const systemPrompt = `You are StartupIntelligence's intelligence analyst. Today is ${dateStr} UTC.
 Write a personalized daily brief for a user focused on ${rule.variant ?? 'full'} intelligence.
 The user's local time greeting is "${greeting}" — use this exact greeting to open the brief.
 
@@ -543,7 +543,7 @@ async function deactivateChannel(userId, channelType) {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${RELAY_SECRET}`,
-        'User-Agent': 'worldmonitor-digest/1.0',
+        'User-Agent': 'startupintelligence-digest/1.0',
       },
       body: JSON.stringify({ userId, channelType }),
       signal: AbortSignal.timeout(10000),
@@ -596,7 +596,7 @@ async function sendTelegram(userId, chatId, text) {
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-digest/1.0' },
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-digest/1.0' },
         body: JSON.stringify({
           chat_id: chatId,
           text: safeText,
@@ -640,7 +640,7 @@ async function sendSlack(userId, webhookEnvelope, text) {
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-digest/1.0' },
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-digest/1.0' },
       body: JSON.stringify({ text, unfurl_links: false }),
       signal: AbortSignal.timeout(10000),
     });
@@ -675,7 +675,7 @@ async function sendDiscord(userId, webhookEnvelope, text) {
   try {
     const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-digest/1.0' },
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-digest/1.0' },
       body: JSON.stringify({ content }),
       signal: AbortSignal.timeout(10000),
     });
@@ -742,7 +742,7 @@ async function sendWebhook(userId, webhookEnvelope, stories, aiSummary) {
   try {
     const resp = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': 'worldmonitor-digest/1.0' },
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'startupintelligence-digest/1.0' },
       body: payload,
       signal: AbortSignal.timeout(10000),
     });
@@ -771,7 +771,7 @@ async function isUserPro(userId) {
   try {
     const res = await fetch(`${CONVEX_SITE_URL}/relay/entitlement`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RELAY_SECRET}`, 'User-Agent': 'worldmonitor-digest/1.0' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RELAY_SECRET}`, 'User-Agent': 'startupintelligence-digest/1.0' },
       body: JSON.stringify({ userId }),
       signal: AbortSignal.timeout(5000),
     });
@@ -837,7 +837,7 @@ async function main() {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${RELAY_SECRET}`,
-        'User-Agent': 'worldmonitor-digest/1.0',
+        'User-Agent': 'startupintelligence-digest/1.0',
       },
       signal: AbortSignal.timeout(10000),
     });
@@ -893,7 +893,7 @@ async function main() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${RELAY_SECRET}`,
-          'User-Agent': 'worldmonitor-digest/1.0',
+          'User-Agent': 'startupintelligence-digest/1.0',
         },
         body: JSON.stringify({ userId: rule.userId }),
         signal: AbortSignal.timeout(10000),
@@ -923,7 +923,7 @@ async function main() {
     const html = injectEmailSummary(htmlRaw, aiSummary);
 
     const shortDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(nowMs));
-    const subject = aiSummary ? `WorldMonitor Intelligence Brief — ${shortDate}` : `WorldMonitor Digest — ${shortDate}`;
+    const subject = aiSummary ? `StartupIntelligence Intelligence Brief — ${shortDate}` : `StartupIntelligence Digest — ${shortDate}`;
 
     let anyDelivered = false;
 

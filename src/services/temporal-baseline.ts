@@ -1,4 +1,4 @@
-import { InfrastructureServiceClient, type TemporalAnomaly as TemporalAnomalyProto } from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
+import { InfrastructureServiceClient, type TemporalAnomaly as TemporalAnomalyProto } from '@/generated/client/startup_intelligence/infrastructure/v1/service_client';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { getHydratedData } from '@/services/bootstrap';
 

@@ -304,7 +304,7 @@
         "OLLAMA_API_URL": "e.g. http://127.0.0.1:11434 (Ollama) or http://127.0.0.1:1234/v1 (LM Studio) — OpenAI-compatible endpoint.",
         "OLLAMA_MODEL": "e.g. llama3.1:8b — model tag to use for summarization."
       },
-      "skipSetup": "Hoppa över installationen — en enda World Monitor-licens låser upp allt. Gå med i väntelistan för tidig tillgång."
+      "skipSetup": "Hoppa över installationen — en enda Startup Intelligence-licens låser upp allt. Gå med i väntelistan för tidig tillgång."
     },
     "countryIntel": {
       "identifying": "Identifierar land...",
@@ -438,10 +438,10 @@
       },
       "sidecarUnreachable": "Sidovagn går inte att nå.",
       "logCleared": "Loggen rensad.",
-      "worldMonitor": {
+      "startupIntelligence": {
         "apiKey": {
           "description": "Klistra in din licens för att omedelbart låsa upp alla datakällor och AI-funktioner.",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "statusMissing": "INGEN LICENS",
           "statusValid": "LICENSIERAD",
           "title": "Licensnyckel"
@@ -449,11 +449,11 @@
         "byokDescription": "Föredrar du full kontroll? Gå till flikarna API-nycklar och LLM:er för att konfigurera varje datakälla och AI-leverantör individuellt.",
         "byokTitle": "Eller ta med egna nycklar",
         "dividerOr": "ELLER",
-        "heroDescription": "En enda World Monitor-licens ersätter alla API-nycklar och LLM-leverantörer du annars måste konfigurera själv. AI-sammanfattningar, realtidsunderrättelser, marknadsdata, konfliktspårning, branddetektering, satellitbilder — allt inkluderat, allt hanterat, noll installation.",
+        "heroDescription": "En enda Startup Intelligence-licens ersätter alla API-nycklar och LLM-leverantörer du annars måste konfigurera själv. AI-sammanfattningar, realtidsunderrättelser, marknadsdata, konfliktspårning, branddetektering, satellitbilder — allt inkluderat, allt hanterat, noll installation.",
         "heroTitle": "En nyckel. Allt inkluderat.",
         "register": {
           "alreadyRegistered": "Du finns redan på väntelistan.",
-          "description": "Vi förbereder lanseringen av World Monitor-licenser. Registrera dig nu och bli först i kön — tidiga medlemmar får prioriterad tillgång och grundarpriser.",
+          "description": "Vi förbereder lanseringen av Startup Intelligence-licenser. Registrera dig nu och bli först i kön — tidiga medlemmar får prioriterad tillgång och grundarpriser.",
           "emailPlaceholder": "din@epost.se",
           "error": "Registreringen misslyckades. Försök igen.",
           "invalidEmail": "Ange en giltig e-postadress.",
@@ -462,7 +462,7 @@
           "success": "Du är på listan! Vi meddelar dig först.",
           "title": "Reservera din plats"
         },
-        "tabLabel": "World Monitor"
+        "tabLabel": "Startup Intelligence"
       }
     }
   },
@@ -1563,7 +1563,7 @@
       "infoTooltip": "<strong>Flygintelligens</strong> Flygbolags driftdata i realtid: linjenedläggningar, luftrumsstängningar, transportörsmeddelanden och nödomdirigeringar. Källa: NOTAM från luftfartsmyndigheter och transportörsbulletiner."
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>WM Analytiker</strong> AI-analytiker med livekontext inom geopolitiska, marknads-, militära och ekonomiska domäner. Drivs av Claude med realtidsdata injicerade från aktiva WorldMonitor-flöden."
+      "infoTooltip": "<strong>WM Analytiker</strong> AI-analytiker med livekontext inom geopolitiska, marknads-, militära och ekonomiska domäner. Drivs av Claude med realtidsdata injicerade från aktiva StartupIntelligence-flöden."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>CFTC COT Positionering</strong> Commitments of Traders-rapport: nettopositionering av kommersiella aktörer, stora spekulanter och små handlare i råvaru- och finansiella terminer. Publiceras veckovis (fredag). Källa: CFTC."
@@ -1593,7 +1593,7 @@
       "infoTooltip": "<strong>Makroindikatorer</strong> Viktiga makroekonomiska indikatorer för USA och euroområdet: CPI, arbetslöshet, GDP och centralbanksräntor. Värden visade med delta mot föregående period. Källa: FRED (Federal Reserve Economic Data)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Nyckelordsmonitorer</strong> Lägg till valfri term för att spåra omnämnanden i nyheter i realtid från alla WorldMonitor-källor. Resultaten uppdateras i realtid allt eftersom matchande artiklar importeras."
+      "infoTooltip": "<strong>Nyckelordsmonitorer</strong> Lägg till valfri term för att spåra omnämnanden i nyheter i realtid från alla StartupIntelligence-källor. Resultaten uppdateras i realtid allt eftersom matchande artiklar importeras."
     },
     "renewable": {
       "infoTooltip": "<strong>Förnybar energi</strong> Global pipeline för förnybar energiprojekt: sol-, vind-, vatten- och lagringskapacitetstillägg. Spårar annonserade, under uppförande och idrifttagna projekt per region och tekniktyp."
@@ -2349,7 +2349,7 @@
     "selectRegion": "Välj region"
   },
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Global situation med AI-insikter"
   },
   "countryBrief": {

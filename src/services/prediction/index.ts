@@ -1,4 +1,4 @@
-import { PredictionServiceClient } from '@/generated/client/worldmonitor/prediction/v1/service_client';
+import { PredictionServiceClient } from '@/generated/client/startup_intelligence/prediction/v1/service_client';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { createCircuitBreaker } from '@/utils';
 import { SITE_VARIANT } from '@/config';

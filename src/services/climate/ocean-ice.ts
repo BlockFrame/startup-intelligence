@@ -2,7 +2,7 @@ import type {
   GetOceanIceDataResponse,
   IceTrendPoint as ProtoIceTrendPoint,
   OceanIceData as ProtoOceanIceData,
-} from '@/generated/client/worldmonitor/climate/v1/service_client';
+} from '@/generated/client/startup_intelligence/climate/v1/service_client';
 
 export interface OceanIceTrendPoint {
   month: string;

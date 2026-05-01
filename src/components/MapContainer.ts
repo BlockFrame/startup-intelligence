@@ -14,7 +14,7 @@ import type {
   RelatedAsset,
   AssetType,
 } from '@/types';
-import type { GetChokepointStatusResponse } from '@/services/supply-chain';
+import type { GetChokepointStatusResponse } from '@/generated/client/startup_intelligence/supply_chain/v1/service_client';
 import type { ScenarioVisualState, ScenarioResult } from '@/config/scenario-templates';
 import type { LegacyMapCache, LegacyMapData } from './map-container-data';
 import type { StartupMapCache, StartupMapData } from './startup-map-data';
@@ -37,7 +37,6 @@ export class MapContainer {
   private deckGLMap: DeckGLMap | null = null;
   private svgMap: MapComponent | null = null;
   private globeMap: GlobeMap | null = null;
-  private supplyChainPanel: import('@/components/SupplyChainPanel').SupplyChainPanel | null = null;
   private initialState: MapContainerState;
   private useDeckGL: boolean;
   private useGlobe: boolean;
@@ -972,10 +971,6 @@ export class MapContainer {
 
   // ─── Scenario Engine ─────────────────────────────────────────────────────────
 
-  public setSupplyChainPanel(panel: import('@/components/SupplyChainPanel').SupplyChainPanel): void {
-    this.supplyChainPanel = panel;
-  }
-
   /**
    * Activate a scenario across all active renderers.
    * PRO-gated — free users trigger `trackGateHit('scenario-engine')` only.
@@ -996,7 +991,6 @@ export class MapContainer {
     this.deckGLMap?.setScenarioState(state);
     this.svgMap?.setScenarioState(state);
     this.globeMap?.setScenarioState(state);
-    this.supplyChainPanel?.showScenarioSummary(scenarioId, result);
   }
 
   /**
@@ -1006,7 +1000,6 @@ export class MapContainer {
     this.deckGLMap?.setScenarioState(null);
     this.svgMap?.setScenarioState(null);
     this.globeMap?.setScenarioState(null);
-    this.supplyChainPanel?.hideScenarioSummary();
   }
 
   // Utility methods

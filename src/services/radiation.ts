@@ -9,7 +9,7 @@ import {
   type RadiationSeverity as ProtoRadiationSeverity,
   type RadiationSource as ProtoRadiationSource,
   type ListRadiationObservationsResponse,
-} from '@/generated/client/worldmonitor/radiation/v1/service_client';
+} from '@/generated/client/startup_intelligence/radiation/v1/service_client';
 
 export type RadiationFreshness = 'live' | 'recent' | 'historical';
 export type RadiationSeverity = 'normal' | 'elevated' | 'spike';

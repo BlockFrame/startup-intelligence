@@ -158,11 +158,11 @@ async function resolvePlanKey(
 
 /**
  * Resolves a user identity from webhook data using multiple sources:
- *   1. HMAC-verified checkout metadata (wm_user_id + wm_user_id_sig)
+ *   1. HMAC-verified checkout metadata (si_user_id + si_user_id_sig)
  *   2. Customer table lookup by dodoCustomerId
  *   3. Dev-only fallback to test-user-001
  *
- * Only trusts metadata.wm_user_id when accompanied by a valid HMAC signature
+ * Only trusts metadata.si_user_id when accompanied by a valid HMAC signature
  * created server-side by the authenticated checkout action.
  */
 async function resolveUserId(
@@ -171,17 +171,17 @@ async function resolveUserId(
   metadata?: Record<string, string>,
 ): Promise<string> {
   // 1. HMAC-verified checkout metadata — only trust signed identity
-  if (metadata?.wm_user_id && metadata?.wm_user_id_sig) {
-    const isValid = await verifyUserId(metadata.wm_user_id, metadata.wm_user_id_sig);
+  if (metadata?.si_user_id && metadata?.si_user_id_sig) {
+    const isValid = await verifyUserId(metadata.si_user_id, metadata.si_user_id_sig);
     if (isValid) {
-      return metadata.wm_user_id;
+      return metadata.si_user_id;
     }
     console.warn(
-      `[subscriptionHelpers] Invalid HMAC signature for wm_user_id="${metadata.wm_user_id}" — ignoring metadata`,
+      `[subscriptionHelpers] Invalid HMAC signature for si_user_id="${metadata.si_user_id}" — ignoring metadata`,
     );
-  } else if (metadata?.wm_user_id && !metadata?.wm_user_id_sig) {
+  } else if (metadata?.si_user_id && !metadata?.si_user_id_sig) {
     console.warn(
-      `[subscriptionHelpers] Unsigned wm_user_id="${metadata.wm_user_id}" — ignoring (requires HMAC signature)`,
+      `[subscriptionHelpers] Unsigned si_user_id="${metadata.si_user_id}" — ignoring (requires HMAC signature)`,
     );
   }
 

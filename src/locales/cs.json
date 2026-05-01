@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Globální situace s postřehy umělé inteligence"
   },
   "countryBrief": {
@@ -497,7 +497,7 @@
         "some": "Některé funkce vyžadují klíče API"
       },
       "openSettings": "Otevřít nastavení",
-      "skipSetup": "Přeskočit nastavení — jedna licence World Monitor odemkne vše. Zapište se na čekací listinu pro předběžný přístup.",
+      "skipSetup": "Přeskočit nastavení — jedna licence Startup Intelligence odemkne vše. Zapište se na čekací listinu pro předběžný přístup.",
       "summary": {
         "desktop": "Desktopový režim",
         "web": "Webový režim (pouze pro čtení, přihlašovací údaje spravuje server)",
@@ -541,13 +541,13 @@
       "noTraffic": "Zatím nebyl zaznamenán žádný provoz.",
       "sidecarUnreachable": "Sidecar aplikace není dostupná.",
       "logCleared": "Protokol vymazán.",
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "Jeden klíč. Vše v ceně.",
-        "heroDescription": "Jediná licence World Monitor nahradí všechny API klíče a poskytovatele LLM, které byste jinak museli konfigurovat sami. AI souhrny, zpravodajství v reálném čase, tržní data, sledování konfliktů, detekce požárů, satelitní snímky — vše poháněno, vše spravováno, nulové nastavení.",
+        "heroDescription": "Jediná licence Startup Intelligence nahradí všechny API klíče a poskytovatele LLM, které byste jinak museli konfigurovat sami. AI souhrny, zpravodajství v reálném čase, tržní data, sledování konfliktů, detekce požárů, satelitní snímky — vše poháněno, vše spravováno, nulové nastavení.",
         "apiKey": {
           "title": "Licenční klíč",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "Vložte svou licenci a okamžitě odemkněte všechny datové zdroje a AI funkce.",
           "statusValid": "LICENCOVÁNO",
           "statusMissing": "BEZ LICENCE"
@@ -555,7 +555,7 @@
         "dividerOr": "NEBO",
         "register": {
           "title": "Rezervujte si své místo",
-          "description": "Připravujeme spuštění licencí World Monitor. Zaregistrujte se nyní a buďte první v řadě — první členové získají prioritní přístup a zakladatelské ceny.",
+          "description": "Připravujeme spuštění licencí Startup Intelligence. Zaregistrujte se nyní a buďte první v řadě — první členové získají prioritní přístup a zakladatelské ceny.",
           "emailPlaceholder": "vas@email.cz",
           "submitBtn": "Zapsat na čekací listinu",
           "submitting": "Odesílám...",
@@ -1767,7 +1767,7 @@
       "infoTooltip": "<strong>Letecké zpravodajství</strong> Provozní data leteckých společností v reálném čase: pozastavení tras, uzavření vzdušného prostoru, upozornění dopravců a nouzová přesměrování. Zdroj: NOTAM leteckých úřadů a bulletiny dopravců."
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>WM Analytik</strong> AI analytik s živým kontextem napříč geopolitickou, tržní, vojenskou a ekonomickou doménou. Poháněn systémem Claude s daty v reálném čase z aktivních kanálů WorldMonitor."
+      "infoTooltip": "<strong>WM Analytik</strong> AI analytik s živým kontextem napříč geopolitickou, tržní, vojenskou a ekonomickou doménou. Poháněn systémem Claude s daty v reálném čase z aktivních kanálů StartupIntelligence."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>CFTC COT Pozice</strong> Zpráva o závazcích obchodníků: čisté pozice komerčních subjektů, velkých spekulantů a malých obchodníků v komoditních a finančních futures. Publikováno týdně (pátek). Zdroj: CFTC."
@@ -1797,7 +1797,7 @@
       "infoTooltip": "<strong>Makro ukazatele</strong> Klíčové makroekonomické ukazatele pro USA a eurozónu: CPI, nezaměstnanost, GDP a sazby centrálních bank. Hodnoty s rozdílem oproti předchozímu období. Zdroj: FRED (Ekonomická data Federálního rezervního systému)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Monitory klíčových slov</strong> Přidejte libovolný výraz pro sledování zmínek ve zprávách v reálném čase ze všech zdrojů WorldMonitor. Výsledky se aktualizují při příjmu odpovídajících článků."
+      "infoTooltip": "<strong>Monitory klíčových slov</strong> Přidejte libovolný výraz pro sledování zmínek ve zprávách v reálném čase ze všech zdrojů StartupIntelligence. Výsledky se aktualizují při příjmu odpovídajících článků."
     },
     "renewable": {
       "infoTooltip": "<strong>Obnovitelná energie</strong> Globální zásobník projektů obnovitelné energie: solární, větrná, vodní a přírůstky úložné kapacity. Sleduje oznámené, ve výstavbě a uvedené do provozu projekty podle regionu a typu technologie."

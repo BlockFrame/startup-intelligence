@@ -2,7 +2,7 @@
 /**
  * Fetches country boundaries from Natural Earth 50m Admin 0 Countries and writes
  * country-boundary-overrides.geojson locally. After running, upload to R2:
- *   rclone copy public/data/country-boundary-overrides.geojson r2:worldmonitor-maps/
+ *   rclone copy public/data/country-boundary-overrides.geojson r2:startupintelligence-maps/
  *
  * Currently extracts: Pakistan (PK), India (IN)
  *

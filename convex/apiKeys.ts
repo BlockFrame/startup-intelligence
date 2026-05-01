@@ -46,7 +46,7 @@ export const createApiKey = mutation({
     if (!args.name.trim()) {
       throw new ConvexError("INVALID_NAME");
     }
-    if (!/^wm_[a-f0-9]{5}$/.test(args.keyPrefix)) {
+    if (!/^si_[a-f0-9]{5}$/.test(args.keyPrefix)) {
       throw new ConvexError("INVALID_PREFIX");
     }
     if (!/^[a-f0-9]{64}$/.test(args.keyHash)) {

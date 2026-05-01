@@ -24,7 +24,7 @@ function makeSubscriptionPayload(overrides: Record<string, unknown> = {}) {
         email: "test@example.com",
         name: "Test User",
       },
-      metadata: { wm_user_id: "test-user-001" },
+      metadata: { si_user_id: "test-user-001" },
       previous_billing_date: "2026-03-21T00:00:00Z",
       next_billing_date: "2026-04-21T00:00:00Z",
       ...overrides,
@@ -51,7 +51,7 @@ function makePaymentPayload(
         email: "test@example.com",
         name: "Test User",
       },
-      metadata: { wm_user_id: "test-user-001" },
+      metadata: { si_user_id: "test-user-001" },
       ...overrides,
     },
   };
@@ -92,10 +92,10 @@ async function processEvent(
 ) {
   const payloadData = (rawPayload.data ?? {}) as {
     customer?: { customer_id?: string; email?: string };
-    metadata?: { wm_user_id?: string };
+    metadata?: { si_user_id?: string };
   };
   const dodoCustomerId = payloadData.customer?.customer_id ?? "cust_test_001";
-  const userId = payloadData.metadata?.wm_user_id ?? "test-user-001";
+  const userId = payloadData.metadata?.si_user_id ?? "test-user-001";
   const email = payloadData.customer?.email ?? "test@example.com";
 
   await t.run(async (ctx) => {

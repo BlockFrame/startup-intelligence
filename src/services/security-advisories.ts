@@ -4,7 +4,7 @@ import { dataFreshness } from './data-freshness';
 import {
   IntelligenceServiceClient,
   type ListSecurityAdvisoriesResponse,
-} from '@/generated/client/worldmonitor/intelligence/v1/service_client';
+} from '@/generated/client/startup_intelligence/intelligence/v1/service_client';
 
 export interface SecurityAdvisory {
   title: string;

@@ -16,7 +16,7 @@ import MINING_SITES_RAW from '../shared/mining-sites.js';
 export const config = { runtime: 'edge' };
 
 const MCP_PROTOCOL_VERSION = '2025-03-26';
-const SERVER_NAME = 'worldmonitor';
+const SERVER_NAME = 'startup_intelligence';
 const SERVER_VERSION = '1.0';
 
 // ---------------------------------------------------------------------------
@@ -75,7 +75,7 @@ type ToolDef = CacheToolDef | RpcToolDef;
 const TOOL_REGISTRY: ToolDef[] = [
   {
     name: 'get_market_data',
-    description: 'Real-time equity quotes, commodity prices (including gold futures GC=F), crypto prices, forex FX rates (USD/EUR, USD/JPY etc.), sector performance, ETF flows, and Gulf market quotes from WorldMonitor\'s curated bootstrap cache.',
+    description: 'Real-time equity quotes, commodity prices (including gold futures GC=F), crypto prices, forex FX rates (USD/EUR, USD/JPY etc.), sector performance, ETF flows, and Gulf market quotes from StartupIntelligence\'s curated bootstrap cache.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     _cacheKeys: [
       'market:stocks-bootstrap:v1',
@@ -337,7 +337,7 @@ export default async function handler(req: Request): Promise<Response> {
   }
   // Auth chain (in priority order):
   //   1. Authorization: Bearer <oauth_token> — issued by /oauth/token (spec-compliant OAuth 2.0)
-  //   2. X-WorldMonitor-Key header — direct API key (curl, custom integrations)
+  //   2. X-Startup-Intelligence-Key header — direct API key (curl, custom integrations)
   let apiKey = '';
   const authHeader = req.headers.get('Authorization') ?? '';
   if (authHeader.startsWith('Bearer ')) {
@@ -358,18 +358,18 @@ export default async function handler(req: Request): Promise<Response> {
       // Bearer token present but unresolvable — expired or invalid UUID
       return new Response(
         JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Invalid or expired OAuth token. Re-authenticate via /oauth/token.' } }),
-        { status: 401, headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer realm="worldmonitor", error="invalid_token", resource_metadata="https://api.worldmonitor.app/.well-known/oauth-protected-resource"', ...corsHeaders } }
+        { status: 401, headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer realm="startup_intelligence", error="invalid_token", resource_metadata="https://api.startupintelligence.app/.well-known/oauth-protected-resource"', ...corsHeaders } }
       );
     }
   } else {
-    const candidateKey = req.headers.get('X-WorldMonitor-Key') ?? '';
+    const candidateKey = req.headers.get('X-Startup-Intelligence-Key') ?? '';
     if (!candidateKey) {
       return new Response(
-        JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Authentication required. Use OAuth (/oauth/token) or pass your API key via X-WorldMonitor-Key header.' } }),
-        { status: 401, headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer realm="worldmonitor", resource_metadata="https://api.worldmonitor.app/.well-known/oauth-protected-resource"', ...corsHeaders } }
+        JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Authentication required. Use OAuth (/oauth/token) or pass your API key via X-Startup-Intelligence-Key header.' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer realm="startup_intelligence", resource_metadata="https://api.startupintelligence.app/.well-known/oauth-protected-resource"', ...corsHeaders } }
       );
     }
-    const validKeys = (process.env.WORLDMONITOR_VALID_KEYS || '').split(',').filter(Boolean);
+    const validKeys = (process.env.STARTUP_INTELLIGENCE_VALID_KEYS || '').split(',').filter(Boolean);
     if (!await timingSafeIncludes(candidateKey, validKeys)) {
       return rpcError(null, -32001, 'Invalid API key');
     }

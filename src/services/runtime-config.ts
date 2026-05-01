@@ -25,7 +25,7 @@ export type RuntimeSecretKey =
   | 'UCDP_ACCESS_TOKEN'
   | 'OLLAMA_API_URL'
   | 'OLLAMA_MODEL'
-  | 'WORLDMONITOR_API_KEY'
+  | 'STARTUP_INTELLIGENCE_API_KEY'
   | 'WTO_API_KEY'
   | 'AVIATIONSTACK_API'
   | 'ICAO_API_KEY';
@@ -51,7 +51,6 @@ export type RuntimeFeatureId =
   | 'nasaFirms'
   | 'aiOllama'
   | 'wtoTrade'
-  | 'supplyChain'
   | 'newsPerFeedFallback'
   | 'aviationStack'
   | 'ucdpConflicts'
@@ -76,7 +75,7 @@ export interface RuntimeConfig {
   secrets: Partial<Record<RuntimeSecretKey, RuntimeSecretState>>;
 }
 
-const TOGGLES_STORAGE_KEY = 'worldmonitor-runtime-feature-toggles';
+const TOGGLES_STORAGE_KEY = 'startupintelligence-runtime-feature-toggles';
 function getSidecarEnvUpdateUrl(): string {
   return `${getApiBaseUrl()}/api/local-env-update`;
 }
@@ -109,7 +108,6 @@ const defaultToggles: Record<RuntimeFeatureId, boolean> = {
   nasaFirms: true,
   aiOllama: true,
   wtoTrade: true,
-  supplyChain: true,
   newsPerFeedFallback: false,
   aviationStack: true,
   icaoNotams: true,
@@ -266,13 +264,6 @@ export const RUNTIME_FEATURES: RuntimeFeatureDefinition[] = [
     fallback: 'Trade policy panel shows disabled state.',
   },
   {
-    id: 'supplyChain',
-    name: 'Supply Chain Intelligence',
-    description: 'Shipping rates via FRED Baltic Dry Index. Chokepoints and minerals use public data.',
-    requiredSecrets: ['FRED_API_KEY'],
-    fallback: 'Chokepoints and minerals always available; shipping requires FRED key.',
-  },
-  {
     id: 'newsPerFeedFallback',
     name: 'News per-feed fallback',
     description: 'If digest aggregation is unavailable, use stale headlines first and optionally fetch a limited feed subset.',
@@ -344,7 +335,7 @@ export function validateSecret(key: RuntimeSecretKey, value: string): { valid: b
     }
   }
 
-  if (key === 'WORLDMONITOR_API_KEY') {
+  if (key === 'STARTUP_INTELLIGENCE_API_KEY') {
     if (trimmed.length < 16) return { valid: false, hint: 'API key must be at least 16 characters' };
     return { valid: true };
   }
@@ -388,7 +379,7 @@ seedSecretsFromEnvironment();
 // When one window saves secrets or toggles features, the `storage` event fires in other same-origin windows.
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
-    if (e.key === 'wm-secrets-updated') {
+    if (e.key === 'si-secrets-updated') {
       void loadDesktopSecrets();
     } else if (e.key === TOGGLES_STORAGE_KEY && e.newValue) {
       try {
@@ -473,7 +464,7 @@ export async function setSecretValue(key: RuntimeSecretKey, value: string): Prom
   // Signal other windows (main ↔ settings) to reload secrets from keychain.
   // The `storage` event fires in all same-origin windows except the one that wrote.
   try {
-    localStorage.setItem('wm-secrets-updated', String(Date.now()));
+    localStorage.setItem('si-secrets-updated', String(Date.now()));
   } catch { /* localStorage may be unavailable */ }
 
   notifyConfigChanged();

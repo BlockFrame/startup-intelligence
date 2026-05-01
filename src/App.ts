@@ -29,7 +29,6 @@ import type { EnergyCrisisPanel } from '@/components/EnergyCrisisPanel';
 import type { ETFFlowsPanel } from '@/components/ETFFlowsPanel';
 import type { MacroSignalsPanel } from '@/components/MacroSignalsPanel';
 import type { FearGreedPanel } from '@/components/FearGreedPanel';
-import type { HormuzPanel } from '@/components/HormuzPanel';
 import type { StrategicRiskPanel } from '@/components/StrategicRiskPanel';
 import type { FuelPricesPanel } from '@/components/FuelPricesPanel';
 import type { OilInventoriesPanel } from '@/components/OilInventoriesPanel';
@@ -276,10 +275,6 @@ export class App {
       const panel = this.state.panels['fear-greed'] as FearGreedPanel | undefined;
       if (panel) primeTask('fear-greed', () => panel.fetchData());
     }
-    if (shouldPrime('hormuz-tracker')) {
-      const panel = this.state.panels['hormuz-tracker'] as HormuzPanel | undefined;
-      if (panel) primeTask('hormuz-tracker', () => panel.fetchData());
-    }
     if (shouldPrime('etf-flows')) {
       const panel = this.state.panels['etf-flows'] as ETFFlowsPanel | undefined;
       if (panel) primeTask('etf-flows', () => panel.fetchData());
@@ -390,9 +385,6 @@ export class App {
     if (shouldPrime('trade-policy')) {
       primeTask('tradePolicy', () => this.dataLoader.loadTradePolicy());
     }
-    if (shouldPrime('supply-chain')) {
-      primeTask('supplyChain', () => this.dataLoader.loadSupplyChain());
-    }
     if (shouldPrime('cross-source-signals')) {
       primeTask('crossSourceSignals', () => this.dataLoader.loadCrossSourceSignals());
     }
@@ -423,7 +415,7 @@ export class App {
     if (!el) throw new Error(`Container ${containerId} not found`);
 
     const PANEL_ORDER_KEY = 'panel-order';
-    const PANEL_SPANS_KEY = 'worldmonitor-panel-spans';
+    const PANEL_SPANS_KEY = 'startupintelligence-panel-spans';
 
     const isMobile = isMobileDevice();
     const isDesktopApp = isDesktopRuntime();
@@ -439,13 +431,13 @@ export class App {
     const isDynamicPanel = (k: string) => k === 'runtime-config' || k.startsWith('cw-') || k.startsWith('mcp-');
 
     // Check if variant changed - reset all settings to variant defaults
-    const storedVariant = localStorage.getItem('worldmonitor-variant');
+    const storedVariant = localStorage.getItem('startup-intelligence-variant');
     const currentVariant = SITE_VARIANT;
     console.log(`[App] Variant check: stored="${storedVariant}", current="${currentVariant}"`);
     if (storedVariant !== currentVariant) {
       // Variant changed — seed new variant's panels, disable panels not in the new variant
       console.log('[App] Variant changed - seeding new defaults, disabling cross-variant panels');
-      localStorage.setItem('worldmonitor-variant', currentVariant);
+      localStorage.setItem('startup-intelligence-variant', currentVariant);
       // Reset map layers for the new variant (map layers are not user-personalized the same way)
       localStorage.removeItem(STORAGE_KEYS.mapLayers);
       mapLayers = normalizeExclusiveChoropleths(
@@ -477,7 +469,7 @@ export class App {
       );
 
       // One-time migration: preserve user preferences across panel key renames.
-      const PANEL_KEY_RENAMES_MIGRATION_KEY = 'worldmonitor-panel-key-renames-v2.6.8';
+      const PANEL_KEY_RENAMES_MIGRATION_KEY = 'startupintelligence-panel-key-renames-v2.6.8';
       if (!localStorage.getItem(PANEL_KEY_RENAMES_MIGRATION_KEY)) {
         let migrated = false;
         const keyRenames: Array<[string, string]> = [
@@ -527,7 +519,7 @@ export class App {
       }
 
       // One-time migration: expose all panels to existing users (previously variant-gated)
-      const UNIFIED_MIGRATION_KEY = 'worldmonitor-unified-panels-v1';
+      const UNIFIED_MIGRATION_KEY = 'startupintelligence-unified-panels-v1';
       if (!localStorage.getItem(UNIFIED_MIGRATION_KEY)) {
         const variantDefaults = new Set(VARIANT_DEFAULTS[SITE_VARIANT] ?? []);
         for (const key of Object.keys(ALL_PANELS)) {
@@ -540,7 +532,7 @@ export class App {
         localStorage.setItem(UNIFIED_MIGRATION_KEY, 'done');
       }
 
-      const STARTUP_PANEL_FOCUS_KEY = 'worldmonitor-startup-panel-focus-v1';
+      const STARTUP_PANEL_FOCUS_KEY = 'startupintelligence-startup-panel-focus-v1';
       if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_PANEL_FOCUS_KEY)) {
         const startupKeys = new Set(VARIANT_DEFAULTS.startup ?? []);
         for (const key of startupKeys) {
@@ -573,7 +565,7 @@ export class App {
         localStorage.setItem(STARTUP_PANEL_FOCUS_KEY, 'done');
       }
 
-      const STARTUP_REQUIRED_PANELS_KEY = 'worldmonitor-startup-required-panels-v1';
+      const STARTUP_REQUIRED_PANELS_KEY = 'startupintelligence-startup-required-panels-v1';
       if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_REQUIRED_PANELS_KEY)) {
         const requiredStartupPanels = [
           'producthunt',
@@ -599,7 +591,7 @@ export class App {
 
       // One-time migration: fix happy variant sessions that got cross-variant panels enabled
       // (regression from #1911 unified panel registry which failed to disable non-variant panels on variant switch)
-      const HAPPY_PANEL_FIX_KEY = 'worldmonitor-happy-panel-fix-v1';
+      const HAPPY_PANEL_FIX_KEY = 'startupintelligence-happy-panel-fix-v1';
       if (SITE_VARIANT === 'happy' && !localStorage.getItem(HAPPY_PANEL_FIX_KEY)) {
         const happyKeys = new Set(VARIANT_DEFAULTS['happy'] ?? []);
         let fixed = false;
@@ -616,7 +608,7 @@ export class App {
       console.log('[App] Loaded panel settings from storage:', Object.entries(panelSettings).filter(([_, v]) => !v.enabled).map(([k]) => k));
 
       // One-time migration: reorder panels for existing users (v1.9 panel layout)
-      const PANEL_ORDER_MIGRATION_KEY = 'worldmonitor-panel-order-v1.9';
+      const PANEL_ORDER_MIGRATION_KEY = 'startupintelligence-panel-order-v1.9';
       if (!localStorage.getItem(PANEL_ORDER_MIGRATION_KEY)) {
         const savedOrder = localStorage.getItem(PANEL_ORDER_KEY);
         if (savedOrder) {
@@ -639,7 +631,7 @@ export class App {
 
       // Tech variant migration: move insights to top (after live-news)
       if (currentVariant === 'tech') {
-        const TECH_INSIGHTS_MIGRATION_KEY = 'worldmonitor-tech-insights-top-v1';
+        const TECH_INSIGHTS_MIGRATION_KEY = 'startupintelligence-tech-insights-top-v1';
         if (!localStorage.getItem(TECH_INSIGHTS_MIGRATION_KEY)) {
           const savedOrder = localStorage.getItem(PANEL_ORDER_KEY);
           if (savedOrder) {
@@ -662,7 +654,7 @@ export class App {
     }
 
     // One-time migration: prune removed panel keys from stored settings and order
-    const PANEL_PRUNE_KEY = 'worldmonitor-panel-prune-v1';
+    const PANEL_PRUNE_KEY = 'startupintelligence-panel-prune-v1';
     if (!localStorage.getItem(PANEL_PRUNE_KEY)) {
       const validKeys = new Set(Object.keys(ALL_PANELS));
       let pruned = false;
@@ -687,7 +679,7 @@ export class App {
     }
 
     // One-time migration: clear stale panel ordering and sizing state
-    const LAYOUT_RESET_MIGRATION_KEY = 'worldmonitor-layout-reset-v2.5';
+    const LAYOUT_RESET_MIGRATION_KEY = 'startupintelligence-layout-reset-v2.5';
     if (!localStorage.getItem(LAYOUT_RESET_MIGRATION_KEY)) {
       const hadSavedOrder = !!localStorage.getItem(PANEL_ORDER_KEY);
       const hadSavedSpans = !!localStorage.getItem(PANEL_SPANS_KEY);
@@ -726,7 +718,7 @@ export class App {
     }
     // One-time migration: reduce default-enabled sources (full variant only)
     if (currentVariant === 'full') {
-      const baseKey = 'worldmonitor-sources-reduction-v3';
+      const baseKey = 'startupintelligence-sources-reduction-v3';
       if (!localStorage.getItem(baseKey)) {
         const defaultDisabled = computeDefaultDisabledSources();
         saveToStorage(STORAGE_KEYS.disabledFeeds, defaultDisabled);
@@ -736,7 +728,7 @@ export class App {
       }
       // Locale boost: additively enable locale-matched sources (runs once per locale)
       const userLang = ((navigator.language ?? 'en').split('-')[0] ?? 'en').toLowerCase();
-      const localeKey = `worldmonitor-locale-boost-${userLang}`;
+      const localeKey = `startupintelligence-locale-boost-${userLang}`;
       if (userLang !== 'en' && !localStorage.getItem(localeKey)) {
         const boosted = getLocaleBoostedSources(userLang);
         if (boosted.size > 0) {
@@ -926,7 +918,7 @@ export class App {
       await waitForSidecarReady(3000);
     }
 
-    // Startup Intelligence does not need the legacy World Monitor bootstrap
+    // Startup Intelligence does not need the legacy Startup Intelligence bootstrap
     // envelope. Its active modules fetch their own focused sources.
     if (legacyRuntime) {
       this.bootstrapHydrationState = await legacyRuntime.fetchLegacyBootstrap();
@@ -952,7 +944,7 @@ export class App {
         void initSubscriptionWatch(userId);
 
         // Claim any anonymous purchase made before sign-in (anon → real user migration)
-        const anonId = localStorage.getItem('wm-anon-id');
+        const anonId = localStorage.getItem('si-anon-id');
         if (anonId) {
           void (async () => {
             const [client, api] = await Promise.all([getConvexClient(), getConvexApi()]);
@@ -974,7 +966,7 @@ export class App {
             }
             // Always remove after non-throwing completion — mutation is idempotent.
             // Prevents cold Convex init + mutation on every sign-in for non-purchasers.
-            localStorage.removeItem('wm-anon-id');
+            localStorage.removeItem('si-anon-id');
           })().catch((err: unknown) => {
             console.warn('[billing] claimSubscription failed:', err);
             // Non-fatal — anon ID preserved for retry on next page load
@@ -1113,7 +1105,7 @@ export class App {
     this.desktopUpdater.init();
 
     // Analytics
-    trackEvent('wm_app_loaded', {
+    trackEvent('si_app_loaded', {
       load_time_ms: Math.round(performance.now() - initStart),
       panel_count: Object.keys(this.state.panels).length,
     });
@@ -1388,12 +1380,6 @@ export class App {
       () => this.isPanelNearViewport('fear-greed')
     );
     this.refreshScheduler.scheduleRefresh(
-      'hormuz-tracker',
-      () => (this.state.panels['hormuz-tracker'] as HormuzPanel).fetchData(),
-      REFRESH_INTERVALS.hormuzTracker,
-      () => this.isPanelNearViewport('hormuz-tracker')
-    );
-    this.refreshScheduler.scheduleRefresh(
       'positioning-247',
       () => (this.state.panels['positioning-247'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.hyperliquidFlow,
@@ -1427,7 +1413,6 @@ export class App {
     // WTO trade policy data — annual data, poll every 10 min to avoid hammering upstream
     if (SITE_VARIANT === 'full' || SITE_VARIANT === 'finance' || SITE_VARIANT === 'commodity') {
       this.refreshScheduler.scheduleRefresh('tradePolicy', () => this.dataLoader.loadTradePolicy(), REFRESH_INTERVALS.tradePolicy, () => this.isPanelNearViewport('trade-policy'));
-      this.refreshScheduler.scheduleRefresh('supplyChain', () => this.dataLoader.loadSupplyChain(), REFRESH_INTERVALS.supplyChain, () => this.isPanelNearViewport('supply-chain'));
     }
 
     this.refreshScheduler.scheduleRefresh(

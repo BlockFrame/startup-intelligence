@@ -3,8 +3,8 @@ import { SITE_VARIANT } from '@/config/variant';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import { escapeHtml } from '@/utils/sanitize';
 import { t } from '@/services/i18n';
-import { EconomicServiceClient } from '@/generated/client/worldmonitor/economic/v1/service_client';
-import type { GetMacroSignalsResponse } from '@/generated/client/worldmonitor/economic/v1/service_client';
+import { EconomicServiceClient } from '@/generated/client/startup_intelligence/economic/v1/service_client';
+import type { GetMacroSignalsResponse } from '@/generated/client/startup_intelligence/economic/v1/service_client';
 import { getHydratedData } from '@/services/bootstrap';
 
 interface MacroSignalData {

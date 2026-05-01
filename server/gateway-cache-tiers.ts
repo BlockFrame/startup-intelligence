@@ -73,28 +73,7 @@ export const STARTUP_RPC_CACHE_TIER: Record<string, CacheTier> = {
   '/api/intelligence/v1/list-security-advisories': 'slow',
 };
 
-export const LEGACY_RPC_CACHE_TIER: Record<string, CacheTier> = {
-  '/api/infrastructure/v1/list-service-statuses': 'slow',
-  '/api/infrastructure/v1/list-internet-outages': 'slow',
-  '/api/infrastructure/v1/list-internet-ddos-attacks': 'slow',
-  '/api/infrastructure/v1/list-internet-traffic-anomalies': 'slow',
-  '/api/cyber/v1/list-cyber-threats': 'static',
-  '/api/infrastructure/v1/get-temporal-baseline': 'slow',
-  '/api/supply-chain/v1/get-shipping-rates': 'daily',
-  '/api/supply-chain/v1/get-critical-minerals': 'daily',
-  '/api/infrastructure/v1/get-cable-health': 'slow',
-  '/api/infrastructure/v1/list-temporal-anomalies': 'medium',
-  '/api/infrastructure/v1/get-ip-geo': 'no-store',
-  '/api/infrastructure/v1/reverse-geocode': 'slow',
-  '/api/infrastructure/v1/get-bootstrap-data': 'no-store',
-  '/api/supply-chain/v1/get-shipping-stress': 'medium',
-  '/api/supply-chain/v1/get-country-chokepoint-index': 'slow-browser',
-  '/api/supply-chain/v1/get-bypass-options': 'slow-browser',
-  '/api/supply-chain/v1/get-country-cost-shock': 'slow-browser',
-  '/api/supply-chain/v1/get-sector-dependency': 'slow-browser',
-  '/api/supply-chain/v1/get-route-explorer-lane': 'slow-browser',
-  '/api/supply-chain/v1/get-route-impact': 'slow-browser',
-};
+export const LEGACY_RPC_CACHE_TIER: Record<string, CacheTier> = {};
 
 export const RPC_CACHE_TIER: Record<string, CacheTier> = {
   ...STARTUP_RPC_CACHE_TIER,

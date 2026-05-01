@@ -3,7 +3,7 @@ import type {
   GetGdeltTopicTimelineRequest,
   GetGdeltTopicTimelineResponse,
   GdeltTimelinePoint,
-} from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/intelligence/v1/service_server';
 
 import { getCachedJson } from '../../../_shared/redis';
 

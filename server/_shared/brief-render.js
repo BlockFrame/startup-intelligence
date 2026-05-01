@@ -1,4 +1,4 @@
-// Deterministic renderer for the WorldMonitor Brief magazine.
+// Deterministic renderer for the StartupIntelligence Brief magazine.
 //
 // Pure function: (BriefEnvelope) -> HTML string. No I/O, no LLM calls,
 // no network, no time-dependent output. The composer writes the
@@ -18,8 +18,8 @@
 //
 // Source references:
 //   - Visual prototype: .claude/worktrees/zany-chasing-boole/digest-magazine.html
-//   - Brainstorm: docs/brainstorms/2026-04-17-worldmonitor-brief-magazine-requirements.md
-//   - Plan: docs/plans/2026-04-17-003-feat-worldmonitor-brief-magazine-plan.md
+//   - Brainstorm: docs/brainstorms/2026-04-17-startupintelligence-brief-magazine-requirements.md
+//   - Plan: docs/plans/2026-04-17-003-feat-startupintelligence-brief-magazine-plan.md
 
 import { BRIEF_ENVELOPE_VERSION } from '../../shared/brief-envelope.js';
 
@@ -258,7 +258,7 @@ function assertBriefEnvelope(envelope) {
 
 /**
  * The full logo SVG is emitted ONCE per document inside an invisible
- * <svg><defs><symbol id="wm-logo-core"> block. Every placement then
+ * <svg><defs><symbol id="si-logo-core"> block. Every placement then
  * references the symbol via `<use>` at the desired size. Saves ~7 KB on
  * a 12-story brief vs. repeating the full SVG per placement.
  *
@@ -269,15 +269,15 @@ function assertBriefEnvelope(envelope) {
 const LOGO_SYMBOL = (
   '<svg aria-hidden="true" style="display:none;position:absolute;width:0;height:0" focusable="false">' +
   '<defs>' +
-  '<symbol id="wm-logo-core" viewBox="0 0 64 64">' +
+  '<symbol id="si-logo-core" viewBox="0 0 64 64">' +
   '<circle cx="32" cy="32" r="28"/>' +
   '<ellipse cx="32" cy="32" rx="5" ry="28"/>' +
   '<ellipse cx="32" cy="32" rx="14" ry="28"/>' +
   '<ellipse cx="32" cy="32" rx="22" ry="28"/>' +
   '<ellipse cx="32" cy="32" rx="28" ry="5"/>' +
   '<ellipse cx="32" cy="32" rx="28" ry="14"/>' +
-  '<path class="wm-ekg" d="M 6 32 L 20 32 L 24 24 L 30 40 L 36 22 L 42 38 L 46 32 L 56 32"/>' +
-  '<circle class="wm-ekg-dot" cx="57" cy="32" r="1.8"/>' +
+  '<path class="si-ekg" d="M 6 32 L 20 32 L 24 24 L 30 40 L 36 22 L 42 38 L 46 32 L 56 32"/>' +
+  '<circle class="si-ekg-dot" cx="57" cy="32" r="1.8"/>' +
   '</symbol>' +
   '</defs>' +
   '</svg>'
@@ -292,9 +292,9 @@ function logoRef({ size, color }) {
   // into a style= attribute via this helper.
   const styleAttr = color ? ` style="color: ${color};"` : '';
   return (
-    `<svg class="wm-logo" width="${size}" height="${size}" viewBox="0 0 64 64" ` +
-    `aria-label="WorldMonitor"${styleAttr}>` +
-    '<use href="#wm-logo-core"/>' +
+    `<svg class="si-logo" width="${size}" height="${size}" viewBox="0 0 64 64" ` +
+    `aria-label="StartupIntelligence"${styleAttr}>` +
+    '<use href="#si-logo-core"/>' +
     '</svg>'
   );
 }
@@ -307,7 +307,7 @@ function digestRunningHead(dateShort, label) {
     '<div class="running-head">' +
     '<span class="mono left">' +
     logoRef({ size: 22 }) +
-    ` · WorldMonitor Brief · ${escapeHtml(dateShort)} ·` +
+    ` · StartupIntelligence Brief · ${escapeHtml(dateShort)} ·` +
     '</span>' +
     `<span class="mono">${escapeHtml(label)}</span>` +
     '</div>'
@@ -329,13 +329,13 @@ function renderCover({ dateLong, issue, storyCount, pageIndex, totalPages }) {
     '<div class="meta-top">' +
     '<span class="brand">' +
     logoRef({ size: 48 }) +
-    '<span class="mono">WorldMonitor</span>' +
+    '<span class="mono">StartupIntelligence</span>' +
     '</span>' +
     `<span class="mono">Issue № ${escapeHtml(issue)}</span>` +
     '</div>' +
     '<div class="hero">' +
     `<div class="kicker">${escapeHtml(dateLong)}</div>` +
-    '<h1>WorldMonitor<br/>Brief.</h1>' +
+    '<h1>StartupIntelligence<br/>Brief.</h1>' +
     `<p class="blurb">${escapeHtml(blurb)}</p>` +
     '</div>' +
     '<div class="meta-bottom">' +
@@ -483,7 +483,7 @@ function renderStoryPage({ story, rank, palette, pageIndex, totalPages }) {
     '</div>' +
     '<div class="logo-chrome">' +
     logoRef({ size: 28 }) +
-    '<span class="mono">WorldMonitor Brief</span>' +
+    '<span class="mono">StartupIntelligence Brief</span>' +
     '</div>' +
     `<div class="page-number mono">${pad2(pageIndex)} / ${pad2(totalPages)}</div>` +
     '</section>'
@@ -502,7 +502,7 @@ function renderBackCover({ tz, pageIndex, totalPages }) {
     '<h1>End of<br/>Transmission.</h1>' +
     '</div>' +
     '<div class="meta-bottom">' +
-    '<span class="mono">worldmonitor.app</span>' +
+    '<span class="mono">startupintelligence.app</span>' +
     `<span class="mono">Next brief · 08:00 ${escapeHtml(tz)}</span>` +
     '</div>' +
     `<div class="page-number mono">${pad2(pageIndex)} / ${pad2(totalPages)}</div>` +
@@ -545,9 +545,9 @@ const STYLE_BLOCK = `<style>
     font-weight: 500; letter-spacing: 0.18em;
     text-transform: uppercase; font-size: max(11px, 0.85vw);
   }
-  .wm-logo { display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-  .wm-logo .wm-ekg { stroke-width: 2.4; }
-  .wm-logo .wm-ekg-dot { fill: currentColor; stroke: none; }
+  .si-logo { display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .si-logo .si-ekg { stroke-width: 2.4; }
+  .si-logo .si-ekg-dot { fill: currentColor; stroke: none; }
   .logo-chrome {
     position: absolute; bottom: 5vh; left: 6vw;
     display: flex; align-items: center; gap: 0.8vw; opacity: 0.7;
@@ -923,7 +923,7 @@ export function renderBriefMagazine(envelope) {
     }),
   );
 
-  const title = `WorldMonitor Brief · ${escapeHtml(dateLong)}`;
+  const title = `StartupIntelligence Brief · ${escapeHtml(dateLong)}`;
 
   return (
     '<!DOCTYPE html>' +

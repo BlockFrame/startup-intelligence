@@ -24,10 +24,10 @@
     "asFeaturedIn": "掲載メディア"
   },
   "livePreview": {
-    "windowTitle": "worldmonitor.app — ライブダッシュボード",
+    "windowTitle": "startupintelligence.app — ライブダッシュボード",
     "openFullScreen": "フルスクリーンで開く",
     "tryLiveDashboard": "ライブダッシュボードを試す",
-    "iframeTitle": "World Monitor — ライブ OSINT ダッシュボード",
+    "iframeTitle": "Startup Intelligence — ライブ OSINT ダッシュボード",
     "description": "3D WebGL グローブ · 45以上のインタラクティブマップレイヤー · リアルタイム地政学・マーケット・エネルギー・インフラデータ"
   },
   "socialProof": {
@@ -40,7 +40,7 @@
     "asToldTo": "インタビュー："
   },
   "dataCoverage": {
-    "title": "World Monitor がトラッキングするもの",
+    "title": "Startup Intelligence がトラッキングするもの",
     "subtitle": "22のサービスドメインを同時に取得。すべて正規化・ジオコーディングされ、数千のマーカーと共にWebGLグローブ上に表示されます。",
     "geopolitical": "地政学イベント",
     "geopoliticalDesc": "ACLED・UCDP イベント（エスカレーションスコアリングとトレンド分析付き）",
@@ -122,7 +122,7 @@
   "apiSection": {
     "apiTier": "API ティア",
     "title": "プログラマティックインテリジェンス",
-    "subtitle": "World Monitor データを活用する開発者、アナリスト、チーム向け。Proとは独立 — 両方または片方を利用可能。",
+    "subtitle": "Startup Intelligence データを活用する開発者、アナリスト、チーム向け。Proとは独立 — 両方または片方を利用可能。",
     "restApi": "22のサービスドメインすべてにREST API",
     "authenticated": "キーごとの認証、ティアごとのレート制限",
     "structured": "キャッシュヘッダーとOpenAPI 3.1ドキュメント付きの構造化JSON",
@@ -141,7 +141,7 @@
     "security": "政府レベルのセキュリティ",
     "securityDesc": "エアギャップ展開、オンプレミス Docker、専用クラウドテナント、SOC 2 Type II パス、SSO/MFA、完全な監査証跡。",
     "aiAgents": "AIエージェント＆MCP",
-    "aiAgentsDesc": "投資家ペルソナを持つ自律型インテリジェンスエージェント。MCP経由でWorld MonitorをClaude、GPT、カスタムLLMのツールとして接続。",
+    "aiAgentsDesc": "投資家ペルソナを持つ自律型インテリジェンスエージェント。MCP経由でStartup IntelligenceをClaude、GPT、カスタムLLMのツールとして接続。",
     "dataLayers": "拡張データレイヤー",
     "dataLayersDesc": "数万のインフラ資産をグローバルにマッピング。変化検出とSARを備えた衛星画像統合。",
     "connectors": "100以上のデータコネクタ",
@@ -217,7 +217,7 @@
     "q3": "APIとProの違いは何ですか？",
     "a3": "ProはAIブリーフとアラートをSlack、Telegram、WhatsApp、メールに配信します。APIはあなたのコード用にプログラマティックなRESTアクセスを提供します。独立したティアなので、両方でも片方でも利用できます。",
     "q4": "MCPとは何ですか？",
-    "a4": "Model Context Protocolにより、AIエージェント（Claude、GPT、カスタムLLM）がWorld Monitorをツールとして利用できます — 22サービスすべてにクエリし、マップの状態を読み取り、分析をトリガー。エンタープライズ限定です。",
+    "a4": "Model Context Protocolにより、AIエージェント（Claude、GPT、カスタムLLM）がStartup Intelligenceをツールとして利用できます — 22サービスすべてにクエリし、マップの状態を読み取り、分析をトリガー。エンタープライズ限定です。",
     "q5": "オンプレミス展開は可能ですか？",
     "a5": "エンタープライズにはDocker展開、ローカルOllama AIによるエアギャップモード、外部ネットワーク通信ゼロ、完全な監査ログ、データレジデンシーオプション（EU、US、MENA）が含まれます。",
     "q6": "準リアルタイムはどれくらい速いですか？",
@@ -243,8 +243,8 @@
     "linkedin": "LinkedIn",
     "whatsapp": "WhatsApp",
     "telegram": "Telegram",
-    "shareText": "World Monitor Pro のウェイトリストに登録しました — AIが駆動するリアルタイムグローバルインテリジェンス。一緒に参加しよう：",
-    "joinWaitlistShare": "World Monitor Pro ウェイトリストに登録：",
+    "shareText": "Startup Intelligence Pro のウェイトリストに登録しました — AIが駆動するリアルタイムグローバルインテリジェンス。一緒に参加しよう：",
+    "joinWaitlistShare": "Startup Intelligence Pro ウェイトリストに登録：",
     "youreIn": "登録完了！",
     "invitedBanner": "招待されました — ウェイトリストに参加"
   },

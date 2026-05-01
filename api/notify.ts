@@ -47,7 +47,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   const ent = await getEntitlements(session.userId);
   if (!ent || ent.features.tier < 1) {
-    return jsonResponse({ error: 'pro_required', message: 'Event publishing is available on the Pro plan.', upgradeUrl: 'https://worldmonitor.app/pro' }, 403, cors);
+    return jsonResponse({ error: 'pro_required', message: 'Event publishing is available on the Pro plan.', upgradeUrl: 'https://startupintelligence.app/pro' }, 403, cors);
   }
 
   let body: { eventType?: unknown; payload?: unknown; severity?: unknown; variant?: unknown };
@@ -105,7 +105,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   const res = await fetch(
     `${upstashUrl}/lpush/wm:events:queue/${encodeURIComponent(msg)}`,
-    { method: 'POST', headers: { Authorization: `Bearer ${upstashToken}`, 'User-Agent': 'worldmonitor-edge/1.0' } },
+    { method: 'POST', headers: { Authorization: `Bearer ${upstashToken}`, 'User-Agent': 'startupintelligence-edge/1.0' } },
   );
 
   if (!res.ok) {

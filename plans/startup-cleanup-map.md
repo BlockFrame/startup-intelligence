@@ -2,7 +2,7 @@
 
 Last updated: 2026-05-01
 
-This map separates the original WorldMonitor surface from the target Startup Intelligence product. It is intentionally conservative: items marked as delete candidates should be removed only after imports, tests, and startup build prove they are unreachable.
+This map tracks the cleanup from the original broad global-monitoring surface to the target Startup Intelligence product. It is intentionally conservative: items marked as delete candidates should be removed only after imports, tests, and startup build prove they are unreachable.
 
 ## Current Cleanup Status
 
@@ -10,9 +10,9 @@ This map separates the original WorldMonitor surface from the target Startup Int
 
 - Startup deploy surface keeps chat, MCP, Telegram, auth, billing, arXiv, GitHub, Hugging Face, RSS, market comps, research, news, economic, consumer-prices, and intelligence RPC APIs.
 - Startup RPC handlers for `consumer-prices`, `economic`, `intelligence`, `market`, `news`, and `research` now live under `server/startup/`.
-- Legacy handlers for `server/worldmonitor/{consumer-prices,economic,market,news,research}` are quarantined under `legacy/worldmonitor-server/`.
+- Legacy handlers for `server/startup_intelligence/{consumer-prices,economic,market,news,research}` are quarantined under `legacy/startupintelligence-server/`.
 - Startup intelligence keeps startup-fit RPCs and stubs geopolitical/world-risk RPCs as unavailable.
-- Startup news defaults to startup/tech feeds instead of the old full WorldMonitor feed set.
+- Startup news defaults to startup/tech feeds instead of the old full StartupIntelligence feed set.
 - Startup search no longer statically imports legacy geopolitical map datasets.
 - Startup source-limit enforcement protects core startup dashboards: Product Hunt, funding/VC, startup dealflow, and semiconductors/hardware.
 - Startup map data contracts are split from the legacy map data type bundle.
@@ -34,7 +34,7 @@ This map separates the original WorldMonitor surface from the target Startup Int
 - Startup country intelligence is split from legacy world-risk intelligence: startup uses `src/app/startup-country-intel.ts`; `AppContext` no longer carries country brief UI contracts; the `src/app` barrel exports the startup manager only; `tests/startup-country-intel-cleanup.test.mjs` prevents startup re-coupling to CII, military, sanctions, maritime, aviation, and legacy country panels.
 - Startup build secondary HTML entries are trimmed: `build:startup` now uses only `index.html` as Rollup input, so standalone `settings.html` and `live-channels.html` are not emitted into the startup build; in-app settings and optional live-channel management remain lazy capabilities.
 - `api/intelligence/` and `api/research/` are active startup API domains and are no longer startup-deploy exclusions.
-- Startup runtime branding cleanup is closed for this phase: startup premium gates no longer link to WorldMonitor Pro, startup does not fetch legacy WorldMonitor GitHub stars, startup HTML metadata no longer advertises the legacy WorldMonitor product, and tests guard these paths.
+- Startup runtime branding cleanup is closed for this phase: startup premium gates no longer link to StartupIntelligence Pro, startup does not fetch legacy StartupIntelligence GitHub stars, startup HTML metadata no longer advertises the legacy StartupIntelligence product, and tests guard these paths.
 - Second frontend physical delete batch removed dead legacy/non-core panel files that had no startup/runtime factory imports: `StrategicPosturePanel`, `DefensePatentsPanel`, `GulfEconomiesPanel`, `GroceryBasketPanel`, `BigMacPanel`, `FaoFoodPriceIndexPanel`, `CotPositioningPanel`, and `PositioningPanel`. `App.ts` and legacy country intelligence now use small structural refresh/posture contracts instead of importing those panel types.
 - Third frontend physical delete batch removed the legacy world-risk country manager and dead story modal/share stack: `src/app/country-intel.ts`, `CountryIntelModal`, `StoryModal`, `story-data`, `story-renderer`, and `story-share`. Text-only legacy tests were pruned where they only asserted call sites in the deleted manager, while supply-chain/deep-dive tests that still cover retained capabilities remain.
 - Fourth frontend physical delete batch removed the legacy country deep-dive UI stack: `CountryDeepDivePanel`, `CountryDeepDivePanel-news-utils`, `CountryBriefPage`, `CountryBriefPanel`, `CountryTimeline`, `country-deep-dive.css`, and related legacy-only tests. `AppContext`, startup country intelligence, URL sharing, and the app barrel no longer carry `countryBriefPage`, `countryTimeline`, or `country-brief-contract` state.
@@ -45,17 +45,28 @@ This map separates the original WorldMonitor surface from the target Startup Int
 - Startup MCP surface is now physically startup-only. `api/mcp.ts` publishes market, cyber, macro, EU economic, infrastructure, supply-chain, research, social-velocity, and commodity-geo tools; aviation, maritime, military, conflict, sanctions, natural-disaster, radiation, flight-search, climate-crisis, positive-event, and geopolitical forecast tool implementations have been removed from the active MCP server file, not just hidden from `tools/list`.
 - Non-startup runtime setup has been extracted from `App.ts` into `src/app/non-startup-runtime.ts`. Legacy AIS/bootstrap/signal-modal/findings/breaking-news/correlation/country-learning teardown paths now live behind a single non-startup dynamic import, so startup keeps only guarded startup behavior in the main app shell.
 - Non-startup event runtime paths have been extracted from `src/app/event-handlers.ts` into `src/app/non-startup-event-runtime.ts`. Legacy focal-point refresh, GPS export enrichment, AIS stream toggles, and aviation live-position forwarding are no longer static event-handler imports in the startup bundle.
-- Non-startup layout runtime paths have been extracted from `src/app/panel-layout.ts` into `src/app/non-startup-layout-runtime.ts`. Legacy WorldMonitor Pro/GitHub/status/footer links, GitHub star fetching, and escalation map getter setup are no longer inline startup layout code.
+- Non-startup layout runtime paths have been extracted from `src/app/panel-layout.ts` into `src/app/non-startup-layout-runtime.ts`. Legacy StartupIntelligence Pro/GitHub/status/footer links, GitHub star fetching, and escalation map getter setup are no longer inline startup layout code.
 - Startup build now uses build-time startup guards for the extracted non-startup runtimes. `build:startup` no longer emits `non-startup-runtime`, `non-startup-event-runtime`, `non-startup-layout-runtime`, `SignalModal`, `BreakingNewsBanner`, `IntelligenceGapBadge`, or `country-instability` chunks; startup precache dropped from 114 to 102 entries in this batch.
 - First API/server physical deletion wave is complete. Removed legacy aviation, climate, conflict, displacement, forecast, giving, health-v1, imagery, maritime, military, natural, positive-events, prediction, radiation, resilience, sanctions, scenario, seismology, thermal, trade, unrest, v2 shipping, webcam, wildfire API/server handlers and their legacy-only tests. Vite dev RPC routing and gateway cache tiers now exclude the deleted domains.
-- Verification passed after the latest code cleanup batch: `npm run typecheck`, `npx tsx --test tests/startup-bundle-bloat-cleanup.test.mjs tests/startup-app-context-cleanup.test.mjs tests/startup-panel-registry-cleanup.test.mjs tests/mcp.test.mjs tests/mcp-proxy.test.mjs tests/mcp-presets.test.mjs`, `npx tsx --test tests/edge-functions.test.mjs`, and `npm run build:startup`.
+- Final API/server physical deletion wave is complete. Removed retained-but-unrefactored `api/cyber/`, `api/infrastructure/`, `api/supply-chain/`, `server/startup_intelligence/cyber/`, `server/startup_intelligence/infrastructure/`, `server/startup_intelligence/intelligence/`, and `server/startup_intelligence/supply-chain/`. Startup intelligence now uses `server/startup/intelligence/` and `server/startup/analyst/`; legacy supply-chain/geopolitical tests were pruned; `tests/chat-analyst.test.mts` now targets the startup analyst modules.
+- Optional legacy supply-chain frontend cleanup is complete for the active repo surface. Removed `SupplyChainPanel`, `HormuzPanel`, `RouteExplorer`, `src/services/supply-chain/`, `src/services/hormuz-tracker.ts`, supply-chain/route-explorer CSS, route-explorer command handling, supply-chain source freshness/runtime settings, and route-explorer/supply-chain UI tests. Startup build precache dropped from 102 to 100 entries in this batch.
+- Legacy relay/seed route cleanup is complete for deleted domains. Removed infrastructure/cyber/supply-chain warm-pings from `scripts/ais-relay.cjs` and `scripts/seed-forecasts.mjs`, deleted standalone legacy seed/validation workers (`seed-infra`, `seed-service-statuses`, `validate-seed-migration`, `scenario-worker`), and removed the stale seed warm-ping test. Repository search now finds no active `api/infrastructure`, `api/cyber`, or `api/supply-chain` route references outside generated/proto/history exclusions.
+- First generated/proto stub deletion is complete. Removed unused wildfire service stubs from `src/generated/client/startup_intelligence/wildfire/`, `src/generated/server/startup_intelligence/wildfire/`, and `proto/startup_intelligence/wildfire/`, after deleting the last real frontend service reference.
+- Verification passed after the latest code cleanup batch: `npm run typecheck`, `node --test scripts/ais-relay-rss.test.cjs tests/seed-contract.test.mjs`, and `npm run build:startup`.
+- Hard brand sterilization is complete for active repo text, file paths, env examples, headers, CORS rules, metadata, deploy settings, docs, and generated contract paths. The old brand string no longer appears in the workspace outside Git history and third-party dependency caches.
+- Environment/settings cleanup is complete for the active example env: removed deleted-domain keys for aviation, conflict, wildfire/disaster, generic outage, and supply-chain-only feeds; retained only startup/AI-stack/market/research, auth/billing, MCP/OAuth, Telegram, relay, notification, LLM, cache, and map settings.
+- Generated and proto contract directories are renamed from the old brand path to `startup_intelligence`, and all active imports now target `src/generated/{client,server}/startup_intelligence` plus `proto/startup_intelligence`.
 
 ### Still Open
 
-- Physical deletion wave remaining: retained-but-unrefactored API/server domains still present are `api/cyber/`, `api/infrastructure/`, `api/supply-chain/`, plus `server/worldmonitor/{cyber,infrastructure,intelligence,supply-chain}/`. Keep or move these to `server/startup/` based on startup intelligence fit.
-- Contract rename wave: `proto/` and `src/generated/` still use the WorldMonitor namespace. Startup RPCs still import generated contracts for market, news, research, economic, consumer-prices, and intelligence; proto cleanup comes after those contracts are renamed or replaced.
-- Retained product capabilities, not cleanup blockers: Clerk auth, MapLibre startup map, optional HLS/live-channel support, MCP/custom widgets, and ML worker assets kept for future startup ML refactoring.
-- Closed for startup build, not open blocker: shared frontend shell still supports non-startup variants in `src/app/event-handlers.ts` and `src/app/panel-layout.ts`, but all extracted non-startup runtime chunks are now excluded from `build:startup`. Only revisit if we decide to delete every non-startup variant from the repository.
+No active cleanup blockers remain for the Startup Intelligence app surface.
+
+### Closed Decisions
+
+- Contract rename wave is closed for brand cleanup. Active startup RPCs now import generated `startup_intelligence/*` contracts. A later product API naming pass can rename this namespace again if a public contract package name is chosen.
+- Client/generated cleanup wave closed for this cleanup phase. Unused wildfire generated/proto stubs are deleted. Remaining generated client/server contracts still have code references in archived/non-startup map/services or active startup RPC handlers, so deleting them now would break typecheck. They are retained until their callers are deleted or the contract namespace is regenerated again.
+- Retained product capabilities are closed as intentional keeps: Clerk auth, MapLibre startup map, optional HLS/live-channel support, MCP/custom widgets, and ML worker assets remain part of Startup Intelligence or future startup ML refactoring.
+- Non-startup shared shell support is closed as non-blocking. `event-handlers.ts` and `panel-layout.ts` still support archived/non-startup variants, but extracted non-startup runtime chunks are excluded from `build:startup`. Revisit only if the repository fully deletes every non-startup variant.
 
 ## Cleanup Decision Rule
 
@@ -67,19 +78,19 @@ Keep or refactor anything that can credibly become one of these target capabilit
 - Reliability and freshness: data freshness, source health, service status, cloud/vendor outages, desktop/pro distribution, auth, billing, user preferences.
 - Industry intelligence that can support startup theses: semiconductors, data centers, cloud, energy for compute, healthcare AI, fintech, robotics, cybersecurity, supply chain only when tied to technology sectors.
 
-Delete or quarantine anything whose only useful interpretation is legacy WorldMonitor geopolitics, military tracking, disaster monitoring, humanitarian monitoring, generic webcams, or non-tech crisis mapping.
+Delete or quarantine anything whose only useful interpretation is legacy StartupIntelligence geopolitics, military tracking, disaster monitoring, humanitarian monitoring, generic webcams, or non-tech crisis mapping.
 
 ## API Domain Decisions
 
 | API domain | Current role | Decision | Rationale |
 |---|---|---|---|
-| `api/infrastructure/` | Internet outages, DDoS, service status, cable health, IP geo, temporal anomalies, bootstrap infra | Refactor | Keep cloud/vendor reliability, outages, service status, data center/internet resilience. Drop cable/geopolitical infra unless tied to AI infrastructure. |
-| `api/intelligence/` | Mixed geopolitical intelligence, GDELT, country risk, Telegram, company enrichment, company signals, market implications, social velocity, LLM/deduction | Split | Preserve LLM, company, Telegram, social velocity, market implications. Move to startup namespace. Quarantine country/geopolitical risk. |
-| `api/prediction/` | Prediction markets | Refactor optional | Useful if retargeted to AI/startup/VC prediction markets, IPO windows, AI regulation, model launches, rate/GPU/compute expectations. |
-| `api/research/` | arXiv, trending repos, Hacker News, tech events | Keep or merge | Strongly aligned with target. We already have richer standalone arXiv/GitHub APIs, but HN and tech events may still be useful. |
-| `api/trade/` | Trade restrictions, tariffs, flows, barriers, Comtrade | Optional refactor | Keep only for tech industry theses: chips, export controls, batteries, robotics, biotech supply chains. Not a core dashboard surface. |
-| `api/webcam/` | Webcam listing and image proxy | Delete candidate | Weak fit. Only keep if a specific data-center/construction visual-monitoring use case emerges. |
-| `api/bootstrap.js` | Bulk hydration of legacy WorldMonitor cache domains | Rewrite candidate | Current payload is mostly legacy and should stay excluded. Preserve the pattern as a future startup bootstrap for arXiv/GitHub/HF/RSS/Telegram/markets/MCP status. |
+| `api/infrastructure/` | Internet outages, DDoS, service status, cable health, IP geo, temporal anomalies, bootstrap infra | Deleted | Legacy endpoint family removed. Startup keeps reliability/source-health concepts through retained startup APIs, MCP, data freshness, and future startup-specific infrastructure work. |
+| `api/intelligence/` | Mixed geopolitical intelligence, GDELT, country risk, Telegram, company enrichment, company signals, market implications, social velocity, LLM/deduction | Split and deleted legacy server | Public RPC path remains active, but handlers now live under `server/startup/intelligence/`; legacy `server/startup_intelligence/intelligence/` is deleted. |
+| `api/prediction/` | Prediction markets | Deleted | Legacy Polymarket/geopolitical prediction endpoints removed. Rebuild later only for startup/AI/VC prediction use cases. |
+| `api/research/` | arXiv, trending repos, Hacker News, tech events | Keep | Strongly aligned with target and routed to `server/startup/research/`. |
+| `api/trade/` | Trade restrictions, tariffs, flows, barriers, Comtrade | Deleted | Not core dashboard surface. Rebuild later only if tech export-control thesis work needs it. |
+| `api/webcam/` | Webcam listing and image proxy | Deleted | Weak fit. Rebuild only if a specific data-center/construction visual-monitoring use case emerges. |
+| `api/bootstrap.js` | Bulk hydration of legacy StartupIntelligence cache domains | Rewrite candidate | Current payload is mostly legacy and should stay excluded. Preserve the pattern as a future startup bootstrap for arXiv/GitHub/HF/RSS/Telegram/markets/MCP status. |
 | `api/telegram-feed.js` | Relay-backed Telegram feed | Keep and retarget | User explicitly wants to keep it. Retarget topics/channels to startup, VC, AI, market and founder intelligence. |
 
 
@@ -105,19 +116,19 @@ These are first-class target capabilities and should remain in the project.
 
 ## Keep But Refactor
 
-These files contain useful target capabilities mixed with WorldMonitor legacy assumptions.
+These files contain useful target capabilities mixed with StartupIntelligence legacy assumptions.
 
 - `api/chat-analyst.ts`: keep as the Startup Intelligence analyst edge function. It now points at `server/startup/analyst/` for startup-oriented context and prompt construction.
 - `server/startup/analyst/context.ts`: startup-oriented context builder for VC/startup/AI-stack/market/research/infrastructure analysis.
 - `server/startup/analyst/prompt.ts`: Startup Intelligence analyst system prompt for investor-facing responses.
 - `server/startup/analyst/actions.ts`: action-event detection for investor widgets and dashboard creation.
-- `server/worldmonitor/intelligence/v1/chat-analyst-*`: legacy analyst modules still exist for tests/reference, but are no longer the active chat endpoint path.
+- Legacy `server/startup_intelligence/intelligence/v1/chat-analyst-*` modules are deleted. Startup analyst tests now cover `server/startup/analyst/`.
 - `server/_shared/llm.ts`, `server/_shared/llm-health.ts`, `server/_shared/llm-sanitize.js`: keep as shared LLM foundation.
-- `api/bootstrap.js`: do not keep in its current WorldMonitor shape, but preserve the bootstrap pattern. Rewrite as a startup bootstrap if we want fast first-load hydration for startup news, arXiv, GitHub, Hugging Face, market comps, chat/MCP status, and Telegram sources.
+- `api/bootstrap.js`: do not keep in its current StartupIntelligence shape, but preserve the bootstrap pattern. Rewrite as a startup bootstrap if we want fast first-load hydration for startup news, arXiv, GitHub, Hugging Face, market comps, chat/MCP status, and Telegram sources.
 - `api/telegram-feed.js`: keep, but retarget topics/channels to startup intelligence and AI ecosystem monitoring.
-- Desktop/download functionality, ML worker, and data freshness: keep as potential target capabilities, but separate from legacy WorldMonitor copy and domain assumptions.
-- `src/app/event-handlers.ts`: keep, but continue lazy-loading desktop/worldmonitor-only features and trim maritime/aviation startup imports.
-- `src/app/panel-layout.ts`: keep. Startup runtime no longer exposes WorldMonitor Pro links or legacy GitHub repo stars; non-startup variants still retain their existing WorldMonitor links.
+- Desktop/download functionality, ML worker, and data freshness: keep as potential target capabilities, but separate from legacy StartupIntelligence copy and domain assumptions.
+- `src/app/event-handlers.ts`: keep, but continue lazy-loading desktop/startupintelligence-only features and trim maritime/aviation startup imports.
+- `src/app/panel-layout.ts`: keep. Startup runtime no longer exposes StartupIntelligence Pro links or legacy GitHub repo stars; non-startup variants still retain their existing StartupIntelligence links.
 - Legacy map stack (`src/components/DeckGLMap.ts`, `src/components/Map.ts`, `src/components/MapPopup.ts`, `src/components/GlobeMap.ts`, `src/components/MapContainer.ts`): keep only for non-startup variants until those variants are archived. Startup no longer depends on this stack.
 - `src/config/feeds.ts` and `server/startup/news/v1/_feeds.ts`: keep startup/tech feeds, move non-startup feeds to legacy or archived config.
 
@@ -135,9 +146,8 @@ These files contain useful target capabilities mixed with WorldMonitor legacy as
 
 Already excluded in `.vercelignore`, except active startup RPC domains that have been re-enabled:
 
-- Retained refactor candidates still excluded from startup deploy: `api/cyber/`, `api/infrastructure/`, `api/supply-chain/`, `server/worldmonitor/cyber/`, `server/worldmonitor/infrastructure/`, `server/worldmonitor/intelligence/`, and `server/worldmonitor/supply-chain/`.
 - `api/bootstrap.js` is excluded only because its current payload is legacy; it should be rewritten rather than treated as a discarded product idea.
-- Removed in the first API/server physical deletion wave: legacy aviation, climate, conflict, displacement, forecast, giving, health-v1, imagery, maritime, military, natural, positive-events, prediction, radiation, resilience, sanctions, scenario, seismology, thermal, trade, unrest, v2 shipping, webcam, wildfire domains and legacy single APIs.
+- All non-startup StartupIntelligence API/server domains are now physically deleted or quarantined outside the active deploy surface. This includes the first wave domains plus the final retained-but-unrefactored `cyber`, `infrastructure`, `supply-chain`, and legacy `intelligence` server domains.
 
 Important correction: `api/chat-analyst.ts`, `api/mcp.ts`, `api/telegram-feed.js`, `api/intelligence/`, and `api/research/` are target capabilities and must not be excluded.
 
@@ -146,24 +156,23 @@ Important correction: `api/chat-analyst.ts`, `api/mcp.ts`, `api/telegram-feed.js
 Delete only after replacing or removing all imports from startup entrypoints.
 
 - Frontend panels unrelated to startup intelligence: aviation, military, sanctions, climate disaster, disease, displacement, radiation, wildfire, seismic, live webcams, positive-events-only panels, commodity-only panels.
-- Client services unrelated to startup intelligence: `src/services/aviation/`, `maritime/`, `military/`, `military-flights.ts`, `military-vessels.ts`, `conflict/`, `displacement/`, `climate/`, `radiation.ts`, `sanctions-pressure.ts`, `webcams/`, `wildfires/`, `thermal-escalation.ts`, most `supply-chain/` unless later reused for industry mapping.
+- Client services unrelated to startup intelligence: `src/services/aviation/`, `maritime/`, `military/`, `military-flights.ts`, `military-vessels.ts`, `conflict/`, `displacement/`, `climate/`, `radiation.ts`, `sanctions-pressure.ts`, `webcams/`, `wildfires/`, `thermal-escalation.ts`.
 - Config data unrelated to startup map: military bases, ports, pipelines, airports, commodities, sanctions/geopolitical datasets, weather/natural hazard datasets.
-- Server handlers for excluded domains after chat has been extracted from `server/worldmonitor/intelligence/v1/`.
-- Generated proto stubs for removed domains after no runtime/server code imports them.
+- Generated proto stubs for removed domains after no runtime/server/client code imports them.
 - Tests covering deleted legacy domains, after preserving target tests for startup intelligence, auth, billing, MCP, chat, and market comps.
 
 ## Current Blockers To Physical Deletion
 
-- Legacy map files still carry old WorldMonitor domains, but this is no longer a Startup Intelligence blocker: startup imports `StartupMapContainer` and guard tests prevent re-coupling.
+- Legacy map files still carry old StartupIntelligence domains, but this is no longer a Startup Intelligence blocker: startup imports `StartupMapContainer` and guard tests prevent re-coupling.
 - Frontend startup shell cleanup is closed for build/deploy: `App.ts`, `event-handlers.ts`, and `panel-layout.ts` now isolate non-startup runtime behind build-time startup guards. They are no longer physical deletion blockers for the startup app.
-- Retained-but-unrefactored `cyber`, `infrastructure`, `intelligence`, and `supply-chain` API/server domains are the next physical deletion or startup-namespace migration blockers.
-- `proto/` and `src/generated/` still carry WorldMonitor service contracts for domains that startup no longer ships.
+- `proto/` and `src/generated/` still carry StartupIntelligence service contracts for domains that startup no longer ships.
+- Relay/seed route references for deleted infrastructure, cyber, and supply-chain APIs are closed. Remaining script cleanup is broader archival work for legacy aviation/maritime/geopolitical seeders, not a blocker for the active startup app.
 
 ## Final Cleanup Sequence
 
 1. Restore target exclusions: keep chat and MCP deployable. Done.
-2. Extract chat analyst backend from `server/worldmonitor/intelligence/v1/` into a startup-oriented namespace, then update `api/chat-analyst.ts`. Done.
-3. Split backend startup RPCs out of `server/worldmonitor/` for market, news, research, economic, consumer-prices, and startup intelligence. Done.
+2. Extract chat analyst backend from `server/startup_intelligence/intelligence/v1/` into a startup-oriented namespace, then update `api/chat-analyst.ts`. Done.
+3. Split backend startup RPCs out of `server/startup_intelligence/` for market, news, research, economic, consumer-prices, and startup intelligence. Done.
 4. Re-enable active startup RPC API domains in `.vercelignore` and route Vite dev startup APIs to `server/startup/`. Done.
 5. Freeze the current green baseline: `npm run typecheck`, focused startup/MCP/chat/market tests, `npm run build:startup`, and one browser smoke test. Done.
 6. Protect startup source defaults so core startup dashboards never render as all-sources-disabled after free-tier source trimming. Done.
@@ -174,15 +183,18 @@ Delete only after replacing or removing all imports from startup entrypoints.
 11. Split `AppContext` into startup-safe core plus legacy extensions, so startup no longer references aviation, maritime, conflict, sanctions, climate, radiation, displacement, or wildfire state. Done and guardrailed: `StartupAppContext` excludes legacy cache fields, `LegacyAppContextExtension` owns them, and export utilities now import legacy cache types directly from `legacy-app-context.ts`.
 12. Split event handlers and layout runtime into startup handlers and legacy handlers. Keep desktop/download, ML worker, and data freshness only where still useful for startup. In progress: event handler contract extracted; non-startup runtime setup extracted from `App.ts`; legacy CII/GPS/AIS/aviation paths extracted into `non-startup-event-runtime.ts`; legacy layout links/star fetch/escalation setup extracted into `non-startup-layout-runtime.ts`; build-time guards keep all three non-startup runtime chunks out of startup output.
 13. Remove `data-loader.ts` from the startup import graph. Done: `App.ts` imports `startup-data-loader.ts` directly; the legacy `src/app/data-loader.ts` and its legacy-only tests have been physically deleted.
-14. Split panel registry/config into startup registry plus archived legacy registry. Done and guardrailed: startup panel and map-layer defaults now live in `src/config/variants/startup.ts`; startup layers are explicit rather than inherited from tech defaults; `tests/startup-panel-registry-cleanup.test.mjs` blocks legacy WorldMonitor panel keys from returning to the startup registry.
+14. Split panel registry/config into startup registry plus archived legacy registry. Done and guardrailed: startup panel and map-layer defaults now live in `src/config/variants/startup.ts`; startup layers are explicit rather than inherited from tech defaults; `tests/startup-panel-registry-cleanup.test.mjs` blocks legacy StartupIntelligence panel keys from returning to the startup registry.
 15. Split country intelligence into startup country intelligence plus archived world-risk intelligence. Done and guardrailed: startup uses `startup-country-intel.ts`, `AppContext` no longer owns country brief UI contracts, legacy `country-intel.ts` and the country deep-dive/story UI stacks are physically removed, and the app barrel exports only the startup country manager.
-16. Quarantine `server/worldmonitor/intelligence/v1/` after tests are migrated to `server/startup/intelligence/v1/` or removed. Done and guardrailed: production `/api/intelligence/v1/[rpc].ts` routes to `server/startup/intelligence/v1/handler.ts`; startup handler disables legacy world-risk RPCs; MCP no longer exposes disabled country/deduction tools; premium path config no longer marks disabled legacy intelligence RPCs; active startup intelligence cache tiers are explicit; market-implications and company enrichment/signals tests point at startup handlers; remaining `server/worldmonitor/intelligence/v1/` tests are legacy-reference coverage only.
-17. Quarantine frontend legacy panels, services, configs, and workers only after `rg`, typecheck, and startup build prove no startup imports remain. In progress: component/service barrels now expose only the startup surface; first physical delete batch removed unused aviation/world-risk panels and legacy aviation tests (`AirlineIntelPanel`, `AviationCommandBar`, `SanctionsPressurePanel`, `RadiationWatchPanel`, `ThermalEscalationPanel`, `DisplacementPanel`, `DeductionPanel`, `UcdpEventsPanel`, `SatelliteFiresPanel`, `DiseaseOutbreaksPanel`, `ClimateNewsPanel`); the full legacy `src/app/data-loader.ts` was removed after `App.ts` switched to direct startup loader import; second physical delete batch removed dead/non-core legacy panels (`StrategicPosturePanel`, `DefensePatentsPanel`, `GulfEconomiesPanel`, `GroceryBasketPanel`, `BigMacPanel`, `FaoFoodPriceIndexPanel`, `CotPositioningPanel`, `PositioningPanel`) after type-only dependencies were replaced with small structural contracts; third physical delete batch removed the legacy world-risk country manager and dead story modal/share stack; fourth physical delete batch removed the country deep-dive/brief/timeline stack and its legacy-only tests; first API/server physical deletion wave removed the excluded WorldMonitor API/server domains listed above. ML worker assets remain intentionally retained for future startup ML refactoring.
+16. Quarantine `server/startup_intelligence/intelligence/v1/` after tests are migrated to `server/startup/intelligence/v1/` or removed. Done and physically deleted: production `/api/intelligence/v1/[rpc].ts` routes to `server/startup/intelligence/v1/handler.ts`; startup handler disables legacy world-risk RPCs; MCP no longer exposes disabled country/deduction tools; premium path config no longer marks disabled legacy intelligence RPCs; active startup intelligence cache tiers are explicit; `tests/chat-analyst.test.mts` now targets `server/startup/analyst/`.
+17. Quarantine frontend legacy panels, services, configs, and workers only after `rg`, typecheck, and startup build prove no startup imports remain. In progress: component/service barrels now expose only the startup surface; first physical delete batch removed unused aviation/world-risk panels and legacy aviation tests (`AirlineIntelPanel`, `AviationCommandBar`, `SanctionsPressurePanel`, `RadiationWatchPanel`, `ThermalEscalationPanel`, `DisplacementPanel`, `DeductionPanel`, `UcdpEventsPanel`, `SatelliteFiresPanel`, `DiseaseOutbreaksPanel`, `ClimateNewsPanel`); the full legacy `src/app/data-loader.ts` was removed after `App.ts` switched to direct startup loader import; second physical delete batch removed dead/non-core legacy panels (`StrategicPosturePanel`, `DefensePatentsPanel`, `GulfEconomiesPanel`, `GroceryBasketPanel`, `BigMacPanel`, `FaoFoodPriceIndexPanel`, `CotPositioningPanel`, `PositioningPanel`) after type-only dependencies were replaced with small structural contracts; third physical delete batch removed the legacy world-risk country manager and dead story modal/share stack; fourth physical delete batch removed the country deep-dive/brief/timeline stack and its legacy-only tests; API/server physical deletion removed all non-startup StartupIntelligence API/server domains. ML worker assets remain intentionally retained for future startup ML refactoring.
 18. Rewrite `api/bootstrap.js` as startup bootstrap for startup news, arXiv, GitHub, Hugging Face, market comps, Telegram, MCP, and chat health. Done for active registry: `/api/bootstrap` and `server/_shared/cache-keys.ts` now keep startup/AI-stack/market/reliability keys only; legacy geopolitics, disaster, aviation, sanctions, radiation, thermal, health, energy-crisis, and humanitarian keys are removed from the served bootstrap registry.
-19. Replace remaining WorldMonitor product copy, links, docs, and branding in startup routes. Done for startup runtime and metadata: premium gating uses `/pro`, startup skips legacy GitHub stars, `index.html` metadata no longer advertises WorldMonitor aliases/geopolitical copy/repo links, and guard tests prevent regression. The canonical deployment URL remains `startup.worldmonitor.app` until a dedicated Startup Intelligence domain is chosen.
-20. Remove generated proto stubs only after deleted domains have no runtime/server/client imports.
-21. Run full cleanup verification and bundle audit.
-22. Delete quarantined legacy files in one final deletion batch after CI-style verification stays green.
+19. Replace remaining StartupIntelligence product copy, links, docs, and branding in startup routes. Done for startup runtime and metadata: premium gating uses `/pro`, startup skips legacy GitHub stars, `index.html` metadata no longer advertises StartupIntelligence aliases/geopolitical copy/repo links, and guard tests prevent regression. The canonical deployment URL remains `startupintelligence.app` until a dedicated Startup Intelligence domain is chosen.
+20. Remove or quarantine optional frontend services/components that still reference deleted legacy API route strings, while keeping startup registry and build green. Done for supply-chain/Hormuz/RouteExplorer.
+21. Remove deleted-domain route warm-pings from relay/seed scripts. Done for infrastructure, cyber, and supply-chain route references.
+22. Rename or replace remaining generated proto contracts so startup no longer imports old-brand namespaces for active startup RPCs. Done: generated/proto paths now use `startup_intelligence`.
+23. Remove generated proto stubs for deleted domains after no runtime/server/client imports remain. Partially done: wildfire removed; remaining stubs still have callers in archived/non-startup services or active RPC contracts.
+24. Run full cleanup verification and bundle audit. Done for this batch: typecheck, startup build, MCP/chat/startup cleanup tests passed after fixes.
+25. Delete quarantined legacy files in one final deletion batch after CI-style verification stays green. Done for active quarantine: `legacy/`, old server root, stale docs, stale todos, and deleted-domain API/server files are gone from the active workspace.
 
 ## Final Cleanup Verification
 
@@ -191,12 +203,12 @@ Run after every risky batch:
 - `npm run typecheck`
 - `npx tsx --test tests/arxiv-papers.test.mts tests/github-repos.test.mts tests/huggingface.test.mts`
 - `npx tsx --test tests/mcp.test.mjs tests/mcp-proxy.test.mjs tests/mcp-presets.test.mjs tests/chat-analyst.test.mts`
-- `npx tsx --test tests/shared-relay.test.mjs tests/stock-analysis.test.mts tests/server-handlers.test.mjs`
+- `npx tsx --test tests/edge-functions.test.mjs tests/startup-bundle-bloat-cleanup.test.mjs tests/startup-app-context-cleanup.test.mjs tests/startup-panel-registry-cleanup.test.mjs`
 - `npm run build:startup`
 
 Run before physical deletion:
 
-- `rg "server/worldmonitor/(consumer-prices|economic|market|news|research|intelligence)" api server src tests vite.config.ts`
+- `rg "server/startup_intelligence/(consumer-prices|economic|market|news|research|intelligence|cyber|infrastructure|supply-chain)" api server src tests vite.config.ts`
 - `rg "(aviation|maritime|military|sanctions|displacement|radiation|wildfire|webcam|conflict)" src/App.ts src/app src/components src/config src/services`
 - Browser smoke on startup URL with layers `datacenters,startupHubs,cloudRegions,accelerators,techHQs,techEvents`.
 

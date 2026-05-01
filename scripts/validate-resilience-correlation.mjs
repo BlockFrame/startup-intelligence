@@ -2,7 +2,7 @@
 
 import { loadEnvFile, getRedisCredentials } from './_seed-utils.mjs';
 
-// Source of truth: server/worldmonitor/resilience/v1/_shared.ts → RESILIENCE_SCORE_CACHE_PREFIX
+// Source of truth: server/startup_intelligence/resilience/v1/_shared.ts → RESILIENCE_SCORE_CACHE_PREFIX
 const RESILIENCE_SCORE_CACHE_PREFIX = 'resilience:score:v9:';
 
 const REFERENCE_INDICES = {
@@ -76,7 +76,7 @@ function spearmanRho(x, y) {
   return pearson(toRanks(x), toRanks(y));
 }
 
-async function fetchWorldMonitorScores(url, token, countryCodes) {
+async function fetchStartupIntelligenceScores(url, token, countryCodes) {
   const commands = countryCodes.map((c) => ['GET', `${RESILIENCE_SCORE_CACHE_PREFIX}${c}`]);
   const results = await redisPipeline(url, token, commands);
 
@@ -135,8 +135,8 @@ async function run() {
   loadEnvFile(import.meta.url);
   const { url, token } = getRedisCredentials();
 
-  console.log(`Fetching WorldMonitor resilience scores for ${SAMPLE_COUNTRIES.length} countries...`);
-  const wmScores = await fetchWorldMonitorScores(url, token, SAMPLE_COUNTRIES);
+  console.log(`Fetching StartupIntelligence resilience scores for ${SAMPLE_COUNTRIES.length} countries...`);
+  const wmScores = await fetchStartupIntelligenceScores(url, token, SAMPLE_COUNTRIES);
   console.log(`Retrieved scores for ${wmScores.size}/${SAMPLE_COUNTRIES.length} countries\n`);
 
   if (wmScores.size < 20) {
@@ -152,8 +152,8 @@ async function run() {
   const ndgainPass = ndgainResult.rho > 0.65;
   const informPass = informResult.rho > 0.60;
 
-  console.log(`WorldMonitor vs ND-GAIN Readiness:  rho = ${ndgainResult.rho.toFixed(3)} (n=${ndgainResult.n}, target > 0.65) ${ndgainPass ? 'PASS' : 'FAIL'}`);
-  console.log(`WorldMonitor vs INFORM Risk:        rho = ${informResult.rho.toFixed(3)} (n=${informResult.n}, target > 0.60, inverted) ${informPass ? 'PASS' : 'FAIL'}`);
+  console.log(`StartupIntelligence vs ND-GAIN Readiness:  rho = ${ndgainResult.rho.toFixed(3)} (n=${ndgainResult.n}, target > 0.65) ${ndgainPass ? 'PASS' : 'FAIL'}`);
+  console.log(`StartupIntelligence vs INFORM Risk:        rho = ${informResult.rho.toFixed(3)} (n=${informResult.n}, target > 0.60, inverted) ${informPass ? 'PASS' : 'FAIL'}`);
 
   const passingCount = [ndgainPass, informPass].filter(Boolean).length;
   const gatePass = passingCount >= 2;
@@ -172,7 +172,7 @@ async function run() {
     .sort((a, b) => b[1] - a[1])
     .map(([iso2, score], i) => ({ iso2, score, rank: i + 1 }));
 
-  console.log('WorldMonitor score ranking (sample):');
+  console.log('StartupIntelligence score ranking (sample):');
   console.log('  Rank  ISO2  Score');
   for (const entry of allCountriesSorted) {
     console.log(`  ${padRight(String(entry.rank), 6)}${padRight(entry.iso2, 6)}${entry.score.toFixed(1)}`);

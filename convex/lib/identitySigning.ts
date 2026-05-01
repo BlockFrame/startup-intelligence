@@ -3,7 +3,7 @@
  *
  * Prevents client-controlled userId from being blindly trusted by
  * the webhook. The createCheckout action signs the userId server-side;
- * the webhook verifies the signature before trusting metadata.wm_user_id.
+ * the webhook verifies the signature before trusting metadata.si_user_id.
  *
  * Uses DODO_IDENTITY_SIGNING_SECRET as the HMAC key — a dedicated secret
  * that is SEPARATE from DODO_PAYMENTS_WEBHOOK_SECRET. This ensures rotating

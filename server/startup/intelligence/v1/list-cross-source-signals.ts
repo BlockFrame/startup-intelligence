@@ -6,7 +6,7 @@ import type {
   CrossSourceSignal,
   CrossSourceSignalType,
   CrossSourceSignalSeverity,
-} from '../../../../src/generated/server/worldmonitor/intelligence/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/intelligence/v1/service_server';
 import { getCachedJson } from '../../../_shared/redis';
 
 const REDIS_KEY = 'intelligence:cross-source-signals:v1';

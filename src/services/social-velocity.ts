@@ -3,7 +3,7 @@ import {
   IntelligenceServiceClient,
   type GetSocialVelocityResponse,
   type SocialVelocityPost,
-} from '@/generated/client/worldmonitor/intelligence/v1/service_client';
+} from '@/generated/client/startup_intelligence/intelligence/v1/service_client';
 import { getHydratedData } from '@/services/bootstrap';
 
 export type { GetSocialVelocityResponse, SocialVelocityPost };

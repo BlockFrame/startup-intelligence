@@ -3,7 +3,7 @@ import {
   HealthServiceClient,
   type ListDiseaseOutbreaksResponse,
   type DiseaseOutbreakItem,
-} from '@/generated/client/worldmonitor/health/v1/service_client';
+} from '@/generated/client/startup_intelligence/health/v1/service_client';
 import { getHydratedData } from '@/services/bootstrap';
 
 export type { ListDiseaseOutbreaksResponse, DiseaseOutbreakItem };

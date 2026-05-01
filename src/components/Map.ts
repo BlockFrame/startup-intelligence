@@ -44,10 +44,10 @@ import {
   CENTRAL_BANKS,
   COMMODITY_HUBS,
 } from '@/config';
-import type { WebcamEntry, WebcamCluster } from '@/generated/client/worldmonitor/webcam/v1/service_client';
+import type { WebcamEntry, WebcamCluster } from '@/generated/client/startup_intelligence/webcam/v1/service_client';
 import { tokenizeForMatch, matchKeyword, findMatchingKeywords } from '@/utils/keyword-match';
 import { MapPopup } from './MapPopup';
-import type { GetChokepointStatusResponse } from '@/services/supply-chain';
+import type { GetChokepointStatusResponse } from '@/generated/client/startup_intelligence/supply_chain/v1/service_client';
 import {
   updateHotspotEscalation,
   getHotspotEscalation,

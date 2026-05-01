@@ -39,7 +39,7 @@ function getRatelimit() {
 
 async function validateSecret(secret) {
   if (!secret) return false;
-  const validKeys = (process.env.WORLDMONITOR_VALID_KEYS || '').split(',').filter(Boolean);
+  const validKeys = (process.env.STARTUP_INTELLIGENCE_VALID_KEYS || '').split(',').filter(Boolean);
   return timingSafeIncludes(secret, validKeys);
 }
 

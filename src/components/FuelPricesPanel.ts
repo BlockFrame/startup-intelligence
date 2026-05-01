@@ -3,8 +3,8 @@ import { t } from '@/services/i18n';
 import { escapeHtml } from '@/utils/sanitize';
 import { getHydratedData } from '@/services/bootstrap';
 import { getRpcBaseUrl } from '@/services/rpc-client';
-import { EconomicServiceClient } from '@/generated/client/worldmonitor/economic/v1/service_client';
-import type { ListFuelPricesResponse } from '@/generated/client/worldmonitor/economic/v1/service_client';
+import { EconomicServiceClient } from '@/generated/client/startup_intelligence/economic/v1/service_client';
+import type { ListFuelPricesResponse } from '@/generated/client/startup_intelligence/economic/v1/service_client';
 
 const client = new EconomicServiceClient(getRpcBaseUrl(), { fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args) });
 

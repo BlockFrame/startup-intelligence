@@ -7,9 +7,9 @@
   var handled = false;
   window.addEventListener('message', function (e) {
     if (handled) return;
-    if (!e.data || e.data.type !== 'wm-html') return;
+    if (!e.data || e.data.type !== 'si-html') return;
     var origin = e.origin || '';
-    if (!origin.endsWith('worldmonitor.app') && !/^https?:\/\/localhost/.test(origin)) return;
+    if (!origin.endsWith('startupintelligence.app') && !/^https?:\/\/localhost/.test(origin)) return;
     handled = true;
     document.open();
     document.write(e.data.html);

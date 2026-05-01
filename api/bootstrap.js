@@ -79,7 +79,7 @@ const TIER_CDN_CACHE = {
   fast: 'public, s-maxage=600, stale-while-revalidate=120, stale-if-error=900',
 };
 
-const NEG_SENTINEL = '__WM_NEG__';
+const NEG_SENTINEL = '__SI_NEG__';
 
 async function getCachedJsonBatch(keys) {
   const result = new Map();

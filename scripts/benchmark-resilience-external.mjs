@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Cross-index benchmark: compares WorldMonitor resilience scores against
+// Cross-index benchmark: compares StartupIntelligence resilience scores against
 // INFORM Risk (JRC), UNDP HDI, and WorldRiskIndex (HDX) using Spearman/Pearson.
 //
 // All three sources are CC-BY or open-licensed:
@@ -168,7 +168,7 @@ export async function fetchInformGlobal() {
     // our shared CHROME_UA). Using a plain programmatic UA bypasses the
     // challenge and gets the raw JSON response.
     const resp = await fetch(INFORM_JSON_URL, {
-      headers: { 'User-Agent': 'WorldMonitor-Benchmark/1.0', Accept: 'application/json' },
+      headers: { 'User-Agent': 'StartupIntelligence-Benchmark/1.0', Accept: 'application/json' },
       signal: AbortSignal.timeout(30_000),
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -418,7 +418,7 @@ export async function runBenchmark(opts = {}) {
 
   if (wmScores.size === 0) {
     console.warn('[benchmark] No WM resilience scores available — skipping benchmark run (cold start after cache key bump)');
-    return { skipped: true, reason: 'no-wm-scores', generatedAt: Date.now() };
+    return { skipped: true, reason: 'no-startup-intelligence-scores', generatedAt: Date.now() };
   }
 
   const fetchers = [

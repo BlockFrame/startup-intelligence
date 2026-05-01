@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "World Monitor",
+    "title": "Startup Intelligence",
     "description": "Yapay Zeka Destekli Kuresel Durum Takibi"
   },
   "countryBrief": {
@@ -497,7 +497,7 @@
         "some": "Bazi ozellikler API anahtari gerektiriyor"
       },
       "openSettings": "Ayarlari Ac",
-      "skipSetup": "Kurulumu atlayın — tek bir World Monitor lisansı her şeyi açar. Erken erişim için bekleme listesine katılın.",
+      "skipSetup": "Kurulumu atlayın — tek bir Startup Intelligence lisansı her şeyi açar. Erken erişim için bekleme listesine katılın.",
       "summary": {
         "desktop": "Masaustu modu",
         "web": "Web modu (salt okunur, sunucu tarafli kimlik bilgileri)",
@@ -541,13 +541,13 @@
       "noTraffic": "Henuz trafik kaydedilmedi.",
       "sidecarUnreachable": "Sidecar'a ulasilamiyor.",
       "logCleared": "Log temizlendi.",
-      "worldMonitor": {
-        "tabLabel": "World Monitor",
+      "startupIntelligence": {
+        "tabLabel": "Startup Intelligence",
         "heroTitle": "Tek anahtar. Her şey dahil.",
-        "heroDescription": "Tek bir World Monitor lisansı, kendiniz yapılandıracağınız tüm API anahtarlarını ve LLM sağlayıcılarını değiştirir. AI özetleri, gerçek zamanlı istihbarat, piyasa verileri, çatışma takibi, yangın tespiti, uydu görüntüleri — hepsi aktif, hepsi yönetilen, sıfır kurulum.",
+        "heroDescription": "Tek bir Startup Intelligence lisansı, kendiniz yapılandıracağınız tüm API anahtarlarını ve LLM sağlayıcılarını değiştirir. AI özetleri, gerçek zamanlı istihbarat, piyasa verileri, çatışma takibi, yangın tespiti, uydu görüntüleri — hepsi aktif, hepsi yönetilen, sıfır kurulum.",
         "apiKey": {
           "title": "Lisans Anahtarı",
-          "placeholder": "wm_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "placeholder": "si_xxxxxxxxxxxxxxxxxxxxxxxx",
           "description": "Tüm veri kaynaklarını ve AI özelliklerini anında açmak için lisansınızı yapıştırın.",
           "statusValid": "LİSANSLI",
           "statusMissing": "LİSANS YOK"
@@ -555,7 +555,7 @@
         "dividerOr": "VEYA",
         "register": {
           "title": "Yerinizi Ayırtın",
-          "description": "World Monitor lisanslarını başlatmaya hazırlanıyoruz. Şimdi kaydolun ve ilk sıraya girin — erken üyeler öncelikli erişim ve kurucu üye fiyatlandırması alır.",
+          "description": "Startup Intelligence lisanslarını başlatmaya hazırlanıyoruz. Şimdi kaydolun ve ilk sıraya girin — erken üyeler öncelikli erişim ve kurucu üye fiyatlandırması alır.",
           "emailPlaceholder": "your@email.com",
           "submitBtn": "Bekleme Listesine Katıl",
           "submitting": "Gönderiliyor...",
@@ -1767,7 +1767,7 @@
       "infoTooltip": "<strong>Havacılık İstihbaratı</strong> Gerçek zamanlı havayolu operasyonel verileri: hat askıya almaları, hava sahası kapatmaları, taşıyıcı uyarıları ve acil yönlendirmeler. Kaynak: havacılık otoritesi NOTAM'ları ve taşıyıcı bültenleri."
     },
     "chatAnalyst": {
-      "infoTooltip": "<strong>WM Analist</strong> Jeopolitik, piyasa, askeri ve ekonomik alanlarda canlı bağlama sahip AI analisti. Aktif WorldMonitor beslemelerinden gerçek zamanlı veri enjekte edilen Claude tarafından desteklenmektedir."
+      "infoTooltip": "<strong>WM Analist</strong> Jeopolitik, piyasa, askeri ve ekonomik alanlarda canlı bağlama sahip AI analisti. Aktif StartupIntelligence beslemelerinden gerçek zamanlı veri enjekte edilen Claude tarafından desteklenmektedir."
     },
     "cotPositioning": {
       "infoTooltip": "<strong>CFTC COT Pozisyonlama</strong> Tüccar Taahhütleri raporu: emtia ve finansal vadeli işlemlerde ticari aktörler, büyük spekülatörler ve küçük tüccarların net pozisyonları. Haftalık yayımlanır (Cuma). Kaynak: CFTC."
@@ -1797,7 +1797,7 @@
       "infoTooltip": "<strong>Makro Göstergeler</strong> ABD ve Euro Bölgesi için temel makroekonomik göstergeler: CPI, işsizlik, GDP ve merkez bankası faizleri. Önceki dönem deltasıyla birlikte gösterilen değerler. Kaynak: FRED (Federal Reserve Economic Data)."
     },
     "monitors": {
-      "infoTooltip": "<strong>Anahtar Kelime Monitörleri</strong> Tüm WorldMonitor kaynaklarından gerçek zamanlı haber söz takibi için herhangi bir terim ekleyin. Eşleşen makaleler alındıkça sonuçlar gerçek zamanlı güncellenir."
+      "infoTooltip": "<strong>Anahtar Kelime Monitörleri</strong> Tüm StartupIntelligence kaynaklarından gerçek zamanlı haber söz takibi için herhangi bir terim ekleyin. Eşleşen makaleler alındıkça sonuçlar gerçek zamanlı güncellenir."
     },
     "renewable": {
       "infoTooltip": "<strong>Yenilenebilir Enerji</strong> Küresel yenilenebilir enerji proje hattı: güneş, rüzgâr, hidroelektrik ve depolama kapasitesi eklemeleri. Bölge ve teknoloji türüne göre duyurulan, yapım aşamasındaki ve devreye alınan projeleri izler."

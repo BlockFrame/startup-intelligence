@@ -70,7 +70,7 @@ describe('Market breadth seed script', () => {
 });
 
 describe('Market breadth RPC handler', () => {
-  const handlerSrc = readFileSync(join(root, 'server', 'worldmonitor', 'market', 'v1', 'get-market-breadth-history.ts'), 'utf-8');
+  const handlerSrc = readFileSync(join(root, 'server', 'startup_intelligence', 'market', 'v1', 'get-market-breadth-history.ts'), 'utf-8');
 
   it('reads from correct cache key', () => {
     assert.match(handlerSrc, /market:breadth-history:v1/);
@@ -86,8 +86,8 @@ describe('Market breadth RPC handler', () => {
 });
 
 describe('Market breadth proto', () => {
-  const protoSrc = readFileSync(join(root, 'proto', 'worldmonitor', 'market', 'v1', 'get_market_breadth_history.proto'), 'utf-8');
-  const serviceSrc = readFileSync(join(root, 'proto', 'worldmonitor', 'market', 'v1', 'service.proto'), 'utf-8');
+  const protoSrc = readFileSync(join(root, 'proto', 'startup_intelligence', 'market', 'v1', 'get_market_breadth_history.proto'), 'utf-8');
+  const serviceSrc = readFileSync(join(root, 'proto', 'startup_intelligence', 'market', 'v1', 'service.proto'), 'utf-8');
 
   it('defines GetMarketBreadthHistoryRequest and Response', () => {
     assert.match(protoSrc, /GetMarketBreadthHistoryRequest/);
@@ -120,7 +120,7 @@ describe('Market breadth panel', () => {
   const panelSrc = readFileSync(join(root, 'src', 'components', 'MarketBreadthPanel.ts'), 'utf-8');
 
   it('is registered in handler.ts', () => {
-    const handlerTs = readFileSync(join(root, 'server', 'worldmonitor', 'market', 'v1', 'handler.ts'), 'utf-8');
+    const handlerTs = readFileSync(join(root, 'server', 'startup_intelligence', 'market', 'v1', 'handler.ts'), 'utf-8');
     assert.match(handlerTs, /getMarketBreadthHistory/);
   });
 
@@ -144,7 +144,7 @@ describe('Market breadth panel', () => {
 
 describe('Market breadth null-vs-zero handling', () => {
   const panelSrc = readFileSync(join(root, 'src', 'components', 'MarketBreadthPanel.ts'), 'utf-8');
-  const handlerSrc = readFileSync(join(root, 'server', 'worldmonitor', 'market', 'v1', 'get-market-breadth-history.ts'), 'utf-8');
+  const handlerSrc = readFileSync(join(root, 'server', 'startup_intelligence', 'market', 'v1', 'get-market-breadth-history.ts'), 'utf-8');
   const seedSrc = readFileSync(join(root, 'scripts', 'seed-market-breadth.mjs'), 'utf-8');
 
   it('seed preserves null for failed Barchart fetches', () => {

@@ -350,7 +350,7 @@ type CommoditiesTab = 'commodities' | 'fx' | 'xau';
 import type {
   GetHyperliquidFlowResponse,
   HyperliquidAssetFlow,
-} from '@/generated/client/worldmonitor/market/v1/service_client';
+} from '@/generated/client/startup_intelligence/market/v1/service_client';
 
 function parseFiniteNumber(s: string): number | null {
   if (typeof s !== 'string' || s === '') return null;

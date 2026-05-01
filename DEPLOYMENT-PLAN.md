@@ -20,7 +20,7 @@ All values from **Clerk Dashboard → API Keys** ([dashboard.clerk.com](https://
 |----------|--------|-------|
 | `VITE_CLERK_PUBLISHABLE_KEY` | **Vercel** | Clerk Dashboard → API Keys → Publishable Key (`pk_live_...`) |
 | `CLERK_SECRET_KEY` | **Vercel** (secret) | Clerk Dashboard → API Keys → Secret Key (`sk_live_...`) |
-| `CLERK_JWT_ISSUER_DOMAIN` | **Vercel** | Your Clerk app domain, e.g. `https://worldmonitor.clerk.accounts.dev` |
+| `CLERK_JWT_ISSUER_DOMAIN` | **Vercel** | Your Clerk app domain, e.g. `https://startupintelligence.clerk.accounts.dev` |
 
 #### Clerk Dashboard Setup
 

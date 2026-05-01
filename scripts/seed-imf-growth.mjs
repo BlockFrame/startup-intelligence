@@ -12,7 +12,7 @@
 //   NID_NGDP    — Total investment % GDP
 //   NGSD_NGDP   — Gross national savings % GDP
 //
-// Per WorldMonitor #3027 — backfills CountryDeepDivePanel Economic
+// Per StartupIntelligence #3027 — backfills CountryDeepDivePanel Economic
 // Indicators + Country Facts tiles from the same SDMX 3.0 fetcher already
 // used by seed-imf-macro.mjs.
 

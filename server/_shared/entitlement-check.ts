@@ -132,7 +132,7 @@ async function _getEntitlementsImpl(userId: string): Promise<CachedEntitlements 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'worldmonitor-gateway/1.0',
+        'User-Agent': 'startupintelligence-gateway/1.0',
         'x-convex-shared-secret': convexSharedSecret,
       },
       body: JSON.stringify({ userId }),

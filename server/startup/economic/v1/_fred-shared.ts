@@ -1,4 +1,4 @@
-import type { FredSeries } from '../../../../src/generated/server/worldmonitor/economic/v1/service_server';
+import type { FredSeries } from '../../../../src/generated/server/startup_intelligence/economic/v1/service_server';
 
 export const FRED_KEY_PREFIX = 'economic:fred:v1';
 

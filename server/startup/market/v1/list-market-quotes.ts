@@ -8,7 +8,7 @@ import type {
   ListMarketQuotesRequest,
   ListMarketQuotesResponse,
   MarketQuote,
-} from '../../../../src/generated/server/worldmonitor/market/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/market/v1/service_server';
 import { parseStringArray } from './_shared';
 import { getCachedJson } from '../../../_shared/redis';
 

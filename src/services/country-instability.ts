@@ -10,7 +10,7 @@ import type { ConflictEvent, UcdpConflictStatus, HapiConflictSummary } from './c
 import type { CountryDisplacement } from '@/services/displacement';
 import type { ClimateAnomaly } from '@/services/climate';
 import type { GpsJamHex } from '@/services/gps-interference';
-import type { Earthquake } from '@/generated/client/worldmonitor/seismology/v1/service_client';
+import type { Earthquake } from '@/generated/client/startup_intelligence/seismology/v1/service_client';
 import type { CountrySanctionsPressure } from '@/services/sanctions-pressure';
 import { getCountryAtCoordinates, iso3ToIso2Code, nameToCountryCode, getCountryNameByCode, matchCountryNamesInText, ME_STRIKE_BOUNDS, resolveCountryFromBounds } from './country-geometry';
 

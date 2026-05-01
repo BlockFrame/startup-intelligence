@@ -27,7 +27,7 @@ async function fetchUserPreferences(userId, variant) {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${RELAY_SECRET}`,
-        'User-Agent': 'worldmonitor-relay/1.0',
+        'User-Agent': 'startupintelligence-relay/1.0',
       },
       body: JSON.stringify({ userId, variant }),
       signal: AbortSignal.timeout(10_000),
@@ -61,7 +61,7 @@ function extractUserContext(prefs) {
   };
   if (!prefs || typeof prefs !== 'object') return ctx;
 
-  const watchlist = prefs['wm-market-watchlist-v1'];
+  const watchlist = prefs['si-market-watchlist-v1'];
   if (Array.isArray(watchlist)) {
     ctx.tickers = watchlist
       .filter(w => w && typeof w === 'object' && w.symbol)
@@ -75,8 +75,8 @@ function extractUserContext(prefs) {
     if (Array.isArray(aviation.airlines)) ctx.airlines = aviation.airlines.slice(0, 10);
   }
 
-  const frameworks = prefs['wm-analysis-frameworks'];
-  const panelFrameworks = prefs['wm-panel-frameworks'];
+  const frameworks = prefs['si-analysis-frameworks'];
+  const panelFrameworks = prefs['si-panel-frameworks'];
   if (frameworks && typeof frameworks === 'object') {
     const activeId = frameworks.activeId;
     const list = Array.isArray(frameworks.frameworks) ? frameworks.frameworks : [];
@@ -88,12 +88,12 @@ function extractUserContext(prefs) {
     if (firstActive) ctx.frameworkName = firstActive;
   }
 
-  const panels = prefs['worldmonitor-panels'];
+  const panels = prefs['startupintelligence-panels'];
   if (Array.isArray(panels)) {
     ctx.enabledPanels = panels.filter(p => typeof p === 'string').slice(0, 30);
   }
 
-  const disabled = prefs['worldmonitor-disabled-feeds'];
+  const disabled = prefs['startupintelligence-disabled-feeds'];
   if (Array.isArray(disabled)) {
     ctx.disabledFeeds = disabled.filter(d => typeof d === 'string').slice(0, 20);
   }

@@ -188,7 +188,7 @@ function renderOverview(area: HTMLElement): void {
   const dashOffset = circumference - (pct / 100) * circumference;
   const ringColor = ready === total ? 'var(--settings-green)' : ready > 0 ? 'var(--settings-blue)' : 'var(--settings-yellow)';
 
-  const wmState = getSecretState('WORLDMONITOR_API_KEY');
+  const wmState = getSecretState('STARTUP_INTELLIGENCE_API_KEY');
   const wmStatusText = wmState.present ? 'Active' : 'Not set';
   const wmStatusClass = wmState.present ? 'ok' : 'warn';
   const catCards = SETTINGS_CATEGORIES.map(cat => {
@@ -218,29 +218,29 @@ function renderOverview(area: HTMLElement): void {
     </div>
 
     <div class="settings-ov-license">
-      <section class="wm-section">
-        <h2 class="wm-section-title">${t('modals.settingsWindow.worldMonitor.apiKey.title')}</h2>
-        <p class="wm-section-desc">${t('modals.settingsWindow.worldMonitor.apiKey.description')}</p>
-        <div class="wm-key-row">
-          <div class="wm-input-wrap">
-            <input type="password" class="wm-input" data-wm-key-input
-              placeholder="${t('modals.settingsWindow.worldMonitor.apiKey.placeholder')}"
+      <section class="si-section">
+        <h2 class="si-section-title">${t('modals.settingsWindow.startupIntelligence.apiKey.title')}</h2>
+        <p class="si-section-desc">${t('modals.settingsWindow.startupIntelligence.apiKey.description')}</p>
+        <div class="si-key-row">
+          <div class="si-input-wrap">
+            <input type="password" class="si-input" data-si-key-input
+              placeholder="${t('modals.settingsWindow.startupIntelligence.apiKey.placeholder')}"
               autocomplete="off" spellcheck="false"
               ${wmState.present ? `value="${MASKED_SENTINEL}"` : ''} />
-            <button type="button" class="wm-toggle-vis" data-wm-toggle title="Show/hide">&#x1f441;</button>
+            <button type="button" class="si-toggle-vis" data-si-toggle title="Show/hide">&#x1f441;</button>
           </div>
-          <span class="wm-badge ${wmStatusClass}">${wmStatusText}</span>
+          <span class="si-badge ${wmStatusClass}">${wmStatusText}</span>
         </div>
       </section>
 
-      <div class="wm-divider"><span>${t('modals.settingsWindow.worldMonitor.dividerOr')}</span></div>
+      <div class="si-divider"><span>${t('modals.settingsWindow.startupIntelligence.dividerOr')}</span></div>
 
-      <section class="wm-section">
-        <h2 class="wm-section-title">${t('modals.settingsWindow.worldMonitor.register.title')}</h2>
-        <p class="wm-section-desc">${t('modals.settingsWindow.worldMonitor.register.description')}</p>
-        <div class="wm-register-row">
-          <button type="button" class="wm-submit-btn" data-wm-open-pro>
-            ${t('modals.settingsWindow.worldMonitor.register.submitBtn')}
+      <section class="si-section">
+        <h2 class="si-section-title">${t('modals.settingsWindow.startupIntelligence.register.title')}</h2>
+        <p class="si-section-desc">${t('modals.settingsWindow.startupIntelligence.register.description')}</p>
+        <div class="si-register-row">
+          <button type="button" class="si-submit-btn" data-si-open-pro>
+            ${t('modals.settingsWindow.startupIntelligence.register.submitBtn')}
           </button>
         </div>
       </section>
@@ -251,20 +251,20 @@ function renderOverview(area: HTMLElement): void {
 }
 
 function initOverviewListeners(area: HTMLElement): void {
-  area.querySelector('[data-wm-toggle]')?.addEventListener('click', () => {
-    const input = area.querySelector<HTMLInputElement>('[data-wm-key-input]');
+  area.querySelector('[data-si-toggle]')?.addEventListener('click', () => {
+    const input = area.querySelector<HTMLInputElement>('[data-si-key-input]');
     if (input) input.type = input.type === 'password' ? 'text' : 'password';
   });
 
-  area.querySelector<HTMLInputElement>('[data-wm-key-input]')?.addEventListener('input', (e) => {
+  area.querySelector<HTMLInputElement>('[data-si-key-input]')?.addEventListener('input', (e) => {
     const input = e.target as HTMLInputElement;
     if (input.value.startsWith(MASKED_SENTINEL)) {
       input.value = input.value.slice(MASKED_SENTINEL.length);
     }
   });
 
-  area.querySelector('[data-wm-open-pro]')?.addEventListener('click', () => {
-    const url = 'https://worldmonitor.app/pro';
+  area.querySelector('[data-si-open-pro]')?.addEventListener('click', () => {
+    const url = 'https://startupintelligence.app/pro';
     void invokeTauri<void>('open_url', { url }).catch(() => window.open(url, '_blank'));
   });
 
@@ -671,9 +671,9 @@ function initDiagnostics(): void {
   const trafficCount = document.getElementById('trafficCount');
 
   if (fetchDebugToggle) {
-    fetchDebugToggle.checked = localStorage.getItem('wm-debug-log') === '1';
+    fetchDebugToggle.checked = localStorage.getItem('si-debug-log') === '1';
     fetchDebugToggle.addEventListener('change', () => {
-      localStorage.setItem('wm-debug-log', fetchDebugToggle.checked ? '1' : '0');
+      localStorage.setItem('si-debug-log', fetchDebugToggle.checked ? '1' : '0');
     });
   }
 
@@ -881,7 +881,7 @@ async function initSettingsWindow(): Promise<void> {
   document.getElementById('okBtn')?.addEventListener('click', () => {
     void (async () => {
       try {
-        const wmKeyInput = document.querySelector<HTMLInputElement>('[data-wm-key-input]');
+        const wmKeyInput = document.querySelector<HTMLInputElement>('[data-si-key-input]');
         const wmKeyValue = wmKeyInput?.value.trim();
         const hasWmKeyChange = !!(wmKeyValue && wmKeyValue !== MASKED_SENTINEL && wmKeyValue.length > 0);
 
@@ -895,7 +895,7 @@ async function initSettingsWindow(): Promise<void> {
         }
 
         if (hasWmKeyChange && wmKeyValue) {
-          await setSecretValue('WORLDMONITOR_API_KEY', wmKeyValue);
+          await setSecretValue('STARTUP_INTELLIGENCE_API_KEY', wmKeyValue);
         }
 
         if (hasPending) {
@@ -931,7 +931,7 @@ async function initSettingsWindow(): Promise<void> {
   });
 }
 
-localStorage.setItem('wm-settings-open', '1');
-window.addEventListener('beforeunload', () => localStorage.removeItem('wm-settings-open'));
+localStorage.setItem('si-settings-open', '1');
+window.addEventListener('beforeunload', () => localStorage.removeItem('si-settings-open'));
 
 void initSettingsWindow();

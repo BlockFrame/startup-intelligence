@@ -8,7 +8,7 @@ import {
   type CountrySanctionsPressure as ProtoCountryPressure,
   type ProgramSanctionsPressure as ProtoProgramPressure,
   type ListSanctionsPressureResponse,
-} from '@/generated/client/worldmonitor/sanctions/v1/service_client';
+} from '@/generated/client/startup_intelligence/sanctions/v1/service_client';
 
 export type SanctionsEntityType = 'entity' | 'individual' | 'vessel' | 'aircraft';
 

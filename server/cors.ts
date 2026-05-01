@@ -6,8 +6,8 @@
  */
 
 const PRODUCTION_PATTERNS: RegExp[] = [
-  /^https:\/\/(.*\.)?worldmonitor\.app$/,
-  /^https:\/\/worldmonitor-[a-z0-9-]+-elie-[a-z0-9]+\.vercel\.app$/,
+  /^https:\/\/(.*\.)?startup_intelligence\.app$/,
+  /^https:\/\/startup_intelligence-[a-z0-9-]+-elie-[a-z0-9]+\.vercel\.app$/,
   /^https?:\/\/tauri\.localhost(:\d+)?$/,
   /^https?:\/\/[a-z0-9-]+\.tauri\.localhost(:\d+)?$/i,
   /^tauri:\/\/localhost$/,
@@ -30,11 +30,11 @@ export function isAllowedOrigin(origin: string): boolean {
 
 export function getCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('origin') || '';
-  const allowOrigin = isAllowedOrigin(origin) ? origin : 'https://worldmonitor.app';
+  const allowOrigin = isAllowedOrigin(origin) ? origin : 'https://startupintelligence.app';
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-WorldMonitor-Key, X-Widget-Key, X-Pro-Key',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Startup-Intelligence-Key, X-Widget-Key, X-Pro-Key',
     'Access-Control-Max-Age': '3600',
     'Vary': 'Origin',
   };

@@ -37,11 +37,11 @@ export async function setupLegacyFindingsBadge(state: AppContext): Promise<void>
   const { IntelligenceGapBadge } = await import('@/components/IntelligenceGapBadge');
   state.findingsBadge = new IntelligenceGapBadge();
   state.findingsBadge.setOnSignalClick((signal) => {
-    if (localStorage.getItem('wm-settings-open') === '1') return;
+    if (localStorage.getItem('si-settings-open') === '1') return;
     state.signalModal?.showSignal(signal);
   });
   state.findingsBadge.setOnAlertClick((alert) => {
-    if (localStorage.getItem('wm-settings-open') === '1') return;
+    if (localStorage.getItem('si-settings-open') === '1') return;
     state.signalModal?.showAlert(alert);
   });
 }

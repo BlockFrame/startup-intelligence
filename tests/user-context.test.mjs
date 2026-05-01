@@ -43,9 +43,9 @@ describe('extractUserContext null-safety', () => {
     assert.deepEqual(extractUserContext('not an object'), empty);
   });
 
-  it('extracts tickers from wm-market-watchlist-v1', () => {
+  it('extracts tickers from si-market-watchlist-v1', () => {
     const ctx = extractUserContext({
-      'wm-market-watchlist-v1': [
+      'si-market-watchlist-v1': [
         { symbol: 'AAPL' },
         { symbol: 'TSLA' },
         { notASymbol: true },
@@ -82,7 +82,7 @@ describe('formatUserProfile null-safety', () => {
 
   it('includes watchlist entries when present', () => {
     const ctx = extractUserContext({
-      'wm-market-watchlist-v1': [{ symbol: 'AAPL' }, { symbol: 'TSLA' }],
+      'si-market-watchlist-v1': [{ symbol: 'AAPL' }, { symbol: 'TSLA' }],
     });
     const profile = formatUserProfile(ctx, 'finance');
     assert.match(profile, /^Variant: finance$/m);
@@ -91,7 +91,7 @@ describe('formatUserProfile null-safety', () => {
 
   it('always includes the Variant line even with rich context', () => {
     const ctx = extractUserContext({
-      'wm-market-watchlist-v1': [{ symbol: 'AAPL' }],
+      'si-market-watchlist-v1': [{ symbol: 'AAPL' }],
       'aviation:watchlist:v1': { airports: ['JFK'], airlines: ['UAL'] },
     });
     const profile = formatUserProfile(ctx, 'full');

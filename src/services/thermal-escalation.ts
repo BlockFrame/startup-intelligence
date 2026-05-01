@@ -8,7 +8,7 @@ import {
   type ThermalEscalationCluster as ProtoThermalEscalationCluster,
   type ThermalStatus as ProtoThermalStatus,
   type ThermalStrategicRelevance as ProtoThermalStrategicRelevance,
-} from '@/generated/client/worldmonitor/thermal/v1/service_client';
+} from '@/generated/client/startup_intelligence/thermal/v1/service_client';
 
 export type ThermalStatus = 'normal' | 'elevated' | 'spike' | 'persistent';
 export type ThermalContext =

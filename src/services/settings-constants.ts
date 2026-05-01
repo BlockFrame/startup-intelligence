@@ -34,7 +34,7 @@ export const PLAINTEXT_KEYS = new Set<RuntimeSecretKey>([
   'VITE_OPENSKY_RELAY_URL',
 ]);
 
-export const MASKED_SENTINEL = '__WM_MASKED__';
+export const MASKED_SENTINEL = '__SI_MASKED__';
 
 export const HUMAN_LABELS: Record<RuntimeSecretKey, string> = {
   GROQ_API_KEY: 'Groq API Key',
@@ -60,7 +60,7 @@ export const HUMAN_LABELS: Record<RuntimeSecretKey, string> = {
   UCDP_ACCESS_TOKEN: 'UCDP Access Token',
   OLLAMA_API_URL: 'Ollama Server URL',
   OLLAMA_MODEL: 'Ollama Model',
-  WORLDMONITOR_API_KEY: 'World Monitor License Key',
+  STARTUP_INTELLIGENCE_API_KEY: 'Startup Intelligence License Key',
   WTO_API_KEY: 'WTO API Key',
   AVIATIONSTACK_API: 'AviationStack API Key',
   ICAO_API_KEY: 'ICAO NOTAM API Key',
@@ -81,7 +81,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   {
     id: 'economy',
     label: 'Economic & Energy',
-    features: ['economicFred', 'energyEia', 'supplyChain'],
+    features: ['economicFred', 'energyEia'],
   },
   {
     id: 'markets',

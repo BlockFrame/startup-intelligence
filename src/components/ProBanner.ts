@@ -6,8 +6,8 @@ let bannerEl: HTMLElement | null = null;
 // your spot" to "Pro is launched / Upgrade to Pro"; a fresh key guarantees
 // anyone who dismissed the pre-launch variant still sees the launch CTA. Also
 // clear the legacy key on first read so stale localStorage doesn't linger.
-const DISMISS_KEY = 'wm-pro-banner-launched-dismissed';
-const LEGACY_DISMISS_KEY = 'wm-pro-banner-dismissed';
+const DISMISS_KEY = 'si-pro-banner-launched-dismissed';
+const LEGACY_DISMISS_KEY = 'si-pro-banner-dismissed';
 const DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
 
 function isDismissed(): boolean {

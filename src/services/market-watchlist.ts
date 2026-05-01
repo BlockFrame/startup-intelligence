@@ -13,8 +13,8 @@ export interface MarketWatchlistEntry {
   display?: string;
 }
 
-const STORAGE_KEY = 'wm-market-watchlist-v1';
-export const MARKET_WATCHLIST_EVENT = 'wm-market-watchlist-changed';
+const STORAGE_KEY = 'si-market-watchlist-v1';
+export const MARKET_WATCHLIST_EVENT = 'si-market-watchlist-changed';
 
 function safeParseJson<T>(raw: string | null): T | null {
   if (!raw) return null;

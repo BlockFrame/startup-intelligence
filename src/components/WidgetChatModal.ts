@@ -50,7 +50,7 @@ async function buildWidgetAuthHeaders(isPro: boolean): Promise<Record<string, st
   const proKey = getProWidgetKey();
   if (testerKey || widgetKey || proKey) {
     const headers: Record<string, string> = {};
-    if (testerKey) headers['X-WorldMonitor-Key'] = testerKey;
+    if (testerKey) headers['X-Startup-Intelligence-Key'] = testerKey;
     if (widgetKey) headers['X-Widget-Key'] = widgetKey;
     if (isPro && proKey) headers['X-Pro-Key'] = proKey;
     return headers;
@@ -446,7 +446,7 @@ function renderPreviewHtml(
 ): void {
   const rendered = isPro
     ? wrapProWidgetHtml(html)
-    : wrapWidgetHtml(html, 'wm-widget-shell-preview');
+    : wrapWidgetHtml(html, 'si-widget-shell-preview');
 
   container.innerHTML = `
     <div class="widget-chat-preview-frame">

@@ -108,11 +108,11 @@ describe('widget-agent relay — security', () => {
   it('SSRF guard — allowlist is checked before any fetch call in tool loop', () => {
     const allowlistCheck = relay.indexOf('isWidgetEndpointAllowed(endpoint)');
     assert.ok(allowlistCheck !== -1, 'isWidgetEndpointAllowed() check missing in tool loop');
-    // The fetch call to api.worldmonitor.app must come AFTER the check
-    const fetchCallIdx = relay.indexOf("'https://api.worldmonitor.app'", allowlistCheck);
+    // The fetch call to api.startupintelligence.app must come AFTER the check
+    const fetchCallIdx = relay.indexOf("'https://api.startupintelligence.app'", allowlistCheck);
     assert.ok(
       fetchCallIdx > allowlistCheck,
-      'fetch() to api.worldmonitor.app must appear after allowlist check',
+      'fetch() to api.startupintelligence.app must appear after allowlist check',
     );
   });
 
@@ -187,7 +187,7 @@ describe('widget-agent relay — security', () => {
     const corsBlock = relay.slice(widgetCorsIdx, widgetCorsIdx + 600);
     // Must NOT define a hardcoded origins array for this specific route
     assert.ok(
-      !corsBlock.includes("['https://worldmonitor.app'"),
+      !corsBlock.includes("['https://startupintelligence.app'"),
       'Do NOT hardcode origins for /widget-agent — reuse getCorsOrigin()',
     );
     // Must reference corsOrigin variable (set by getCorsOrigin earlier)
@@ -233,17 +233,17 @@ describe('widget-agent relay — security', () => {
 describe('widget-store — constants and logic', () => {
   const store = src('src/services/widget-store.ts');
 
-  it('storage key is wm-custom-widgets', () => {
+  it('storage key is si-custom-widgets', () => {
     assert.ok(
-      store.includes("'wm-custom-widgets'"),
-      "Storage key must be 'wm-custom-widgets'",
+      store.includes("'si-custom-widgets'"),
+      "Storage key must be 'si-custom-widgets'",
     );
   });
 
-  it('auth gate checks wm-widget-key localStorage entry', () => {
+  it('auth gate checks si-widget-key localStorage entry', () => {
     assert.ok(
-      store.includes("'wm-widget-key'"),
-      "Feature gate must check localStorage key 'wm-widget-key'",
+      store.includes("'si-widget-key'"),
+      "Feature gate must check localStorage key 'si-widget-key'",
     );
   });
 
@@ -280,17 +280,17 @@ describe('widget-store — constants and logic', () => {
     );
   });
 
-  it('deleteWidget cleans worldmonitor-panel-spans (aggregate map)', () => {
+  it('deleteWidget cleansstartupintelligence-panel-spans (aggregate map)', () => {
     assert.ok(
-      store.includes("'worldmonitor-panel-spans'"),
-      "deleteWidget must clean 'worldmonitor-panel-spans'",
+      store.includes("'startupintelligence-panel-spans'"),
+      "deleteWidget must clean 'startupintelligence-panel-spans'",
     );
   });
 
-  it('deleteWidget cleans worldmonitor-panel-col-spans (aggregate map)', () => {
+  it('deleteWidget cleansstartupintelligence-panel-col-spans (aggregate map)', () => {
     assert.ok(
-      store.includes("'worldmonitor-panel-col-spans'"),
-      "deleteWidget must clean 'worldmonitor-panel-col-spans'",
+      store.includes("'startupintelligence-panel-col-spans'"),
+      "deleteWidget must clean 'startupintelligence-panel-col-spans'",
     );
   });
 
@@ -702,11 +702,11 @@ describe('proxy routing — widgetAgentUrl', () => {
     );
   });
 
-  it('widgetAgentUrl targets proxy.worldmonitor.app (not toRuntimeUrl)', () => {
+  it('widgetAgentUrl targets proxy.startupintelligence.app (not toRuntimeUrl)', () => {
     // The URL may be in a constant above the function; search the whole file
     assert.ok(
-      proxy.includes('proxy.worldmonitor.app'),
-      'Must target proxy.worldmonitor.app directly (sidecar destroys SSE via arrayBuffer)',
+      proxy.includes('proxy.startupintelligence.app'),
+      'Must target proxy.startupintelligence.app directly (sidecar destroys SSE via arrayBuffer)',
     );
     // Verify the function itself does not use toRuntimeUrl
     const fnIdx = proxy.indexOf('function widgetAgentUrl');
@@ -718,14 +718,14 @@ describe('proxy routing — widgetAgentUrl', () => {
     );
   });
 
-  it('vite.config.ts proxies /widget-agent to proxy.worldmonitor.app', () => {
+  it('vite.config.ts proxies /widget-agent to proxy.startupintelligence.app', () => {
     assert.ok(
       vite.includes('/widget-agent'),
       'vite.config.ts must have proxy entry for /widget-agent',
     );
     assert.ok(
-      vite.includes('proxy.worldmonitor.app'),
-      'Vite proxy target must be proxy.worldmonitor.app',
+      vite.includes('proxy.startupintelligence.app'),
+      'Vite proxy target must be proxy.startupintelligence.app',
     );
   });
 
@@ -858,7 +858,7 @@ describe('CustomWidgetPanel — header buttons and events', () => {
       'wrapWidgetHtml() must sanitize HTML internally',
     );
     assert.ok(
-      sanitizer.includes('wm-widget-generated'),
+      sanitizer.includes('si-widget-generated'),
       'wrapWidgetHtml() must provide a contained generated-widget wrapper',
     );
   });
@@ -1017,10 +1017,10 @@ describe('PRO widget — store and sanitizer', () => {
     assert.equal(val, 80000, 'MAX_HTML_CHARS_PRO must be 80,000');
   });
 
-  it('isProWidgetEnabled checks wm-pro-key localStorage key', () => {
+  it('isProWidgetEnabled checks si-pro-key localStorage key', () => {
     assert.ok(
-      store.includes("'wm-pro-key'"),
-      "isProWidgetEnabled must check localStorage key 'wm-pro-key'",
+      store.includes("'si-pro-key'"),
+      "isProWidgetEnabled must check localStorage key 'si-pro-key'",
     );
     assert.ok(
       store.includes('isProWidgetEnabled'),
@@ -1028,10 +1028,10 @@ describe('PRO widget — store and sanitizer', () => {
     );
   });
 
-  it('PRO HTML stored in separate wm-pro-html-{id} key', () => {
+  it('PRO HTML stored in separate si-pro-html-{id} key', () => {
     assert.ok(
-      store.includes('wm-pro-html-'),
-      "PRO HTML must be stored in 'wm-pro-html-{id}' separate localStorage key",
+      store.includes('si-pro-html-'),
+      "PRO HTML must be stored in 'si-pro-html-{id}' separate localStorage key",
     );
   });
 
@@ -1040,12 +1040,12 @@ describe('PRO widget — store and sanitizer', () => {
     assert.ok(loadIdx !== -1, 'loadWidgets not found');
     const loadBody = store.slice(loadIdx, loadIdx + 600);
     assert.ok(
-      loadBody.includes('proHtml') || loadBody.includes('wm-pro-html'),
+      loadBody.includes('proHtml') || loadBody.includes('si-pro-html'),
       'loadWidgets must read PRO HTML from separate key',
     );
   });
 
-  it("loadWidgets drops PRO entry when wm-pro-html-{id} is missing", () => {
+  it("loadWidgets drops PRO entry when si-pro-html-{id} is missing", () => {
     const loadIdx = store.indexOf('function loadWidgets');
     const loadBody = store.slice(loadIdx, loadIdx + 600);
     assert.ok(
@@ -1073,13 +1073,13 @@ describe('PRO widget — store and sanitizer', () => {
     );
   });
 
-  it('deleteWidget removes wm-pro-html-{id} key', () => {
+  it('deleteWidget removes si-pro-html-{id} key', () => {
     const deleteIdx = store.indexOf('function deleteWidget');
     assert.ok(deleteIdx !== -1, 'deleteWidget not found');
     const deleteBody = store.slice(deleteIdx, deleteIdx + 400);
     assert.ok(
-      deleteBody.includes('wm-pro-html') || deleteBody.includes('proHtmlKey'),
-      'deleteWidget must also remove the wm-pro-html-{id} key',
+      deleteBody.includes('si-pro-html') || deleteBody.includes('proHtmlKey'),
+      'deleteWidget must also remove the si-pro-html-{id} key',
     );
   });
 
@@ -1127,7 +1127,7 @@ describe('PRO widget — store and sanitizer', () => {
     const fnIdx = san.indexOf('wrapProWidgetHtml');
     const fnBody = san.slice(fnIdx, fnIdx + 500);
     assert.ok(
-      fnBody.includes('wm-widget-sandbox.html'),
+      fnBody.includes('startup-widget-sandbox.html'),
       'wrapProWidgetHtml must load the dedicated sandbox page (not srcdoc) to get its own CSP',
     );
     assert.ok(
@@ -1283,12 +1283,12 @@ describe('PRO widget — i18n keys and CSS', () => {
     );
   });
 
-  it('.wm-widget-pro iframe CSS sets 400px height', () => {
+  it('.si-widget-pro iframe CSS sets 400px height', () => {
     assert.ok(
-      css.includes('.wm-widget-pro'),
-      'CSS must target .wm-widget-pro for PRO iframe container',
+      css.includes('.si-widget-pro'),
+      'CSS must target .si-widget-pro for PRO iframe container',
     );
-    const proIdx = css.indexOf('.wm-widget-pro');
+    const proIdx = css.indexOf('.si-widget-pro');
     const proRegion = css.slice(proIdx, proIdx + 300);
     assert.ok(
       proRegion.includes('400px') || css.includes('400px'),

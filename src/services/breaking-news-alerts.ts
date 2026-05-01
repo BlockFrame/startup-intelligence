@@ -29,8 +29,8 @@ export interface AlertSettings {
 const RELAY_GATES_READY = import.meta.env.VITE_RELAY_GATES_READY === '1';
 const IMPORTANCE_SCORE_MIN = 30; // Items below this threshold are too low-signal for the banner
 
-const SETTINGS_KEY = 'wm-breaking-alerts-v1';
-const DEDUPE_KEY = 'wm-breaking-alerts-dedupe';
+const SETTINGS_KEY = 'si-breaking-alerts-v1';
+const DEDUPE_KEY = 'si-breaking-alerts-dedupe';
 const RECENCY_GATE_MS = 15 * 60 * 1000;
 const PER_EVENT_COOLDOWN_MS = 30 * 60 * 1000;
 const GLOBAL_COOLDOWN_MS = 60 * 1000;

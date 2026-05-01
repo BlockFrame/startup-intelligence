@@ -70,7 +70,7 @@ test('startup panel registry lives in its own variant module', () => {
   assert.match(viteConfigSource, /startup-panels\.ts/);
 });
 
-test('startup variant includes target dashboards and excludes legacy WorldMonitor panels', () => {
+test('startup variant includes target dashboards and excludes legacy StartupIntelligence panels', () => {
   const panelBlock = defaultPanelsBlock();
   for (const key of requiredStartupPanelKeys) {
     assert.match(panelBlock, new RegExp(`${key}:|['"]${key}['"]`), `${key} should stay in startup registry`);
@@ -104,12 +104,12 @@ test('startup panel layout repairs stale cross-variant panel storage', () => {
   assert.match(panelLayoutSource, /saveToStorage\(STORAGE_KEYS\.panels, this\.ctx\.panelSettings\)/);
 });
 
-test('startup route does not call legacy WorldMonitor product links for premium gating or repo stars', () => {
-  assert.doesNotMatch(panelLayoutSource, /https:\/\/worldmonitor\.app\/pro/);
-  assert.doesNotMatch(panelLayoutSource, /https:\/\/api\.github\.com\/repos\/koala73\/worldmonitor/);
+test('startup route does not call non-startup product links for premium gating or repo stars', () => {
+  assert.doesNotMatch(panelLayoutSource, /https:\/\/startupintelligence\.app\/pro/);
+  assert.doesNotMatch(panelLayoutSource, /https:\/\/api\.github\.com\/repos\/koala73\/startup-intelligence/);
   assert.match(panelLayoutSource, /IS_STARTUP_BUILD[\s\S]+\(\) => window\.open\('\/pro', '_blank'\)/);
   assert.match(panelLayoutSource, /import\('@\/app\/non-startup-layout-runtime'\)/);
   assert.match(panelLayoutSource, /const IS_STARTUP_BUILD = import\.meta\.env\.VITE_VARIANT === 'startup'/);
-  assert.match(nonStartupLayoutRuntimeSource, /https:\/\/worldmonitor\.app\/pro/);
-  assert.match(nonStartupLayoutRuntimeSource, /https:\/\/api\.github\.com\/repos\/koala73\/worldmonitor/);
+  assert.match(nonStartupLayoutRuntimeSource, /https:\/\/startupintelligence\.app\/pro/);
+  assert.match(nonStartupLayoutRuntimeSource, /https:\/\/api\.github\.com\/repos\/koala73\/startup-intelligence/);
 });

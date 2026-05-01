@@ -8,7 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
 function extractGetRoutes() {
-  const generatedDir = join(root, 'src', 'generated', 'server', 'worldmonitor');
+  const generatedDir = join(root, 'src', 'generated', 'server', 'startup_intelligence');
   const routes = [];
 
   function walk(dir) {

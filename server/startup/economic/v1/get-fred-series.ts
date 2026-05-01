@@ -7,7 +7,7 @@ import type {
   ServerContext,
   GetFredSeriesRequest,
   GetFredSeriesResponse,
-} from '../../../../src/generated/server/worldmonitor/economic/v1/service_server';
+} from '../../../../src/generated/server/startup_intelligence/economic/v1/service_server';
 
 import { getCachedJson } from '../../../_shared/redis';
 import { applyFredObservationLimit, fredSeedKey, normalizeFredLimit } from './_fred-shared';

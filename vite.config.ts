@@ -58,9 +58,9 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
         .replace(/<meta name="twitter:url" content=".*?" \/>/, `<meta name="twitter:url" content="${activeMeta.url}" />`)
         .replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${activeMeta.title}" />`)
         .replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${activeMeta.description}" />`)
-        .replace(/"name": "World Monitor"/, `"name": "${activeMeta.siteName}"`)
-        .replace(/"alternateName": "WorldMonitor"/, `"alternateName": "${activeMeta.siteName.replace(' ', '')}"`)
-        .replace(/"url": "https:\/\/worldmonitor\.app\/"/, `"url": "${activeMeta.url}"`)
+        .replace(/"name": "Startup Intelligence"/, `"name": "${activeMeta.siteName}"`)
+        .replace(/"alternateName": "StartupIntelligence"/, `"alternateName": "${activeMeta.siteName.replace(' ', '')}"`)
+        .replace(/"url": "https:\/\/startup_intelligence\.app\/"/, `"url": "${activeMeta.url}"`)
         .replace(/"description": "Real-time global intelligence dashboard with live news, markets, military tracking, infrastructure monitoring, and geopolitical data."/, `"description": "${activeMeta.description}"`)
         .replace(/"featureList": \[[\s\S]*?\]/, `"featureList": ${JSON.stringify(activeMeta.features, null, 8).replace(/\n/g, '\n      ')}`);
 
@@ -183,17 +183,17 @@ function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
           import('./server/router'),
           import('./server/cors'),
           import('./server/error-mapper'),
-          import('./src/generated/server/worldmonitor/consumer_prices/v1/service_server'),
+          import('./src/generated/server/startup_intelligence/consumer_prices/v1/service_server'),
           import('./server/startup/consumer-prices/v1/handler'),
-          import('./src/generated/server/worldmonitor/economic/v1/service_server'),
+          import('./src/generated/server/startup_intelligence/economic/v1/service_server'),
           import('./server/startup/economic/v1/handler'),
-          import('./src/generated/server/worldmonitor/intelligence/v1/service_server'),
+          import('./src/generated/server/startup_intelligence/intelligence/v1/service_server'),
           import('./server/startup/intelligence/v1/handler'),
-          import('./src/generated/server/worldmonitor/market/v1/service_server'),
+          import('./src/generated/server/startup_intelligence/market/v1/service_server'),
           import('./server/startup/market/v1/handler'),
-          import('./src/generated/server/worldmonitor/news/v1/service_server'),
+          import('./src/generated/server/startup_intelligence/news/v1/service_server'),
           import('./server/startup/news/v1/handler'),
-          import('./src/generated/server/worldmonitor/research/v1/service_server'),
+          import('./src/generated/server/startup_intelligence/research/v1/service_server'),
           import('./server/startup/research/v1/handler'),
         ]);
 
@@ -213,9 +213,7 @@ function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
     const [
       routerMod, corsMod, errorMod,
       researchServerMod, researchHandlerMod,
-      cyberServerMod, cyberHandlerMod,
       economicServerMod, economicHandlerMod,
-      infrastructureServerMod, infrastructureHandlerMod,
       marketServerMod, marketHandlerMod,
       newsServerMod, newsHandlerMod,
       intelligenceServerMod, intelligenceHandlerMod,
@@ -223,28 +221,22 @@ function sebufApiPlugin(options: { startupOnly?: boolean } = {}): Plugin {
         import('./server/router'),
         import('./server/cors'),
         import('./server/error-mapper'),
-        import('./src/generated/server/worldmonitor/research/v1/service_server'),
+        import('./src/generated/server/startup_intelligence/research/v1/service_server'),
         import('./server/startup/research/v1/handler'),
-        import('./src/generated/server/worldmonitor/cyber/v1/service_server'),
-        import('./server/worldmonitor/cyber/v1/handler'),
-        import('./src/generated/server/worldmonitor/economic/v1/service_server'),
+        import('./src/generated/server/startup_intelligence/economic/v1/service_server'),
         import('./server/startup/economic/v1/handler'),
-        import('./src/generated/server/worldmonitor/infrastructure/v1/service_server'),
-        import('./server/worldmonitor/infrastructure/v1/handler'),
-        import('./src/generated/server/worldmonitor/market/v1/service_server'),
+        import('./src/generated/server/startup_intelligence/market/v1/service_server'),
         import('./server/startup/market/v1/handler'),
-        import('./src/generated/server/worldmonitor/news/v1/service_server'),
+        import('./src/generated/server/startup_intelligence/news/v1/service_server'),
         import('./server/startup/news/v1/handler'),
-        import('./src/generated/server/worldmonitor/intelligence/v1/service_server'),
-        import('./server/worldmonitor/intelligence/v1/handler'),
+        import('./src/generated/server/startup_intelligence/intelligence/v1/service_server'),
+        import('./server/startup/intelligence/v1/handler'),
       ]);
 
     const serverOptions = { onError: errorMod.mapErrorToResponse };
     const allRoutes = [
       ...researchServerMod.createResearchServiceRoutes(researchHandlerMod.researchHandler, serverOptions),
-      ...cyberServerMod.createCyberServiceRoutes(cyberHandlerMod.cyberHandler, serverOptions),
       ...economicServerMod.createEconomicServiceRoutes(economicHandlerMod.economicHandler, serverOptions),
-      ...infrastructureServerMod.createInfrastructureServiceRoutes(infrastructureHandlerMod.infrastructureHandler, serverOptions),
       ...marketServerMod.createMarketServiceRoutes(marketHandlerMod.marketHandler, serverOptions),
       ...newsServerMod.createNewsServiceRoutes(newsHandlerMod.newsHandler, serverOptions),
       ...intelligenceServerMod.createIntelligenceServiceRoutes(intelligenceHandlerMod.intelligenceHandler, serverOptions),
@@ -948,7 +940,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // Widget agent — forward to Railway relay for SSE streaming
         '/widget-agent': {
-          target: 'https://proxy.worldmonitor.app',
+          target: 'https://proxy.startupintelligence.app',
           changeOrigin: true,
         },
         // Yahoo Finance API

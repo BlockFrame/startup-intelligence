@@ -8,7 +8,7 @@ import type {
   TrendDirection,
 } from './types';
 import { haversineKm } from '@/utils/distance';
-import { IntelligenceServiceClient } from '@/generated/client/worldmonitor/intelligence/v1/service_client';
+import { IntelligenceServiceClient } from '@/generated/client/startup_intelligence/intelligence/v1/service_client';
 import { hasPremiumAccess } from '@/services/panel-gating';
 
 const LLM_SCORE_THRESHOLD = 60;

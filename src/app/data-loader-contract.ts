@@ -32,7 +32,6 @@ export interface DataLoaderController extends AppModule {
   loadWsbTickers(): Promise<void>;
   refreshTemporalBaseline(): Promise<void>;
   loadTradePolicy(): Promise<void>;
-  loadSupplyChain(): Promise<void>;
   loadCrossSourceSignals(): Promise<void>;
   loadTelegramIntel(): Promise<void>;
   loadAaiiSentiment(): Promise<void>;

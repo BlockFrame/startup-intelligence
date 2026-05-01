@@ -2,16 +2,16 @@ import { loadFromStorage, saveToStorage } from '@/utils';
 import { sanitizeWidgetHtml } from '@/utils/widget-sanitizer';
 import { getAuthState } from '@/services/auth-state';
 
-const STORAGE_KEY = 'wm-custom-widgets';
-const PANEL_SPANS_KEY = 'worldmonitor-panel-spans';
-const PANEL_COL_SPANS_KEY = 'worldmonitor-panel-col-spans';
+const STORAGE_KEY = 'si-custom-widgets';
+const PANEL_SPANS_KEY = 'startupintelligence-panel-spans';
+const PANEL_COL_SPANS_KEY = 'startupintelligence-panel-col-spans';
 const MAX_WIDGETS = 10;
 const MAX_HISTORY = 10;
 const MAX_HTML_CHARS = 50_000;
 const MAX_HTML_CHARS_PRO = 80_000;
 
 function proHtmlKey(id: string): string {
-  return `wm-pro-html-${id}`;
+  return `si-pro-html-${id}`;
 }
 
 export interface CustomWidgetSpec {
@@ -97,15 +97,15 @@ export function getWidget(id: string): CustomWidgetSpec | null {
 }
 
 // ── Cross-domain key helpers ──────────────────────────────────────────────
-// Cookies with domain=.worldmonitor.app are shared across all subdomains
-// (worldmonitor.app, tech., finance., commodity., happy., etc.).
+// Cookies with domain=.startupintelligence.app are shared across all subdomains
+// (startupintelligence.app, tech., finance., commodity., happy., etc.).
 // We read cookie first and fall back to localStorage for migration compat.
 
-const COOKIE_DOMAIN = '.worldmonitor.app';
+const COOKIE_DOMAIN = '.startupintelligence.app';
 const KEY_MAX_AGE = 365 * 24 * 60 * 60;
 
 function usesCookies(): boolean {
-  return location.hostname.endsWith('worldmonitor.app');
+  return location.hostname.endsWith('startupintelligence.app');
 }
 
 function getCookieValue(name: string): string {
@@ -129,21 +129,21 @@ function getKey(name: string): string {
 }
 
 export function setWidgetKey(key: string): void {
-  setDomainCookie('wm-widget-key', key);
-  try { localStorage.setItem('wm-widget-key', key); } catch { /* ignore */ }
+  setDomainCookie('si-widget-key', key);
+  try { localStorage.setItem('si-widget-key', key); } catch { /* ignore */ }
 }
 
 export function setProKey(key: string): void {
-  setDomainCookie('wm-pro-key', key);
-  try { localStorage.setItem('wm-pro-key', key); } catch { /* ignore */ }
+  setDomainCookie('si-pro-key', key);
+  try { localStorage.setItem('si-pro-key', key); } catch { /* ignore */ }
 }
 
 export function isWidgetFeatureEnabled(): boolean {
-  return !!getKey('wm-widget-key');
+  return !!getKey('si-widget-key');
 }
 
 export function getWidgetAgentKey(): string {
-  return getKey('wm-widget-key');
+  return getKey('si-widget-key');
 }
 
 export function getBrowserTesterKeys(): string[] {
@@ -164,7 +164,7 @@ export function getBrowserTesterKey(): string {
 }
 
 export function isProWidgetEnabled(): boolean {
-  return !!getKey('wm-pro-key');
+  return !!getKey('si-pro-key');
 }
 
 export function isProUser(): boolean {
@@ -172,7 +172,7 @@ export function isProUser(): boolean {
 }
 
 export function getProWidgetKey(): string {
-  return getKey('wm-pro-key');
+  return getKey('si-pro-key');
 }
 
 function cleanSpanEntry(storageKey: string, panelId: string): void {

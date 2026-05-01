@@ -5,7 +5,7 @@ import { getUSNIRegionApproxCoords, getUSNIRegionCoords, HULL_HOMEPORT } from '@
 import {
   MilitaryServiceClient,
   type GetUSNIFleetReportResponse,
-} from '@/generated/client/worldmonitor/military/v1/service_client';
+} from '@/generated/client/startup_intelligence/military/v1/service_client';
 
 const client = new MilitaryServiceClient(getRpcBaseUrl(), { fetch: (...args) => globalThis.fetch(...args) });
 
@@ -13,7 +13,7 @@ const breaker = createCircuitBreaker<USNIFleetReport | null>({
   name: 'USNI Fleet Tracker',
   maxFailures: 3,
   cooldownMs: 10 * 60 * 1000,
-  cacheTtlMs: 60 * 60 * 1000, // 1hr local cache
+  cacheTtlMs: 60 * 60 * 1000,
   persistCache: true,
 });
 
@@ -74,7 +74,6 @@ function scatterOffset(hullNumber: string, index: number): { lat: number; lon: n
   return { lat: Math.sin(angle) * dist, lon: Math.cos(angle) * dist };
 }
 
-/** Tighter scatter for in-port ships — just enough to separate icons at the same pier. */
 function portScatterOffset(hullNumber: string, index: number): { lat: number; lon: number } {
   let hash = 0;
   const str = hullNumber || String(index);
@@ -83,24 +82,18 @@ function portScatterOffset(hullNumber: string, index: number): { lat: number; lo
     hash |= 0;
   }
   const angle = (hash % 360) * (Math.PI / 180);
-  const dist = 0.01 + (Math.abs(hash) % 10) * 0.003; // 0.01–0.04 deg ≈ 1–4 km
+  const dist = 0.01 + (Math.abs(hash) % 10) * 0.003;
   return { lat: Math.sin(angle) * dist, lon: Math.cos(angle) * dist };
 }
 
-/** Resolve homeport coordinates for an in-port vessel.
- *  Option A: USNI text supplied an explicit homePort string.
- *  Option B: Fall back to hull-number lookup table.
- *  Returns undefined if neither resolves. */
 function resolvePortCoords(
   homePort: string | undefined,
   hullNumber: string | undefined,
 ): { lat: number; lon: number; portName: string } | undefined {
-  // Option A — use what USNI actually told us
   if (homePort) {
     const coords = getUSNIRegionCoords(homePort);
     if (coords) return { ...coords, portName: homePort };
   }
-  // Option B — hull number fallback table
   if (hullNumber) {
     const normalized = hullNumber.toUpperCase().replace(/\s+/g, '').replace(/[–—]/g, '-');
     const portName = HULL_HOMEPORT[normalized];
@@ -117,11 +110,9 @@ export function mergeUSNIWithAIS(
   usniReport: USNIFleetReport,
   aisClusters: MilitaryVesselCluster[] = [],
 ): { vessels: MilitaryVessel[]; clusters: MilitaryVesselCluster[] } {
-  // Keep merge pure so USNI enrichment does not mutate tracked AIS vessel objects.
   const merged: MilitaryVessel[] = aisVessels.map((vessel) => ({ ...vessel }));
   const matchedHulls = new Set<string>();
 
-  // Pass 1: Enrich AIS vessels with USNI data
   for (const vessel of merged) {
     if (!vessel.hullNumber) continue;
     const aisHull = normalizeHull(vessel.hullNumber);
@@ -144,9 +135,8 @@ export function mergeUSNIWithAIS(
     }
   }
 
-  // Also try name matching for vessels without hull numbers
   for (const vessel of merged) {
-    if (vessel.usniRegion) continue; // Already matched
+    if (vessel.usniRegion) continue;
     const aisName = vessel.name.replace(/^USS\s+/i, '').toUpperCase().trim();
     if (!aisName) continue;
 
@@ -170,13 +160,10 @@ export function mergeUSNIWithAIS(
     }
   }
 
-  // Pass 2: Create synthetic vessels for unmatched USNI entries
   let syntheticIndex = 0;
   for (const usniVessel of usniReport.vessels) {
     if (matchedHulls.has(normalizeHull(usniVessel.hullNumber))) continue;
 
-    // Resolve position: in-port ships use port coords (Option A + B),
-    // deployed/underway ships use deployment theater coords.
     const inPort = usniVessel.deploymentStatus === 'in-port';
     const portResolution = inPort
       ? resolvePortCoords(usniVessel.homePort, usniVessel.hullNumber)
@@ -230,7 +217,6 @@ export function mergeUSNIWithAIS(
     });
   }
 
-  // Pass 3: Keep existing AIS clusters and append USNI-specific operational clusters.
   const usniClusters = buildUSNIClusters(merged);
   const clusters = [...aisClusters, ...usniClusters];
 

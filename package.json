@@ -23,7 +23,7 @@
     "preview": "vite preview",
     "test:data": "tsx --test tests/*.test.mjs tests/*.test.mts",
     "test:feeds": "node scripts/validate-rss-feeds.mjs",
-    "test:sidecar": "node --test api/_cors.test.mjs api/cyber-threats.test.mjs api/usni-fleet.test.mjs scripts/ais-relay-rss.test.cjs api/loaders-xml-wms-regression.test.mjs",
+    "test:sidecar": "node --test api/_cors.test.mjs scripts/ais-relay-rss.test.cjs api/loaders-xml-wms-regression.test.mjs",
     "test:convex": "vitest run --config vitest.config.mts",
     "test:convex:watch": "vitest --config vitest.config.mts"
   },

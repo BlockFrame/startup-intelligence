@@ -5,7 +5,7 @@ import type { InternetOutage } from '@/types';
 import type {
   ListInternetDdosAttacksResponse,
   TrafficAnomaly,
-} from '@/generated/client/worldmonitor/infrastructure/v1/service_client';
+} from '@/generated/client/startup_intelligence/infrastructure/v1/service_client';
 
 type Tab = 'outages' | 'ddos' | 'anomalies';
 
