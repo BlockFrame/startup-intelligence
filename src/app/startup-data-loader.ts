@@ -1,16 +1,16 @@
 import type { AppContext, AppModule } from '@/app/app-context';
+import { enqueuePanelCall } from '@/app/pending-panel-data';
 import type { MapLayers, NewsItem } from '@/types';
-import { FEEDS, MARKET_SYMBOLS, VARIANT_DEFAULTS } from '@/config';
+import { FEEDS } from '@/config/feeds';
+import { MARKET_SYMBOLS } from '@/config/markets';
+import { VARIANT_DEFAULTS } from '@/config/panels';
 import { fetchCategoryFeeds, getFeedFailures } from '@/services/rss';
 import { fetchMultipleStocks } from '@/services/market';
 import { getMarketWatchlistEntries } from '@/services/market-watchlist';
 import { getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
 import { enrichStartupSignals } from '@/services/startup-signal';
 import { t } from '@/services/i18n';
-import type { MarketPanel } from '@/components/MarketPanel';
 import type { TechReadinessPanel } from '@/components/TechReadinessPanel';
-import type { TechEventsPanel } from '@/components/TechEventsPanel';
-import type { TopVCSignalsPanel } from '@/components/TopVCSignalsPanel';
 
 export interface DataLoaderCallbacks {
   renderCriticalBanner: (postures: never[]) => void;
@@ -33,6 +33,17 @@ export class DataLoaderManager implements AppModule {
   init(): void {}
 
   destroy(): void {}
+
+  private callPanel(key: string, method: string, ...args: unknown[]): void {
+    const panel = this.ctx.panels[key];
+    const target = panel as Record<string, unknown> | undefined;
+    const fn = target?.[method];
+    if (typeof fn === 'function') {
+      fn.apply(panel, args);
+      return;
+    }
+    enqueuePanelCall(key, method, args);
+  }
 
   syncDataFreshnessWithLayers(): void {}
 
@@ -90,7 +101,7 @@ export class DataLoaderManager implements AppModule {
     }
 
     this.ctx.allNews = collected;
-    (this.ctx.panels['top-vc-signals'] as TopVCSignalsPanel | undefined)?.updateSignals(collected);
+    this.callPanel('top-vc-signals', 'updateSignals', collected);
     this.ctx.initialLoadComplete = true;
     this.updateMonitorResults();
   }
@@ -115,15 +126,14 @@ export class DataLoaderManager implements AppModule {
         return base;
       })();
 
-      const panel = this.ctx.panels['markets'] as MarketPanel | undefined;
       const result = await fetchMultipleStocks(symbols, {
         onBatch: (partial) => {
           this.ctx.latestMarkets = partial;
-          panel?.renderMarkets(partial);
+          this.callPanel('markets', 'renderMarkets', partial);
         },
       });
       this.ctx.latestMarkets = result.data;
-      panel?.renderMarkets(result.data, result.rateLimited);
+      this.callPanel('markets', 'renderMarkets', result.data, result.rateLimited);
       this.ctx.statusPanel?.updateApi('Finnhub', { status: result.skipped ? 'error' : 'ok' });
 
     } catch (error) {
@@ -133,8 +143,8 @@ export class DataLoaderManager implements AppModule {
   }
 
   async loadTechEvents(): Promise<void> {
-    (this.ctx.panels['events'] as TechEventsPanel | undefined)?.refresh();
-    (this.ctx.panels['tech-events'] as TechEventsPanel | undefined)?.refresh();
+    this.callPanel('events', 'refresh');
+    this.callPanel('tech-events', 'refresh');
   }
 
   refreshTemporalBaseline(): Promise<void> { return Promise.resolve(); }
@@ -169,8 +179,7 @@ export class DataLoaderManager implements AppModule {
   loadSecurityAdvisories(): Promise<void> { return Promise.resolve(); }
 
   updateMonitorResults(): void {
-    const monitorPanel = this.ctx.panels['monitors'] as { updateResults?: (monitors: unknown[], news: NewsItem[]) => void } | undefined;
-    monitorPanel?.updateResults?.(this.ctx.monitors, this.ctx.allNews);
+    this.callPanel('monitors', 'updateResults', this.ctx.monitors, this.ctx.allNews);
   }
 
   hydrateHappyPanelsFromCache(): Promise<void> {

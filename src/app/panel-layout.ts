@@ -5,27 +5,23 @@ import { getAlertsNearLocation } from '@/services/geo-convergence';
 import type { ClusteredEvent } from '@/types';
 import type { RelatedAsset } from '@/types';
 import type { TheaterPostureSummary } from '@/services/military-surge';
-import { InsightsPanel } from '@/components/InsightsPanel';
 import { LiveNewsPanel, getDefaultLiveChannels, loadChannelsFromStorage } from '@/components/LiveNewsPanel';
-import { MacroSignalsPanel } from '@/components/MacroSignalsPanel';
-import { MarketPanel } from '@/components/MarketPanel';
-import { MonitorPanel } from '@/components/MonitorPanel';
 import { NewsPanel } from '@/components/NewsPanel';
-import { TechEventsPanel } from '@/components/TechEventsPanel';
-import { TopVCSignalsPanel } from '@/components/TopVCSignalsPanel';
-import { ArxivPapersDashboard } from '@/components/ArxivPapersDashboard';
-import { GithubReposDashboard } from '@/components/GithubReposDashboard';
-import { HuggingFaceDashboard } from '@/components/HuggingFaceDashboard';
 import { debounce, saveToStorage, loadFromStorage } from '@/utils';
 import { escapeHtml } from '@/utils/sanitize';
 import {
   FEEDS,
   INTEL_SOURCES,
+} from '@/config/feeds';
+import {
   STORAGE_KEYS,
-  SITE_VARIANT,
+} from '@/config/variants/base';
+import {
   ALL_PANELS,
   VARIANT_DEFAULTS,
-} from '@/config';
+} from '@/config/panels';
+import { DEFAULT_PANELS as STARTUP_PANEL_DEFAULTS } from '@/config/variants/startup';
+import { SITE_VARIANT } from '@/config/variant';
 import { getAllowedLayerKeys, type MapVariant } from '@/config/map-layer-definitions';
 import { BETA_MODE } from '@/config/beta';
 import { t } from '@/services/i18n';
@@ -45,6 +41,8 @@ import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import type { AuthSession } from '@/services/auth-state';
 import { PanelGateReason, getPanelGateReason, hasPremiumAccess } from '@/services/panel-gating';
 import type { Panel } from '@/components/Panel';
+
+const IS_STARTUP_BUILD = import.meta.env.VITE_VARIANT === 'startup';
 
 /** Panels that require premium access on web. Auth-based gating applies to these. */
 const WEB_PREMIUM_PANELS = new Set([
@@ -78,9 +76,9 @@ export class PanelLayoutManager implements AppModule {
   private boundWidgetCreatorHandler: ((e: Event) => void) | null = null;
   private unsubscribeEntitlementChange: (() => void) | null = null;
   private unsubscribePaymentFailureBanner: (() => void) | null = null;
-  private arxivDashboard: ArxivPapersDashboard | null = null;
-  private githubReposDashboard: GithubReposDashboard | null = null;
-  private huggingFaceDashboard: HuggingFaceDashboard | null = null;
+  private arxivDashboard: unknown | null = null;
+  private githubReposDashboard: unknown | null = null;
+  private huggingFaceDashboard: unknown | null = null;
 
   constructor(ctx: AppContext, callbacks: PanelLayoutManagerCallbacks) {
     this.ctx = ctx;
@@ -214,13 +212,14 @@ export class PanelLayoutManager implements AppModule {
       case PanelGateReason.ANONYMOUS:
         return () => this.ctx.authModal?.open();
       case PanelGateReason.FREE_TIER:
-        return () => window.open('https://worldmonitor.app/pro', '_blank');
+        return () => window.open(SITE_VARIANT === 'startup' ? '/pro' : 'https://worldmonitor.app/pro', '_blank');
       default:
         return () => {};
     }
   }
 
   private async fetchGitHubStars(): Promise<void> {
+    if (SITE_VARIANT === 'startup') return;
     try {
       const response = await fetch('https://api.github.com/repos/koala73/worldmonitor');
       if (!response.ok) return;
@@ -544,13 +543,19 @@ export class PanelLayoutManager implements AppModule {
         }
       });
       if (showArxiv && !this.arxivDashboard) {
-        this.arxivDashboard = new ArxivPapersDashboard(arxivEl);
+        void import('@/components/ArxivPapersDashboard').then(({ ArxivPapersDashboard }) => {
+          if (!this.arxivDashboard) this.arxivDashboard = new ArxivPapersDashboard(arxivEl);
+        });
       }
       if (showGithub && !this.githubReposDashboard) {
-        this.githubReposDashboard = new GithubReposDashboard(githubEl);
+        void import('@/components/GithubReposDashboard').then(({ GithubReposDashboard }) => {
+          if (!this.githubReposDashboard) this.githubReposDashboard = new GithubReposDashboard(githubEl);
+        });
       }
       if (showHuggingFace && huggingFaceEl && !this.huggingFaceDashboard) {
-        this.huggingFaceDashboard = new HuggingFaceDashboard(huggingFaceEl);
+        void import('@/components/HuggingFaceDashboard').then(({ HuggingFaceDashboard }) => {
+          if (!this.huggingFaceDashboard && huggingFaceEl) this.huggingFaceDashboard = new HuggingFaceDashboard(huggingFaceEl);
+        });
       }
       localStorage.setItem('startup-active-dashboard-tab', tab);
     };
@@ -737,13 +742,6 @@ export class PanelLayoutManager implements AppModule {
     return Math.round(0.57 * severity + 0.43 * geoScore);
   }
 
-  private createPanel<T extends import('@/components/Panel').Panel>(key: string, factory: () => T): T | null {
-    if (!this.shouldCreatePanel(key)) return null;
-    const panel = factory();
-    this.ctx.panels[key] = panel;
-    return panel;
-  }
-
   private isAllowedStartupPanelKey(key: string): boolean {
     if (key === 'map') return true;
     if (key.startsWith('cw-') || key.startsWith('mcp-')) return true;
@@ -752,23 +750,52 @@ export class PanelLayoutManager implements AppModule {
 
   private sanitizeStartupPanelSettings(): void {
     if (SITE_VARIANT !== 'startup') return;
+    let changed = false;
     for (const key of Object.keys(this.ctx.panelSettings)) {
       if (!this.isAllowedStartupPanelKey(key)) {
         delete this.ctx.panelSettings[key];
+        changed = true;
       }
+    }
+    for (const key of VARIANT_DEFAULTS.startup ?? []) {
+      const defaultConfig = STARTUP_PANEL_DEFAULTS[key];
+      if (!defaultConfig) continue;
+      const currentConfig = this.ctx.panelSettings[key];
+      if (!currentConfig) {
+        this.ctx.panelSettings[key] = { ...defaultConfig };
+        changed = true;
+        continue;
+      }
+      const repairedConfig = {
+        ...defaultConfig,
+        ...currentConfig,
+        enabled: defaultConfig.enabled,
+      };
+      if (
+        currentConfig.name !== repairedConfig.name ||
+        currentConfig.priority !== repairedConfig.priority ||
+        currentConfig.enabled !== repairedConfig.enabled
+      ) {
+        this.ctx.panelSettings[key] = repairedConfig;
+        changed = true;
+      }
+    }
+    if (changed) {
+      saveToStorage(STORAGE_KEYS.panels, this.ctx.panelSettings);
     }
   }
 
   private createStartupPanels(): void {
     this.createNewsPanel('tech', 'panels.tech');
     this.createNewsPanel('finance', 'panels.finance');
-    this.createPanel('markets', () => new MarketPanel());
-    this.createPanel('top-vc-signals', () => new TopVCSignalsPanel());
-    const monitorPanel = this.createPanel('monitors', () => new MonitorPanel(this.ctx.monitors));
-    monitorPanel?.onChanged((monitors) => {
-      this.ctx.monitors = monitors;
-      saveToStorage(STORAGE_KEYS.monitors, monitors);
-      this.callbacks.updateMonitorResults();
+    this.lazyPanel('markets', () => import('@/components/MarketPanel').then(m => new m.MarketPanel()));
+    this.lazyPanel('top-vc-signals', () => import('@/components/TopVCSignalsPanel').then(m => new m.TopVCSignalsPanel()));
+    this.lazyPanel('monitors', () => import('@/components/MonitorPanel').then(m => new m.MonitorPanel(this.ctx.monitors)), (monitorPanel) => {
+      monitorPanel.onChanged((monitors) => {
+        this.ctx.monitors = monitors;
+        saveToStorage(STORAGE_KEYS.monitors, monitors);
+        this.callbacks.updateMonitorResults();
+      });
     });
 
     this.createNewsPanel('layoffs', 'panels.layoffs');
@@ -792,7 +819,7 @@ export class PanelLayoutManager implements AppModule {
       this.ctx.panels['live-news'] = new LiveNewsPanel();
     }
 
-    this.createPanel('events', () => new TechEventsPanel('events', () => this.ctx.allNews));
+    this.lazyPanel('events', () => import('@/components/TechEventsPanel').then(m => new m.TechEventsPanel('events', () => this.ctx.allNews)));
 
     this.lazyPanel('tech-readiness', () =>
       import('@/components/TechReadinessPanel').then(m => {
@@ -802,9 +829,9 @@ export class PanelLayoutManager implements AppModule {
       }),
     );
 
-    this.createPanel('macro-signals', () => new MacroSignalsPanel());
+    this.lazyPanel('macro-signals', () => import('@/components/MacroSignalsPanel').then(m => new m.MacroSignalsPanel()));
 
-    this.createPanel('insights', () => new InsightsPanel());
+    this.lazyPanel('insights', () => import('@/components/InsightsPanel').then(m => new m.InsightsPanel()));
   }
 
   private createDefaultVariantPanels(): void {
@@ -833,8 +860,10 @@ export class PanelLayoutManager implements AppModule {
 
     const mapContainer = document.getElementById('mapContainer') as HTMLElement;
     const preferGlobe = loadFromStorage<string>(STORAGE_KEYS.mapMode, 'flat') === 'globe';
-    const { MapContainer } = await import('@/components/MapContainer');
-    const map = new MapContainer(mapContainer, {
+    const MapClass = IS_STARTUP_BUILD
+      ? (await import('@/components/StartupMapContainer')).StartupMapContainer
+      : (await import('@/components/MapContainer')).MapContainer;
+    const map = new MapClass(mapContainer, {
       zoom: this.ctx.isMobile ? 2.5 : 1.0,
       pan: { x: 0, y: 0 },
       view: this.ctx.isMobile ? this.ctx.resolvedLocation : 'global',
@@ -1062,6 +1091,10 @@ export class PanelLayoutManager implements AppModule {
       if (!panel) return;
       const filtered = this.filterItemsByTimeRange(items);
       if (filtered.length === 0 && items.length > 0) {
+        if (SITE_VARIANT === 'startup' && this.ctx.currentTimeRange !== 'all') {
+          panel.renderNews(items);
+          return;
+        }
         panel.renderFilteredEmpty(`No items in ${this.getTimeRangeLabel()}`);
         return;
       }

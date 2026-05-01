@@ -132,35 +132,3 @@ describe('computeAlternativeSuppliers', () => {
     }
   });
 });
-
-describe('CSS classes and integration', () => {
-  it('risk badge CSS classes follow naming convention', async () => {
-    const { readFile } = await import('node:fs/promises');
-    const css = await readFile(
-      new URL('../src/styles/country-deep-dive.css', import.meta.url),
-      'utf8',
-    );
-    assert.ok(css.includes('.cdp-risk-badge'), 'Missing .cdp-risk-badge class');
-    assert.ok(css.includes('.cdp-risk-safe'), 'Missing .cdp-risk-safe class');
-    assert.ok(css.includes('.cdp-risk-at-risk'), 'Missing .cdp-risk-at-risk class');
-    assert.ok(css.includes('.cdp-risk-critical'), 'Missing .cdp-risk-critical class');
-    assert.ok(css.includes('.cdp-risk-unknown'), 'Missing .cdp-risk-unknown class');
-    assert.ok(css.includes('.cdp-recommendations'), 'Missing .cdp-recommendations class');
-    assert.ok(css.includes('.cdp-recommendation-item'), 'Missing .cdp-recommendation-item class');
-    assert.ok(css.includes('.cdp-recommendation-safe'), 'Missing .cdp-recommendation-safe class');
-    assert.ok(css.includes('.cdp-recommendation-warn'), 'Missing .cdp-recommendation-warn class');
-    assert.ok(css.includes('.cdp-recommendation-critical'), 'Missing .cdp-recommendation-critical class');
-  });
-
-  it('CountryDeepDivePanel renders Route Risk header', async () => {
-    const { readFile } = await import('node:fs/promises');
-    const src = await readFile(
-      new URL('../src/components/CountryDeepDivePanel.ts', import.meta.url),
-      'utf8',
-    );
-    assert.ok(src.includes("'Route Risk'"), 'Should have Route Risk column header');
-    assert.ok(src.includes('cdp-risk-badge'), 'Should render risk badges');
-    assert.ok(src.includes('cdp-recommendations'), 'Should render recommendations section');
-    assert.ok(src.includes('computeAlternativeSuppliers'), 'Should use computeAlternativeSuppliers');
-  });
-});

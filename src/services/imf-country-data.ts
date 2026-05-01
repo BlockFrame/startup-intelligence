@@ -1,8 +1,7 @@
 /**
  * IMF WEO per-country data — fetches the four IMF SDMX-3.0 seeded keys
  * (macro, growth, labor, external) via /api/bootstrap and returns the
- * subset for one country. Used by CountryDeepDivePanel Economic
- * Indicators + Country Facts cards (issue #3027).
+ * subset for one country.
  *
  * Network policy: single bootstrap GET with comma-separated keys; result
  * is memoised for ~10 min since WEO is a monthly release.

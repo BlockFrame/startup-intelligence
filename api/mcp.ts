@@ -370,80 +370,6 @@ const TOOL_REGISTRY: ToolDef[] = [
     },
   },
   {
-    name: 'get_country_brief',
-    description: 'AI-generated per-country intelligence brief. Produces an LLM-analyzed geopolitical and economic assessment for the given country. Supports analytical frameworks for structured lenses.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        country_code: { type: 'string', description: 'ISO 3166-1 alpha-2 country code, e.g. "US", "DE", "CN", "IR"' },
-        framework: { type: 'string', description: 'Optional analytical framework instructions to shape the analysis lens (e.g. Ray Dalio debt cycle, PMESII-PT)' },
-      },
-      required: ['country_code'],
-    },
-    _execute: async (params, base, apiKey) => {
-      const UA = 'worldmonitor-mcp-edge/1.0';
-      const countryCode = String(params.country_code ?? '').toUpperCase().slice(0, 2);
-
-      // Fetch current geopolitical headlines to ground the LLM (budget: 2 s — cached endpoint).
-      // Without context the model hallucinates events — real headlines anchor it.
-      // 2 s + 22 s brief = 24 s worst-case; 6 s margin before the 30 s Edge kill.
-      let contextParam = '';
-      try {
-        const digestRes = await fetch(`${base}/api/news/v1/list-feed-digest?variant=geo&lang=en`, {
-          headers: { 'X-WorldMonitor-Key': apiKey, 'User-Agent': UA },
-          signal: AbortSignal.timeout(2_000),
-        });
-        if (digestRes.ok) {
-          type DigestPayload = { categories?: Record<string, { items?: { title?: string }[] }> };
-          const digest = await digestRes.json() as DigestPayload;
-          const headlines = Object.values(digest.categories ?? {})
-            .flatMap(cat => cat.items ?? [])
-            .map(item => item.title ?? '')
-            .filter(Boolean)
-            .slice(0, 15)
-            .join('\n');
-          if (headlines) contextParam = encodeURIComponent(headlines.slice(0, 4000));
-        }
-      } catch { /* proceed without context — better than failing */ }
-
-      const briefUrl = contextParam
-        ? `${base}/api/intelligence/v1/get-country-intel-brief?context=${contextParam}`
-        : `${base}/api/intelligence/v1/get-country-intel-brief`;
-
-      const res = await fetch(briefUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-WorldMonitor-Key': apiKey, 'User-Agent': UA },
-        body: JSON.stringify({ country_code: countryCode, framework: String(params.framework ?? '') }),
-        signal: AbortSignal.timeout(22_000),
-      });
-      if (!res.ok) throw new Error(`get-country-intel-brief HTTP ${res.status}`);
-      return res.json();
-    },
-  },
-  {
-    name: 'get_country_risk',
-    description: 'Structured risk intelligence for a specific country: Composite Instability Index (CII) score 0-100, component breakdown (unrest/conflict/security/news), travel advisory level, and OFAC sanctions exposure. Fast Redis read — no LLM. Use for quantitative risk screening or to answer "how risky is X right now?"',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        country_code: { type: 'string', description: 'ISO 3166-1 alpha-2 country code, e.g. "RU", "IR", "CN", "UA"' },
-      },
-      required: ['country_code'],
-    },
-    _execute: async (params, base, apiKey) => {
-      const code = String(params.country_code ?? '').toUpperCase().slice(0, 2);
-      const res = await fetch(
-        `${base}/api/intelligence/v1/get-country-risk?country_code=${encodeURIComponent(code)}`,
-        {
-          headers: { 'X-WorldMonitor-Key': apiKey, 'User-Agent': 'worldmonitor-mcp-edge/1.0' },
-          signal: AbortSignal.timeout(8_000),
-        },
-      );
-      if (!res.ok) throw new Error(`get-country-risk HTTP ${res.status}`);
-      return res.json();
-    },
-  },
-  {
     name: 'get_airspace',
     description: 'Live ADS-B aircraft over a country. Returns civilian flights (OpenSky) and identified military aircraft with callsigns, positions, altitudes, and headings. Answers questions like "how many planes are over the UAE right now?" or "are there military aircraft over Taiwan?"',
     inputSchema: {
@@ -583,29 +509,6 @@ const TOOL_REGISTRY: ToolDef[] = [
           region: d.region, description: d.description,
         })),
       };
-    },
-  },
-  {
-    name: 'analyze_situation',
-    description: 'AI geopolitical situation analysis (DeductionPanel). Provide a query and optional geo-political context; returns an LLM-powered analytical deduction with confidence and supporting signals.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string', description: 'The question or situation to analyze, e.g. "What are the implications of the Taiwan strait escalation for semiconductor supply chains?"' },
-        context: { type: 'string', description: 'Optional additional geo-political context to include in the analysis' },
-        framework: { type: 'string', description: 'Optional analytical framework instructions to shape the analysis lens (e.g. Ray Dalio debt cycle, PMESII-PT, Porter\'s Five Forces)' },
-      },
-      required: ['query'],
-    },
-    _execute: async (params, base, apiKey) => {
-      const res = await fetch(`${base}/api/intelligence/v1/deduct-situation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-WorldMonitor-Key': apiKey, 'User-Agent': 'worldmonitor-mcp-edge/1.0' },
-        body: JSON.stringify({ query: String(params.query ?? ''), geoContext: String(params.context ?? ''), framework: String(params.framework ?? '') }),
-        signal: AbortSignal.timeout(25_000),
-      });
-      if (!res.ok) throw new Error(`deduct-situation HTTP ${res.status}`);
-      return res.json();
     },
   },
   {

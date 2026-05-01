@@ -1,7 +1,7 @@
 import { Panel } from './Panel';
 import { t } from '@/services/i18n';
 import type { Monitor, NewsItem } from '@/types';
-import { MONITOR_COLORS } from '@/config';
+import { MONITOR_COLORS } from '@/config/variants/base';
 import { generateId, formatTime, getCSSColor } from '@/utils';
 import { sanitizeUrl } from '@/utils/sanitize';
 import { h, replaceChildren, clearChildren } from '@/utils/dom-utils';

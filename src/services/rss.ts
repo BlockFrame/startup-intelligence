@@ -1,12 +1,12 @@
 import type { Feed, NewsItem } from '@/types';
-import { SITE_VARIANT } from '@/config';
+import { SITE_VARIANT } from '@/config/variant';
 import { chunkArray, fetchWithProxy } from '@/utils';
 import { classifyByKeyword, classifyWithAI } from './threat-classifier';
 import { inferGeoHubsFromTitle } from './geo-hub-index';
 import { getPersistentCache, setPersistentCache } from './persistent-cache';
 import { dataFreshness } from './data-freshness';
 import { ingestHeadlines } from './trending-keywords';
-import { getCurrentLanguage } from './i18n';
+import { getCurrentLanguage } from '@/services/i18n';
 import { parseFeedDateOrNow } from './feed-date';
 import { canQueueAiClassification, AI_CLASSIFY_MAX_PER_FEED } from './ai-classify-queue';
 import { mlWorker } from './ml-worker';

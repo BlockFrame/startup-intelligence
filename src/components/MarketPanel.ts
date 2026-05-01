@@ -4,7 +4,7 @@ import type { MarketData, CryptoData, TokenData } from '@/types';
 import { formatPrice, formatChange, getChangeClass, getHeatmapClass } from '@/utils';
 import { escapeHtml } from '@/utils/sanitize';
 import { miniSparkline } from '@/utils/sparkline';
-import { SITE_VARIANT } from '@/config';
+import { SITE_VARIANT } from '@/config/variant';
 import {
   getMarketWatchlistEntries,
   parseMarketWatchlistInput,

@@ -3,28 +3,26 @@ import { normalizeExclusiveChoropleths } from '@/components/resilience-choroplet
 import type { AppContext } from '@/app/app-context';
 import {
   REFRESH_INTERVALS,
+  STORAGE_KEYS,
+} from '@/config/variants/base';
+import {
   DEFAULT_PANELS,
   DEFAULT_MAP_LAYERS,
   MOBILE_DEFAULT_MAP_LAYERS,
-  STORAGE_KEYS,
-  SITE_VARIANT,
   ALL_PANELS,
   VARIANT_DEFAULTS,
   getEffectivePanelConfig,
   FREE_MAX_PANELS,
   FREE_MAX_SOURCES,
-} from '@/config';
+} from '@/config/panels';
+import { SITE_VARIANT } from '@/config/variant';
 import { sanitizeLayersForVariant } from '@/config/map-layer-definitions';
 import type { MapVariant } from '@/config/map-layer-definitions';
 import { cleanOldSnapshots, initDB } from '@/services/storage';
-import { isOutagesConfigured } from '@/services/infrastructure';
 import { isProUser } from '@/services/widget-store';
-import { mlWorker } from '@/services/ml-worker';
 import { getAiFlowSettings, subscribeAiFlowChange, isHeadlineMemoryEnabled } from '@/services/ai-flow-settings';
-import { startLearning } from '@/services/country-instability';
 import { loadFromStorage, parseMapUrlState, saveToStorage, isMobileDevice } from '@/utils';
 import type { ParsedMapUrlState } from '@/utils';
-import { SignalModal } from '@/components/SignalModal';
 import type { ServiceStatusPanel } from '@/components/ServiceStatusPanel';
 import type { StablecoinPanel } from '@/components/StablecoinPanel';
 import type { EnergyCrisisPanel } from '@/components/EnergyCrisisPanel';
@@ -32,31 +30,22 @@ import type { ETFFlowsPanel } from '@/components/ETFFlowsPanel';
 import type { MacroSignalsPanel } from '@/components/MacroSignalsPanel';
 import type { FearGreedPanel } from '@/components/FearGreedPanel';
 import type { HormuzPanel } from '@/components/HormuzPanel';
-import type { StrategicPosturePanel } from '@/components/StrategicPosturePanel';
 import type { StrategicRiskPanel } from '@/components/StrategicRiskPanel';
-import type { GulfEconomiesPanel } from '@/components/GulfEconomiesPanel';
-import type { GroceryBasketPanel } from '@/components/GroceryBasketPanel';
-import type { BigMacPanel } from '@/components/BigMacPanel';
 import type { FuelPricesPanel } from '@/components/FuelPricesPanel';
-import type { FaoFoodPriceIndexPanel } from '@/components/FaoFoodPriceIndexPanel';
 import type { OilInventoriesPanel } from '@/components/OilInventoriesPanel';
-import type { ClimateNewsPanel } from '@/components/ClimateNewsPanel';
 import type { ConsumerPricesPanel } from '@/components/ConsumerPricesPanel';
-import type { DefensePatentsPanel } from '@/components/DefensePatentsPanel';
 import type { MacroTilesPanel } from '@/components/MacroTilesPanel';
 import type { FSIPanel } from '@/components/FSIPanel';
 import type { YieldCurvePanel } from '@/components/YieldCurvePanel';
 import type { EarningsCalendarPanel } from '@/components/EarningsCalendarPanel';
 import type { EconomicCalendarPanel } from '@/components/EconomicCalendarPanel';
-import type { CotPositioningPanel } from '@/components/CotPositioningPanel';
 import type { LiquidityShiftsPanel } from '@/components/LiquidityShiftsPanel';
-import type { PositioningPanel } from '@/components/PositioningPanel';
 import type { GoldIntelligencePanel } from '@/components/GoldIntelligencePanel';
 import { isDesktopRuntime, waitForSidecarReady } from '@/services/runtime';
 import { hasPremiumAccess } from '@/services/panel-gating';
 import { BETA_MODE } from '@/config/beta';
 import { trackEvent, trackDeeplinkOpened, initAuthAnalytics } from '@/services/analytics';
-import { preloadCountryGeometry, getCountryNameByCode } from '@/services/country-geometry';
+import { preloadCountryGeometry } from '@/services/country-geometry';
 import { initI18n, t } from '@/services/i18n';
 
 import { computeDefaultDisabledSources, getLocaleBoostedSources, getTotalFeedCount, FEEDS, INTEL_SOURCES } from '@/config/feeds';
@@ -70,6 +59,14 @@ import { PanelLayoutManager } from '@/app/panel-layout';
 import type { DataLoaderController } from '@/app/data-loader-contract';
 import type { EventHandlerController } from '@/app/event-handler-contract';
 import { resolveUserRegion, resolvePreciseUserCoordinates, type PreciseCoordinates } from '@/utils/user-location';
+
+type RefreshablePanel = {
+  fetchData(): Promise<void>;
+};
+
+type RefreshOnlyPanel = {
+  refresh(force?: boolean): Promise<void>;
+};
 import { initAuthState, subscribeAuthState } from '@/services/auth-state';
 import { install as installCloudPrefsSync, onSignIn as cloudPrefsSignIn, onSignOut as cloudPrefsSignOut } from '@/utils/cloud-prefs-sync';
 import { getConvexClient, getConvexApi, waitForConvexAuth } from '@/services/convex-client';
@@ -79,7 +76,6 @@ import { capturePendingCheckoutIntentFromUrl, resumePendingCheckout } from '@/se
 import type { CorrelationPanel } from '@/components/CorrelationPanel';
 
 const CYBER_LAYER_ENABLED = import.meta.env.VITE_ENABLE_CYBER_LAYER === 'true';
-const IS_STARTUP_BUILD = import.meta.env.VITE_VARIANT === 'startup';
 const EMPTY_BOOTSTRAP_HYDRATION_STATE: BootstrapHydrationState = {
   source: 'none',
   tiers: {
@@ -88,13 +84,15 @@ const EMPTY_BOOTSTRAP_HYDRATION_STATE: BootstrapHydrationState = {
   },
 };
 
+async function getMlWorker() {
+  return (await import('@/services/ml-worker')).mlWorker;
+}
+
 export type { CountryBriefSignals } from '@/app/app-context';
 
 export class App {
   private state: AppContext;
   private pendingDeepLinkCountry: string | null = null;
-  private pendingDeepLinkExpanded = false;
-  private pendingDeepLinkStoryCode: string | null = null;
 
   private panelLayout!: PanelLayoutManager;
   private dataLoader!: DataLoaderController;
@@ -132,8 +130,7 @@ export class App {
   }
 
   private shouldRefreshIntelligence(): boolean {
-    return this.isAnyPanelNearViewport(['cii', 'strategic-risk', 'strategic-posture'])
-      || !!this.state.countryBriefPage?.isVisible();
+    return this.isAnyPanelNearViewport(['cii', 'strategic-risk', 'strategic-posture']);
   }
 
   private shouldRefreshFirms(): boolean {
@@ -298,15 +295,15 @@ export class App {
       primeTask('telegram-intel', () => this.dataLoader.loadTelegramIntel());
     }
     if (shouldPrime('gulf-economies')) {
-      const panel = this.state.panels['gulf-economies'] as GulfEconomiesPanel | undefined;
+      const panel = this.state.panels['gulf-economies'] as unknown as RefreshablePanel | undefined;
       if (panel) primeTask('gulf-economies', () => panel.fetchData());
     }
     if (shouldPrime('grocery-basket')) {
-      const panel = this.state.panels['grocery-basket'] as GroceryBasketPanel | undefined;
+      const panel = this.state.panels['grocery-basket'] as unknown as RefreshablePanel | undefined;
       if (panel) primeTask('grocery-basket', () => panel.fetchData());
     }
     if (shouldPrime('bigmac')) {
-      const panel = this.state.panels['bigmac'] as BigMacPanel | undefined;
+      const panel = this.state.panels['bigmac'] as unknown as RefreshablePanel | undefined;
       if (panel) primeTask('bigmac', () => panel.fetchData());
     }
     if (shouldPrime('fuel-prices')) {
@@ -314,7 +311,7 @@ export class App {
       if (panel) primeTask('fuel-prices', () => panel.fetchData());
     }
     if (shouldPrime('fao-food-price-index')) {
-      const panel = this.state.panels['fao-food-price-index'] as FaoFoodPriceIndexPanel | undefined;
+      const panel = this.state.panels['fao-food-price-index'] as unknown as RefreshablePanel | undefined;
       if (panel) primeTask('fao-food-price-index', () => panel.fetchData());
     }
     if (shouldPrime('oil-inventories')) {
@@ -322,7 +319,7 @@ export class App {
       if (panel) primeTask('oil-inventories', () => panel.fetchData());
     }
     if (shouldPrime('climate-news')) {
-      const panel = this.state.panels['climate-news'] as ClimateNewsPanel | undefined;
+      const panel = this.state.panels['climate-news'] as unknown as RefreshablePanel | undefined;
       if (panel) primeTask('climate-news', () => panel.fetchData());
     }
     if (shouldPrime('consumer-prices')) {
@@ -330,7 +327,7 @@ export class App {
       if (panel) primeTask('consumer-prices', () => panel.fetchData());
     }
     if (shouldPrime('defense-patents')) {
-      const panel = this.state.panels['defense-patents'] as DefensePatentsPanel | undefined;
+      const panel = this.state.panels['defense-patents'] as unknown as RefreshOnlyPanel | undefined;
       if (panel) primeTask('defense-patents', () => { panel.refresh(); return Promise.resolve(); });
     }
     if (shouldPrime('macro-tiles')) {
@@ -354,7 +351,7 @@ export class App {
       if (panel) primeTask('economic-calendar', () => panel.fetchData());
     }
     if (shouldPrime('cot-positioning')) {
-      const panel = this.state.panels['cot-positioning'] as CotPositioningPanel | undefined;
+      const panel = this.state.panels['cot-positioning'] as unknown as RefreshablePanel | undefined;
       if (panel) primeTask('cot-positioning', () => panel.fetchData());
     }
     if (shouldPrime('liquidity-shifts')) {
@@ -362,7 +359,7 @@ export class App {
       if (panel) primeTask('liquidity-shifts', () => panel.fetchData());
     }
     if (shouldPrime('positioning-247')) {
-      const panel = this.state.panels['positioning-247'] as PositioningPanel | undefined;
+      const panel = this.state.panels['positioning-247'] as unknown as RefreshablePanel | undefined;
       if (panel) primeTask('positioning-247', () => panel.fetchData());
     }
     if (shouldPrime('gold-intelligence')) {
@@ -786,8 +783,6 @@ export class App {
       pizzintIndicator: null,
       correlationEngine: null,
       llmStatusIndicator: null,
-      countryBriefPage: null,
-      countryTimeline: null,
       positivePanel: null,
       countersPanel: null,
       progressPanel: null,
@@ -814,9 +809,7 @@ export class App {
 
   private async setupModules(): Promise<void> {
     const [{ DataLoaderManager }, { EventHandlerManager }] = await Promise.all([
-      IS_STARTUP_BUILD
-        ? import('@/app/startup-data-loader')
-        : import('@/app/data-loader'),
+      import('@/app/startup-data-loader'),
       import('@/app/event-handlers'),
     ]);
 
@@ -882,35 +875,36 @@ export class App {
     await initI18n();
     const aiFlow = getAiFlowSettings();
     if (aiFlow.browserModel || isDesktopRuntime()) {
-      await mlWorker.init();
-      if (BETA_MODE) mlWorker.loadModel('summarization-beta').catch(() => { });
+      const worker = await getMlWorker();
+      await worker.init();
+      if (BETA_MODE) worker.loadModel('summarization-beta').catch(() => { });
     }
 
     if (aiFlow.headlineMemory) {
-      mlWorker.init().then(ok => {
-        if (ok) mlWorker.loadModel('embeddings').catch(() => { });
-      }).catch(() => { });
+      getMlWorker().then(worker => worker.init().then(ok => {
+        if (ok) worker.loadModel('embeddings').catch(() => { });
+      }).catch(() => { })).catch(() => { });
     }
 
     this.unsubAiFlow = subscribeAiFlowChange((key) => {
       if (key === 'browserModel') {
         const s = getAiFlowSettings();
         if (s.browserModel) {
-          mlWorker.init();
+          void getMlWorker().then(worker => worker.init());
         } else if (!isHeadlineMemoryEnabled()) {
-          mlWorker.terminate();
+          void getMlWorker().then(worker => worker.terminate());
         }
       }
       if (key === 'headlineMemory') {
         if (isHeadlineMemoryEnabled()) {
-          mlWorker.init().then(ok => {
-            if (ok) mlWorker.loadModel('embeddings').catch(() => { });
-          }).catch(() => { });
+          getMlWorker().then(worker => worker.init().then(ok => {
+            if (ok) worker.loadModel('embeddings').catch(() => { });
+          }).catch(() => { })).catch(() => { });
         } else {
-          mlWorker.unloadModel('embeddings').catch(() => { });
+          void getMlWorker().then(worker => worker.unloadModel('embeddings').catch(() => { }));
           const s = getAiFlowSettings();
           if (!s.browserModel && !isDesktopRuntime()) {
-            mlWorker.terminate();
+            void getMlWorker().then(worker => worker.terminate());
           }
         }
       }
@@ -1028,20 +1022,21 @@ export class App {
     }
 
     // Phase 2: Shared UI components
-    this.state.signalModal = new SignalModal();
-    this.state.signalModal.setLocationClickHandler((lat, lon) => {
-      this.state.map?.setCenter(lat, lon, 4);
-    });
+    if (SITE_VARIANT !== 'startup') {
+      const { SignalModal } = await import('@/components/SignalModal');
+      this.state.signalModal = new SignalModal();
+      this.state.signalModal.setLocationClickHandler((lat, lon) => {
+        this.state.map?.setCenter(lat, lon, 4);
+      });
+    }
     if (!this.state.isMobile && SITE_VARIANT !== 'startup') {
       const { IntelligenceGapBadge } = await import('@/components/IntelligenceGapBadge');
       this.state.findingsBadge = new IntelligenceGapBadge();
       this.state.findingsBadge.setOnSignalClick((signal) => {
-        if (this.state.countryBriefPage?.isVisible()) return;
         if (localStorage.getItem('wm-settings-open') === '1') return;
         this.state.signalModal?.showSignal(signal);
       });
       this.state.findingsBadge.setOnAlertClick((alert) => {
-        if (this.state.countryBriefPage?.isVisible()) return;
         if (localStorage.getItem('wm-settings-open') === '1') return;
         this.state.signalModal?.showAlert(alert);
       });
@@ -1099,14 +1094,7 @@ export class App {
     // Capture deep link params BEFORE URL sync overwrites them
     const initState = parseMapUrlState(window.location.search, this.state.mapLayers);
     this.pendingDeepLinkCountry = initState.country ?? null;
-    this.pendingDeepLinkExpanded = initState.expanded === true;
-    const earlyParams = new URLSearchParams(window.location.search);
-    this.pendingDeepLinkStoryCode = earlyParams.get('c') ?? null;
     this.eventHandlers.setupUrlStateSync();
-
-    this.state.countryBriefPage?.onStateChange?.(() => {
-      this.eventHandlers.syncUrlState();
-    });
 
     // Start deep link handling early — its retry loop polls hasSufficientData()
     // independently, so it must not be gated behind loadAllData() which can hang.
@@ -1144,7 +1132,10 @@ export class App {
       });
     }
 
-    startLearning();
+    if (SITE_VARIANT !== 'startup') {
+      const { startLearning } = await import('@/services/country-instability');
+      startLearning();
+    }
 
     // Hide unconfigured layers after first data load
     if (SITE_VARIANT === 'startup') {
@@ -1152,7 +1143,9 @@ export class App {
     } else if (!(await import('@/services/maritime')).isAisConfigured()) {
       this.state.map?.hideLayerToggle('ais');
     }
-    if (isOutagesConfigured() === false) {
+    if (SITE_VARIANT === 'startup') {
+      this.state.map?.hideLayerToggle('outages');
+    } else if ((await import('@/services/infrastructure')).isOutagesConfigured() === false) {
       this.state.map?.hideLayerToggle('outages');
     }
     if (!CYBER_LAYER_ENABLED) {
@@ -1299,39 +1292,16 @@ export class App {
   }
 
   private handleDeepLinks(): void {
-    const url = new URL(window.location.href);
     const DEEP_LINK_INITIAL_DELAY_MS = 1500;
 
-    // Check for country brief deep link: ?c=IR (captured early before URL sync)
-    const storyCode = this.pendingDeepLinkStoryCode ?? url.searchParams.get('c');
-    this.pendingDeepLinkStoryCode = null;
-    if (url.pathname === '/story' || storyCode) {
-      const countryCode = storyCode;
-      if (countryCode) {
-        trackDeeplinkOpened('country', countryCode);
-        const countryName = getCountryNameByCode(countryCode.toUpperCase()) || countryCode;
-        setTimeout(() => {
-          this.countryIntel.openCountryBriefByCode(countryCode.toUpperCase(), countryName, {
-            maximize: true,
-          });
-          this.eventHandlers.syncUrlState();
-        }, DEEP_LINK_INITIAL_DELAY_MS);
-        return;
-      }
-    }
-
-    // Check for country brief deep link: ?country=UA or ?country=UA&expanded=1
+    // Startup keeps country deep links as map focus only. Legacy story/brief UI is removed.
     const deepLinkCountry = this.pendingDeepLinkCountry;
-    const deepLinkExpanded = this.pendingDeepLinkExpanded;
     this.pendingDeepLinkCountry = null;
-    this.pendingDeepLinkExpanded = false;
     if (deepLinkCountry) {
       trackDeeplinkOpened('country', deepLinkCountry);
       const cName = CountryIntelManager.resolveCountryName(deepLinkCountry);
       setTimeout(() => {
-        this.countryIntel.openCountryBriefByCode(deepLinkCountry, cName, {
-          maximize: deepLinkExpanded,
-        });
+        this.countryIntel.openCountryBriefByCode(deepLinkCountry, cName);
         this.eventHandlers.syncUrlState();
       }, DEEP_LINK_INITIAL_DELAY_MS);
     }
@@ -1459,7 +1429,7 @@ export class App {
     );
     this.refreshScheduler.scheduleRefresh(
       'defense-patents',
-      () => { (this.state.panels['defense-patents'] as DefensePatentsPanel).refresh(); return Promise.resolve(); },
+      () => { (this.state.panels['defense-patents'] as unknown as RefreshOnlyPanel).refresh(); return Promise.resolve(); },
       REFRESH_INTERVALS.defensePatents,
       () => this.isPanelNearViewport('defense-patents')
     );
@@ -1477,13 +1447,13 @@ export class App {
     );
     this.refreshScheduler.scheduleRefresh(
       'positioning-247',
-      () => (this.state.panels['positioning-247'] as PositioningPanel).fetchData(),
+      () => (this.state.panels['positioning-247'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.hyperliquidFlow,
       () => this.isPanelNearViewport('positioning-247')
     );
     this.refreshScheduler.scheduleRefresh(
       'strategic-posture',
-      () => (this.state.panels['strategic-posture'] as StrategicPosturePanel).refresh(),
+      () => (this.state.panels['strategic-posture'] as unknown as RefreshOnlyPanel).refresh(),
       REFRESH_INTERVALS.strategicPosture,
       () => this.isPanelNearViewport('strategic-posture')
     );
@@ -1529,21 +1499,21 @@ export class App {
 
     this.refreshScheduler.scheduleRefresh(
       'gulf-economies',
-      () => (this.state.panels['gulf-economies'] as GulfEconomiesPanel).fetchData(),
+      () => (this.state.panels['gulf-economies'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.gulfEconomies,
       () => this.isPanelNearViewport('gulf-economies')
     );
 
     this.refreshScheduler.scheduleRefresh(
       'grocery-basket',
-      () => (this.state.panels['grocery-basket'] as GroceryBasketPanel).fetchData(),
+      () => (this.state.panels['grocery-basket'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.groceryBasket,
       () => this.isPanelNearViewport('grocery-basket')
     );
 
     this.refreshScheduler.scheduleRefresh(
       'bigmac',
-      () => (this.state.panels['bigmac'] as BigMacPanel).fetchData(),
+      () => (this.state.panels['bigmac'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.groceryBasket,
       () => this.isPanelNearViewport('bigmac')
     );
@@ -1557,7 +1527,7 @@ export class App {
 
     this.refreshScheduler.scheduleRefresh(
       'fao-food-price-index',
-      () => (this.state.panels['fao-food-price-index'] as FaoFoodPriceIndexPanel).fetchData(),
+      () => (this.state.panels['fao-food-price-index'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.faoFoodPriceIndex,
       () => this.isPanelNearViewport('fao-food-price-index')
     );
@@ -1571,7 +1541,7 @@ export class App {
 
     this.refreshScheduler.scheduleRefresh(
       'climate-news',
-      () => (this.state.panels['climate-news'] as ClimateNewsPanel).fetchData(),
+      () => (this.state.panels['climate-news'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.climateNews,
       () => this.isPanelNearViewport('climate-news')
     );
@@ -1608,7 +1578,7 @@ export class App {
     );
     this.refreshScheduler.scheduleRefresh(
       'cot-positioning',
-      () => (this.state.panels['cot-positioning'] as CotPositioningPanel).fetchData(),
+      () => (this.state.panels['cot-positioning'] as unknown as RefreshablePanel).fetchData(),
       REFRESH_INTERVALS.cotPositioning,
       () => this.isPanelNearViewport('cot-positioning')
     );

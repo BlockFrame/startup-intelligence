@@ -1,4 +1,5 @@
 import type {
+  CyberThreat,
   InternetOutage,
   SocialUnrestEvent,
   MilitaryFlight,
@@ -43,4 +44,9 @@ export interface LegacyIntelligenceCache {
     previewUrl: string;
     assetUrl: string;
   }>;
+}
+
+export interface LegacyAppContextExtension {
+  intelligenceCache: LegacyIntelligenceCache;
+  cyberThreatsCache: CyberThreat[] | null;
 }

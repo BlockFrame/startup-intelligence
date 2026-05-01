@@ -186,6 +186,6 @@ export { getStoredTheme, getCurrentTheme, setTheme, applyStoredTheme, getThemePr
 export type { Theme, ThemePreference } from './theme-manager';
 export { toFlagEmoji } from './country-flag';
 
-import { getCurrentLanguage } from '../services/i18n';
+import { getCurrentLanguage } from '@/services/i18n';
 import { isStorageQuotaExceeded, isQuotaError, markStorageQuotaExceeded } from './storage-quota';
 export { isStorageQuotaExceeded, isQuotaError, markStorageQuotaExceeded };

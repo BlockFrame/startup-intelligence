@@ -12,16 +12,6 @@ const handlerSrc = readFileSync(
   'utf-8',
 );
 
-const panelSrc = readFileSync(
-  resolve(root, 'src/components/CountryDeepDivePanel.ts'),
-  'utf-8',
-);
-
-const intelSrc = readFileSync(
-  resolve(root, 'src/app/country-intel.ts'),
-  'utf-8',
-);
-
 // ── handler: cache key imports ────────────────────────────────────────────────
 
 describe('get-country-port-activity handler: cache key imports', () => {
@@ -109,49 +99,6 @@ describe('get-country-port-activity handler: Redis key construction', () => {
   });
 });
 
-// ── panel: updateMaritimeActivity method ─────────────────────────────────────
-
-describe('CountryDeepDivePanel: updateMaritimeActivity', () => {
-  it('has updateMaritimeActivity public method', () => {
-    assert.match(panelSrc, /public\s+updateMaritimeActivity/);
-  });
-
-  it('renders Maritime Activity sectionCard', () => {
-    assert.match(panelSrc, /sectionCard\(['"]Maritime Activity['"],/);
-  });
-
-  it('removes card from DOM when data is unavailable', () => {
-    assert.match(panelSrc, /parentElement\?\.remove\(\)/);
-  });
-
-  it('renders anomaly badge for anomalySignal === true', () => {
-    assert.match(panelSrc, /port\.anomalySignal/);
-    assert.match(panelSrc, /cdp-maritime-anomaly/);
-  });
-
-  it('shows trend column with up/down color class', () => {
-    assert.match(panelSrc, /cdp-trend-up/);
-    assert.match(panelSrc, /cdp-trend-down/);
-  });
-
-  it('renders footer with IMF PortWatch source', () => {
-    assert.match(panelSrc, /IMF PortWatch/);
-  });
-
-  it('has maritimeBody private field', () => {
-    assert.match(panelSrc, /private\s+maritimeBody/);
-  });
-
-  it('resets maritimeBody to null in resetPanelContent', () => {
-    assert.match(panelSrc, /this\.maritimeBody\s*=\s*null/);
-  });
-
-  it('maritimeCard is appended to bodyGrid', () => {
-    assert.match(panelSrc, /maritimeCard/);
-    assert.match(panelSrc, /bodyGrid\.append\(.*maritimeCard/);
-  });
-});
-
 // ── trend delta passthrough ───────────────────────────────────────────────────
 
 describe('trend delta passthrough', () => {
@@ -181,26 +128,5 @@ describe('trend delta passthrough', () => {
     const reconstructedPct = ((seederPort.tankerCalls30d - reconstructedPrev) / reconstructedPrev) * 100;
     assert.strictEqual(direct, 20.0, 'direct passthrough is exact');
     assert.notStrictEqual(reconstructedPct, 20.0, 'reconstruction introduces error');
-  });
-});
-
-// ── country-intel.ts: call site ───────────────────────────────────────────────
-
-describe('country-intel.ts: getCountryPortActivity call site', () => {
-  it('calls intelClient.getCountryPortActivity', () => {
-    assert.match(intelSrc, /getCountryPortActivity/);
-  });
-
-  it('has stale guard checking getCode() !== code', () => {
-    const staleGuardCount = (intelSrc.match(/getCode\(\)\s*!==\s*code/g) ?? []).length;
-    assert.ok(staleGuardCount >= 2, `expected at least 2 stale guards, found ${staleGuardCount}`);
-  });
-
-  it('calls updateMaritimeActivity on success', () => {
-    assert.match(intelSrc, /updateMaritimeActivity\?\./);
-  });
-
-  it('calls updateMaritimeActivity with available: false on error', () => {
-    assert.match(intelSrc, /available.*false.*ports.*\[\]/s);
   });
 });

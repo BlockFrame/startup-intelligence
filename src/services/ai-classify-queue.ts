@@ -1,4 +1,4 @@
-import { SITE_VARIANT } from '@/config';
+import { SITE_VARIANT } from '@/config/variant';
 
 const AI_CLASSIFY_DEDUP_MS = 30 * 60 * 1000;
 const AI_CLASSIFY_WINDOW_MS = 60 * 1000;

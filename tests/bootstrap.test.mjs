@@ -220,7 +220,6 @@ describe('Panel hydration consumers', () => {
     { name: 'ETFFlowsPanel', path: 'src/components/ETFFlowsPanel.ts', key: 'etfFlows' },
     { name: 'MacroSignalsPanel', path: 'src/components/MacroSignalsPanel.ts', key: 'macroSignals' },
     { name: 'ServiceStatusPanel (via infrastructure)', path: 'src/services/infrastructure/index.ts', key: 'serviceStatuses' },
-    { name: 'Sectors (via data-loader)', path: 'src/app/data-loader.ts', key: 'sectors' },
   ];
 
   for (const panel of panels) {
@@ -258,10 +257,11 @@ describe('Bootstrap key hydration coverage', () => {
       'imfGrowth', 'imfLabor', 'imfExternal',
       'portwatchChokepointsRef', 'portwatchPortActivity', 'sprPolicies',
       'wsbTickers', 'electricityPrices', 'jodiOil',
+      'marketQuotes', 'commodityQuotes', 'sectors', 'cryptoQuotes', 'cryptoSectors',
+      'climateNews', 'positiveGeoEvents', 'ucdpEvents', 'forecasts', 'economicStress',
       'eurostatHousePrices', 'eurostatGovDebtQ', 'eurostatIndProd',
-      // BIS extended dataflows are consumed via a direct scoped bootstrap
-      // fetch in CountryDeepDivePanel (housing cycle tile), not through the
-      // getHydratedData session cache — fetched on-click per country.
+      // BIS extended dataflows are consumed via direct scoped bootstrap
+      // fetches, not through the getHydratedData session cache.
       'bisDsr', 'bisPropertyResidential', 'bisPropertyCommercial',
     ]);
     for (const key of keys) {

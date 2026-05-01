@@ -24,9 +24,6 @@ export class CountryIntelManager implements AppModule {
   }
 
   destroy(): void {
-    this.ctx.countryBriefPage = null;
-    this.ctx.countryTimeline?.destroy();
-    this.ctx.countryTimeline = null;
   }
 
   async openCountryBrief(lat: number, lon: number): Promise<void> {

@@ -1,6 +1,6 @@
 import type { NewsItem, ClusteredEvent, MarketData, CyberThreat, Monitor } from '@/types';
 import type { PredictionMarket } from '@/services/prediction';
-import type { IntelligenceCache } from '@/app/app-context';
+import type { LegacyIntelligenceCache } from '@/app/legacy-app-context';
 import type { GpsJamData } from '@/services/gps-interference';
 import type { ConvergenceCard } from '@/services/correlation-engine';
 import { t } from '@/services/i18n';
@@ -20,7 +20,7 @@ export interface ExportData {
   newsByCategory?: Record<string, NewsItem[]>;
   markets?: MarketData[];
   predictions?: PredictionMarket[];
-  intelligence?: IntelligenceCache;
+  intelligence?: LegacyIntelligenceCache;
   cyberThreats?: CyberThreat[];
   gpsJamming?: GpsJamData;
   convergenceCards?: Omit<ConvergenceCard, 'assessment'>[];

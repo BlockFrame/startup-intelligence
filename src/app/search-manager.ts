@@ -3,14 +3,13 @@ import type { SearchResult } from '@/components/SearchModal';
 import type { NewsItem, MapLayers } from '@/types';
 import type { MapView, TimeRange } from '@/components/map-container-contract';
 import type { Command } from '@/config/commands';
-import { CIIPanel } from '@/components/CIIPanel';
 import { SearchModal } from '@/components/SearchModal';
-import { SITE_VARIANT, STORAGE_KEYS } from '@/config';
+import { STORAGE_KEYS } from '@/config/variants/base';
+import { SITE_VARIANT } from '@/config/variant';
 import { getAllowedLayerKeys } from '@/config/map-layer-definitions';
 import type { MapVariant } from '@/config/map-layer-definitions';
 import { LAYER_PRESETS, LAYER_KEY_MAP } from '@/config/commands';
-import { calculateCII, TIER1_COUNTRIES } from '@/services/country-instability';
-import { CURATED_COUNTRIES } from '@/config/countries';
+import { CURATED_COUNTRIES, TIER1_COUNTRIES } from '@/config/countries';
 import { getCountryBbox } from '@/services/country-geometry';
 import { AI_DATA_CENTERS } from '@/config/ai-datacenters';
 import { TECH_COMPANIES } from '@/config/tech-companies';
@@ -664,8 +663,8 @@ export class SearchManager implements AppModule {
   }
 
   private buildCountrySearchItems(): { id: string; title: string; subtitle: string; data: { code: string; name: string } }[] {
-    const panelScores = (this.ctx.panels.cii as CIIPanel | undefined)?.getScores() ?? [];
-    const scores = panelScores.length > 0 ? panelScores : calculateCII();
+    const panelScores = (this.ctx.panels.cii as { getScores?: () => Array<{ code: string; score: number; level: string }> } | undefined)?.getScores?.() ?? [];
+    const scores = SITE_VARIANT === 'startup' ? [] : panelScores;
     const ciiByCode = new Map(scores.map((score) => [score.code, score]));
     return Object.entries(TIER1_COUNTRIES).map(([code, name]) => {
       const score = ciiByCode.get(code);

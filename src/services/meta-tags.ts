@@ -144,6 +144,11 @@ export function parseStoryParams(url: URL): StoryMeta | null {
 }
 
 export function initMetaTags(): void {
+  if (SITE_VARIANT === 'startup') {
+    resetMetaTags();
+    return;
+  }
+
   const url = new URL(window.location.href);
 
   if (url.pathname === '/story' || url.searchParams.has('c')) {

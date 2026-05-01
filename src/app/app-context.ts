@@ -1,14 +1,15 @@
-import type { PanelConfig, MapLayers, NewsItem, MarketData, ClusteredEvent, CyberThreat, Monitor } from '@/types';
-import type { LegacyIntelligenceCache } from '@/app/legacy-app-context';
+import type { PanelConfig, MapLayers, NewsItem, MarketData, ClusteredEvent, Monitor } from '@/types';
 import type { AppMap, TimeRange } from '@/components/map-container-contract';
+import type { LegacyAppContextExtension } from './legacy-app-context';
 
 export type { CountryBriefSignals } from '@/types';
+export type { LegacyIntelligenceCache } from './legacy-app-context';
 
 export interface StartupIntelligenceCache {}
 
-export type IntelligenceCache = StartupIntelligenceCache & LegacyIntelligenceCache;
+export type IntelligenceCache = StartupIntelligenceCache;
 
-export interface AppContext {
+export interface StartupAppContext {
   map: AppMap | null;
   readonly isMobile: boolean;
   readonly isDesktopApp: boolean;
@@ -25,8 +26,6 @@ export interface AppContext {
   latestMarkets: MarketData[];
   latestPredictions: import('@/services/prediction').PredictionMarket[];
   latestClusters: ClusteredEvent[];
-  intelligenceCache: IntelligenceCache;
-  cyberThreatsCache: CyberThreat[] | null;
 
   disabledSources: Set<string>;
   currentTimeRange: TimeRange;
@@ -46,9 +45,6 @@ export interface AppContext {
   pizzintIndicator: import('@/components/PizzIntIndicator').PizzIntIndicator | null;
   correlationEngine: import('@/services/correlation-engine').CorrelationEngine | null;
   llmStatusIndicator: import('@/components/LlmStatusIndicator').LlmStatusIndicator | null;
-  countryBriefPage: import('@/components/CountryBriefPanel').CountryBriefPanel | null;
-  countryTimeline: import('@/components/CountryTimeline').CountryTimeline | null;
-
   positivePanel: import('@/components/PositiveNewsFeedPanel').PositiveNewsFeedPanel | null;
   countersPanel: import('@/components/CountersPanel').CountersPanel | null;
   progressPanel: import('@/components/ProgressChartsPanel').ProgressChartsPanel | null;
@@ -71,6 +67,8 @@ export interface AppContext {
   readonly PANEL_ORDER_KEY: string;
   readonly PANEL_SPANS_KEY: string;
 }
+
+export type AppContext = StartupAppContext & LegacyAppContextExtension;
 
 export interface AppModule {
   init(): void | Promise<void>;

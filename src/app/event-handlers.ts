@@ -1,5 +1,4 @@
 import type { AppContext, AppModule } from '@/app/app-context';
-import type { AirlineIntelPanel } from '@/components/AirlineIntelPanel';
 import type { CustomWidgetPanel } from '@/components/CustomWidgetPanel';
 import { deleteWidget, getWidget, saveWidget, isProUser } from '@/services/widget-store';
 import { FREE_MAX_PANELS, FREE_MAX_SOURCES } from '@/config/panels';
@@ -19,13 +18,14 @@ import {
   setTheme,
 } from '@/utils';
 import {
-  IDLE_PAUSE_MS,
-  STORAGE_KEYS,
-  SITE_VARIANT,
   LAYER_TO_SOURCE,
+} from '@/config/panels';
+import {
   FEEDS,
   INTEL_SOURCES,
-} from '@/config';
+} from '@/config/feeds';
+import { IDLE_PAUSE_MS, STORAGE_KEYS } from '@/config/variants/base';
+import { SITE_VARIANT } from '@/config/variant';
 import { VARIANT_META } from '@/config/variant-meta';
 import { isDesktopRuntime } from '@/services/runtime';
 import { saveSnapshot } from '@/services/storage';
@@ -45,9 +45,13 @@ import type { Platform } from '@/components/DownloadBanner';
 import { invokeTauri } from '@/services/tauri-bridge';
 import { getCachedGpsInterference } from '@/services/gps-interference';
 import { dataFreshness } from '@/services/data-freshness';
-import { mlWorker } from '@/services/ml-worker';
 import { t } from '@/services/i18n';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
+
+type AirlineIntelView = {
+  setLiveMode(enabled: boolean): void;
+  updateLivePositions(positions: unknown[]): void;
+};
 
 export interface EventHandlerCallbacks {
   updateSearchIndex: () => void;
@@ -489,7 +493,7 @@ export class EventHandlerManager implements AppModule {
       }
       if (document.hidden) {
         this.callbacks.setHiddenSince(Date.now());
-        mlWorker.unloadOptionalModels();
+        void import('@/services/ml-worker').then(({ mlWorker }) => mlWorker.unloadOptionalModels());
       } else {
         this.resetIdleTimer();
         this.callbacks.flushStaleRefreshes();
@@ -726,16 +730,12 @@ export class EventHandlerManager implements AppModule {
     const state = this.ctx.map.getState();
     const center = this.ctx.map.getCenter();
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
-    const briefPage = this.ctx.countryBriefPage;
-    const isCountryVisible = briefPage?.isVisible() ?? false;
     return buildMapUrl(baseUrl, {
       view: state.view,
       zoom: state.zoom,
       center,
       timeRange: state.timeRange,
       layers: state.layers,
-      country: isCountryVisible ? (briefPage?.getCode() ?? undefined) : undefined,
-      expanded: isCountryVisible && briefPage?.getIsMaximized?.() ? true : undefined,
     });
   }
 
@@ -1242,7 +1242,7 @@ export class EventHandlerManager implements AppModule {
       }
 
       if (layer === 'flights') {
-        const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelPanel | undefined;
+        const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelView | undefined;
         airlineIntel?.setLiveMode(enabled);
       }
 
@@ -1254,10 +1254,10 @@ export class EventHandlerManager implements AppModule {
     });
 
     if (SITE_VARIANT !== 'startup') {
-      // Forward live aircraft positions from map to AirlineIntelPanel + cache + search index.
+      // Forward live aircraft positions to the legacy aviation panel contract, cache, and search index.
       this.ctx.map?.setOnAircraftPositionsUpdate((positions) => {
         this.ctx.intelligenceCache.aircraftPositions = positions;
-        const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelPanel | undefined;
+        const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelView | undefined;
         airlineIntel?.updateLivePositions(positions);
         const military = this.ctx.intelligenceCache.military?.flights ?? [];
         this.callbacks.updateFlightSource?.(positions, military);

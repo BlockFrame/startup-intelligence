@@ -1,4 +1,4 @@
-import { MARKET_SYMBOLS } from '@/config';
+import { MARKET_SYMBOLS } from '@/config/markets';
 import { getRpcBaseUrl } from '@/services/rpc-client';
 import {
   MarketServiceClient,

@@ -1,5 +1,10 @@
 import type { PanelConfig, MapLayers, DataSourceId } from '@/types';
 import { SITE_VARIANT } from './variant';
+import {
+  DEFAULT_MAP_LAYERS as STARTUP_MAP_LAYERS,
+  DEFAULT_PANELS as STARTUP_PANELS,
+  MOBILE_DEFAULT_MAP_LAYERS as STARTUP_MOBILE_MAP_LAYERS,
+} from './variants/startup';
 // boundary-ignore: isDesktopRuntime is a pure env probe with no service dependencies
 import { isDesktopRuntime } from '@/services/runtime';
 // boundary-ignore: getSecretState is a pure env/keychain probe with no service dependencies
@@ -405,80 +410,6 @@ const TECH_MOBILE_MAP_LAYERS: MapLayers = {
   commodityPorts: false,
   webcams: false,
   diseaseOutbreaks: false,
-};
-
-// ============================================
-// STARTUP VARIANT (VC/Investor Intelligence)
-// ============================================
-const STARTUP_PANELS: Record<string, PanelConfig> = {
-  map: { name: 'Startup Intelligence Map', enabled: true, priority: 1 },
-  'live-news': { name: 'Dealflow Headlines', enabled: true, priority: 1 },
-  insights: { name: 'AI Investor Brief', enabled: true, priority: 1 },
-  'top-vc-signals': { name: 'Top VC Signals', enabled: true, priority: 1 },
-  startups: { name: 'Startup Dealflow', enabled: true, priority: 2 },
-  funding: { name: 'Funding Rounds', enabled: true, priority: 1 },
-  regionalStartups: { name: 'Global Ecosystems', enabled: true, priority: 1 },
-  unicorns: { name: 'Unicorn & Valuation Signals', enabled: true, priority: 1 },
-  accelerators: { name: 'Accelerators & Demo Days', enabled: true, priority: 1 },
-  vcblogs: { name: 'VC Thesis & Essays', enabled: true, priority: 1 },
-  producthunt: { name: 'Launch Radar', enabled: true, priority: 1 },
-  ai: { name: 'AI Startup Signals', enabled: true, priority: 1 },
-  tech: { name: 'Tech Market Signals', enabled: true, priority: 1 },
-  cloud: { name: 'Cloud & AI Infrastructure', enabled: true, priority: 1 },
-  hardware: { name: 'Semiconductor Supply', enabled: true, priority: 2 },
-  fintech: { name: 'Fintech', enabled: true, priority: 1 },
-  ipo: { name: 'IPO & M&A Signals', enabled: true, priority: 1 },
-  layoffs: { name: 'Layoffs Tracker', enabled: true, priority: 2 },
-  policy: { name: 'AI Policy & Regulation', enabled: true, priority: 2 },
-  security: { name: 'Cybersecurity', enabled: true, priority: 2 },
-  markets: { name: 'Public Market Comps', enabled: false, priority: 2 },
-  finance: { name: 'Market Context', enabled: true, priority: 2 },
-  'macro-signals': { name: 'Market Regime', enabled: false, priority: 2 },
-  'tech-readiness': { name: 'Tech Readiness Index', enabled: true, priority: 2 },
-  events: { name: 'Tech Events', enabled: true, priority: 2 },
-  monitors: { name: 'My Monitors', enabled: true, priority: 2 },
-};
-
-const STARTUP_MAP_LAYERS: MapLayers = {
-  ...TECH_MAP_LAYERS,
-  hotspots: false,
-  conflicts: false,
-  cables: false,
-  outages: false,
-  cyberThreats: false,
-  natural: false,
-  fires: false,
-  resilienceScore: false,
-  dayNight: false,
-  datacenters: true,
-  startupHubs: true,
-  cloudRegions: true,
-  accelerators: true,
-  techHQs: true,
-  techEvents: true,
-  financialCenters: false,
-  stockExchanges: false,
-};
-
-const STARTUP_MOBILE_MAP_LAYERS: MapLayers = {
-  ...TECH_MOBILE_MAP_LAYERS,
-  hotspots: false,
-  conflicts: false,
-  cables: false,
-  outages: false,
-  cyberThreats: false,
-  natural: false,
-  fires: false,
-  resilienceScore: false,
-  dayNight: false,
-  datacenters: true,
-  startupHubs: true,
-  cloudRegions: true,
-  accelerators: true,
-  techHQs: true,
-  techEvents: true,
-  financialCenters: false,
-  stockExchanges: false,
 };
 
 // ============================================

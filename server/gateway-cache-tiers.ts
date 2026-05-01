@@ -68,6 +68,9 @@ export const STARTUP_RPC_CACHE_TIER: Record<string, CacheTier> = {
   '/api/intelligence/v1/list-company-signals': 'slow',
   '/api/intelligence/v1/list-market-implications': 'slow',
   '/api/intelligence/v1/get-social-velocity': 'fast',
+  '/api/intelligence/v1/get-gdelt-topic-timeline': 'medium',
+  '/api/intelligence/v1/list-cross-source-signals': 'medium',
+  '/api/intelligence/v1/list-security-advisories': 'slow',
 };
 
 export const LEGACY_RPC_CACHE_TIER: Record<string, CacheTier> = {

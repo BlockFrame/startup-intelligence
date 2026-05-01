@@ -903,15 +903,20 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     resolve: {
-      alias: {
-        '@': resolve(__dirname, 'src'),
-        child_process: resolve(__dirname, 'src/shims/child-process.ts'),
-        'node:child_process': resolve(__dirname, 'src/shims/child-process.ts'),
-        '@loaders.gl/worker-utils/dist/lib/process-utils/child-process-proxy.js': resolve(
-          __dirname,
-          'src/shims/child-process-proxy.ts'
-        ),
-      },
+      alias: [
+        ...(startupOnly
+          ? [
+              { find: '@/services/i18n', replacement: resolve(__dirname, 'src/services/startup-i18n.ts') },
+            ]
+          : []),
+        { find: '@', replacement: resolve(__dirname, 'src') },
+        { find: 'child_process', replacement: resolve(__dirname, 'src/shims/child-process.ts') },
+        { find: 'node:child_process', replacement: resolve(__dirname, 'src/shims/child-process.ts') },
+        {
+          find: '@loaders.gl/worker-utils/dist/lib/process-utils/child-process-proxy.js',
+          replacement: resolve(__dirname, 'src/shims/child-process-proxy.ts'),
+        },
+      ],
     },
     worker: {
       format: 'es',
@@ -934,11 +939,15 @@ export default defineConfig(({ mode }) => {
 
           warn(warning);
         },
-        input: {
-          main: resolve(__dirname, 'index.html'),
-          settings: resolve(__dirname, 'settings.html'),
-          liveChannels: resolve(__dirname, 'live-channels.html'),
-        },
+        input: startupOnly
+          ? {
+              main: resolve(__dirname, 'index.html'),
+            }
+          : {
+              main: resolve(__dirname, 'index.html'),
+              settings: resolve(__dirname, 'settings.html'),
+              liveChannels: resolve(__dirname, 'live-channels.html'),
+            },
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
@@ -973,7 +982,7 @@ export default defineConfig(({ mode }) => {
                 return 'sentry';
               }
             }
-            if (id.includes('/src/components/') && id.endsWith('Panel.ts')) {
+            if (!startupOnly && id.includes('/src/components/') && id.endsWith('Panel.ts')) {
               return 'panels';
             }
             // Give lazy-loaded locale chunks a recognizable prefix so the

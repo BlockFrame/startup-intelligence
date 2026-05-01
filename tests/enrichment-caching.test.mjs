@@ -206,7 +206,7 @@ describe('cachedFetchJson — import verification', () => {
   it('get-company-enrichment.ts imports cachedFetchJson', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
-    const src = readFileSync(resolve('server/worldmonitor/intelligence/v1/get-company-enrichment.ts'), 'utf-8');
+    const src = readFileSync(resolve('server/startup/intelligence/v1/get-company-enrichment.ts'), 'utf-8');
     assert.ok(src.includes("from '../../../_shared/redis'"), 'must import from _shared/redis');
     assert.ok(src.includes('cachedFetchJson'), 'must use cachedFetchJson');
     assert.ok(src.includes('intel:enrichment:gh-org:'), 'must use gh-org cache key');
@@ -222,7 +222,7 @@ describe('cachedFetchJson — import verification', () => {
   it('list-company-signals.ts imports cachedFetchJson', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
-    const src = readFileSync(resolve('server/worldmonitor/intelligence/v1/list-company-signals.ts'), 'utf-8');
+    const src = readFileSync(resolve('server/startup/intelligence/v1/list-company-signals.ts'), 'utf-8');
     assert.ok(src.includes("from '../../../_shared/redis'"), 'must import from _shared/redis');
     assert.ok(src.includes('cachedFetchJson'), 'must use cachedFetchJson');
     assert.ok(src.includes('intel:signals:hn:'), 'must use signals:hn cache key');

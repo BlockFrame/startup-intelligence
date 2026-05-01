@@ -10,7 +10,7 @@ import { getClusterAssetContext, MAX_DISTANCE_KM } from '@/services/related-asse
 import { generateSummary, translateText } from '@/services/summarization';
 import { enrichWithVelocityML } from '@/services/velocity';
 import { getSourcePropagandaRisk, getSourceTier, getSourceType } from '@/config/feeds';
-import { SITE_VARIANT } from '@/config';
+import { SITE_VARIANT } from '@/config/variant';
 import { t, getCurrentLanguage } from '@/services/i18n';
 import { track } from '@/services/analytics';
 

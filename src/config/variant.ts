@@ -8,6 +8,7 @@ const buildVariant = (() => {
 
 export const SITE_VARIANT: string = (() => {
   if (typeof window === 'undefined') return buildVariant;
+  if (buildVariant === 'startup') return 'startup';
 
   const isTauri = '__TAURI_INTERNALS__' in window || '__TAURI__' in window;
   if (isTauri) {

@@ -10,7 +10,7 @@ import { getTheaterPostureSummaries } from '@/services/military-surge';
 import { getCachedPosture } from '@/services/cached-theater-posture';
 import { isMobileDevice } from '@/utils';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
-import { SITE_VARIANT } from '@/config';
+import { SITE_VARIANT } from '@/config/variant';
 import { deletePersistentCache, getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
 import { t } from '@/services/i18n';
 import { isDesktopRuntime } from '@/services/runtime';

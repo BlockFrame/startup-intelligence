@@ -1,4 +1,4 @@
-import { SITE_VARIANT } from '@/config';
+import { SITE_VARIANT } from '@/config/variant';
 import { h } from '@/utils/dom-utils'; // kept for Panel base class compat
 
 export type StatusLevel = 'ok' | 'warning' | 'error' | 'disabled';
@@ -42,7 +42,7 @@ const WORLD_APIS = new Set([
   'Cyber Threats API', 'BIS', 'WTO', 'SupplyChain', 'OFAC'
 ]);
 
-import { t } from '../services/i18n';
+import { t } from '@/services/i18n';
 import { Panel } from './Panel';
 
 export class StatusPanel extends Panel {

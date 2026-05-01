@@ -22,7 +22,19 @@ import {
   getResilienceVisualLevel,
   getStalenessLabel,
 } from './resilience-widget-utils';
-import type { CountryEnergyProfileData } from './CountryBriefPanel';
+
+export interface CountryEnergyProfileData {
+  mixAvailable: boolean;
+  mixYear: number;
+  coalShare: number;
+  gasShare: number;
+  oilShare: number;
+  nuclearShare: number;
+  renewShare: number;
+  importShare: number;
+  gasStorageAvailable: boolean;
+  gasStorageFillPct: number;
+}
 
 // LOCKED_PREVIEW lives in resilience-widget-utils.ts so tests and
 // other non-Vite consumers can import it without dragging in the

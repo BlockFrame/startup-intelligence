@@ -5,7 +5,7 @@
  */
 
 import type { NewsItem, ClusteredEvent } from '@/types';
-import { getSourceTier } from '@/config';
+import { getSourceTier } from '@/config/feeds';
 import { clusterNewsCore } from './analysis-core';
 import { mlWorker } from './ml-worker';
 import { ML_THRESHOLDS } from '@/config/ml-config';

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { normalizeCard } from '../src/services/market-implications.ts';
-import { listMarketImplications } from '../server/worldmonitor/intelligence/v1/list-market-implications.ts';
+import { listMarketImplications } from '../server/startup/intelligence/v1/list-market-implications.ts';
 
 describe('normalizeCard', () => {
   it('converts risk_caveat and transmission_chain from snake_case (bootstrap path)', () => {

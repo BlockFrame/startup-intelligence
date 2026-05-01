@@ -1,9 +1,10 @@
 import { Panel } from './Panel';
 import { fetchLiveVideoInfo } from '@/services/live-news';
 import { isDesktopRuntime, getRemoteApiBaseUrl, getApiBaseUrl, getLocalApiPort } from '@/services/runtime';
-import { t } from '../services/i18n';
+import { t } from '@/services/i18n';
 import { loadFromStorage, saveToStorage } from '@/utils';
-import { IDLE_PAUSE_MS, STORAGE_KEYS, SITE_VARIANT } from '@/config';
+import { IDLE_PAUSE_MS, STORAGE_KEYS } from '@/config/variants/base';
+import { SITE_VARIANT } from '@/config/variant';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
 
 import { getStreamQuality } from '@/services/ai-flow-settings';
