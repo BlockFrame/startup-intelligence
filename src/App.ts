@@ -49,9 +49,10 @@ import { preloadCountryGeometry } from '@/services/country-geometry';
 import { initI18n, t } from '@/services/i18n';
 
 import { computeDefaultDisabledSources, getLocaleBoostedSources, getTotalFeedCount, FEEDS, INTEL_SOURCES } from '@/config/feeds';
-import type { BootstrapHydrationState } from '@/services/bootstrap';
 import { describeFreshness } from '@/services/persistent-cache';
 import { DesktopUpdater } from '@/app/desktop-updater';
+import type * as NonStartupRuntime from '@/app/non-startup-runtime';
+import type { BootstrapHydrationState } from '@/app/non-startup-runtime';
 import { CountryIntelManager } from '@/app/startup-country-intel';
 import { SearchManager } from '@/app/search-manager';
 import { RefreshScheduler } from '@/app/refresh-scheduler';
@@ -73,9 +74,9 @@ import { getConvexClient, getConvexApi, waitForConvexAuth } from '@/services/con
 import { initEntitlementSubscription, destroyEntitlementSubscription, resetEntitlementState } from '@/services/entitlements';
 import { initSubscriptionWatch, destroySubscriptionWatch } from '@/services/billing';
 import { capturePendingCheckoutIntentFromUrl, resumePendingCheckout } from '@/services/checkout';
-import type { CorrelationPanel } from '@/components/CorrelationPanel';
 
 const CYBER_LAYER_ENABLED = import.meta.env.VITE_ENABLE_CYBER_LAYER === 'true';
+const IS_STARTUP_BUILD = import.meta.env.VITE_VARIANT === 'startup';
 const EMPTY_BOOTSTRAP_HYDRATION_STATE: BootstrapHydrationState = {
   source: 'none',
   tiers: {
@@ -873,6 +874,8 @@ export class App {
     await this.setupModules();
     await initDB();
     await initI18n();
+    const legacyRuntime: typeof NonStartupRuntime | null =
+      IS_STARTUP_BUILD ? null : await import('@/app/non-startup-runtime');
     const aiFlow = getAiFlowSettings();
     if (aiFlow.browserModel || isDesktopRuntime()) {
       const worker = await getMlWorker();
@@ -915,12 +918,7 @@ export class App {
     if (SITE_VARIANT === 'startup') {
       this.state.mapLayers.ais = false;
     } else {
-      const { isAisConfigured, initAisStream } = await import('@/services/maritime');
-      if (!isAisConfigured()) {
-        this.state.mapLayers.ais = false;
-      } else if (this.state.mapLayers.ais) {
-        initAisStream();
-      }
+      await legacyRuntime?.setupLegacyAis(this.state);
     }
 
     // Wait for sidecar readiness on desktop so bootstrap hits a live server
@@ -930,10 +928,8 @@ export class App {
 
     // Startup Intelligence does not need the legacy World Monitor bootstrap
     // envelope. Its active modules fetch their own focused sources.
-    if (SITE_VARIANT !== 'startup') {
-      const { fetchBootstrapData, getBootstrapHydrationState } = await import('@/services/bootstrap');
-      await fetchBootstrapData();
-      this.bootstrapHydrationState = getBootstrapHydrationState();
+    if (legacyRuntime) {
+      this.bootstrapHydrationState = await legacyRuntime.fetchLegacyBootstrap();
     }
 
     // Verify OAuth OTT and hydrate auth session BEFORE any UI subscribes to auth state
@@ -1022,31 +1018,15 @@ export class App {
     }
 
     // Phase 2: Shared UI components
-    if (SITE_VARIANT !== 'startup') {
-      const { SignalModal } = await import('@/components/SignalModal');
-      this.state.signalModal = new SignalModal();
-      this.state.signalModal.setLocationClickHandler((lat, lon) => {
-        this.state.map?.setCenter(lat, lon, 4);
-      });
+    if (legacyRuntime) {
+      await legacyRuntime.setupLegacySignalUi(this.state);
     }
-    if (!this.state.isMobile && SITE_VARIANT !== 'startup') {
-      const { IntelligenceGapBadge } = await import('@/components/IntelligenceGapBadge');
-      this.state.findingsBadge = new IntelligenceGapBadge();
-      this.state.findingsBadge.setOnSignalClick((signal) => {
-        if (localStorage.getItem('wm-settings-open') === '1') return;
-        this.state.signalModal?.showSignal(signal);
-      });
-      this.state.findingsBadge.setOnAlertClick((alert) => {
-        if (localStorage.getItem('wm-settings-open') === '1') return;
-        this.state.signalModal?.showAlert(alert);
-      });
+    if (!this.state.isMobile && legacyRuntime) {
+      await legacyRuntime.setupLegacyFindingsBadge(this.state);
     }
 
-    if (!this.state.isMobile && SITE_VARIANT !== 'startup') {
-      const { initBreakingNewsAlerts } = await import('@/services/breaking-news-alerts');
-      const { BreakingNewsBanner } = await import('@/components/BreakingNewsBanner');
-      initBreakingNewsAlerts();
-      this.state.breakingBanner = new BreakingNewsBanner();
+    if (!this.state.isMobile && legacyRuntime) {
+      await legacyRuntime.setupLegacyBreakingNews(this.state);
     }
 
     // Phase 3: UI setup methods
@@ -1058,20 +1038,8 @@ export class App {
     await this.eventHandlers.setupExportPanel();
 
     // Correlation engine
-    if (SITE_VARIANT !== 'startup') {
-      const {
-        CorrelationEngine,
-        militaryAdapter,
-        escalationAdapter,
-        economicAdapter,
-        disasterAdapter,
-      } = await import('@/services/correlation-engine');
-      const correlationEngine = new CorrelationEngine();
-      correlationEngine.registerAdapter(militaryAdapter);
-      correlationEngine.registerAdapter(escalationAdapter);
-      correlationEngine.registerAdapter(economicAdapter);
-      correlationEngine.registerAdapter(disasterAdapter);
-      this.state.correlationEngine = correlationEngine;
+    if (legacyRuntime) {
+      await legacyRuntime.setupLegacyCorrelationEngine(this.state);
     }
     await this.eventHandlers.setupUnifiedSettings();
     await this.eventHandlers.setupAuthWidget();
@@ -1115,38 +1083,22 @@ export class App {
     ]);
 
     // If bootstrap was served from cache but live data just loaded, promote the status indicator.
-    if (SITE_VARIANT !== 'startup') {
-      const { markBootstrapAsLive, getBootstrapHydrationState } = await import('@/services/bootstrap');
-      markBootstrapAsLive();
-      this.bootstrapHydrationState = getBootstrapHydrationState();
+    if (legacyRuntime) {
+      this.bootstrapHydrationState = await legacyRuntime.promoteLegacyBootstrap();
       this.updateConnectivityUi();
     }
 
     // Initial correlation engine run
-    if (this.state.correlationEngine) {
-      void this.state.correlationEngine.run(this.state).then(() => {
-        for (const domain of ['military', 'escalation', 'economic', 'disaster'] as const) {
-          const panel = this.state.panels[`${domain}-correlation`] as CorrelationPanel | undefined;
-          panel?.updateCards(this.state.correlationEngine!.getCards(domain));
-        }
-      });
-    }
+    legacyRuntime?.runLegacyCorrelationEngine(this.state);
 
-    if (SITE_VARIANT !== 'startup') {
-      const { startLearning } = await import('@/services/country-instability');
-      startLearning();
-    }
+    await legacyRuntime?.startLegacyCountryLearning();
 
     // Hide unconfigured layers after first data load
     if (SITE_VARIANT === 'startup') {
       this.state.map?.hideLayerToggle('ais');
-    } else if (!(await import('@/services/maritime')).isAisConfigured()) {
-      this.state.map?.hideLayerToggle('ais');
-    }
-    if (SITE_VARIANT === 'startup') {
       this.state.map?.hideLayerToggle('outages');
-    } else if ((await import('@/services/infrastructure')).isOutagesConfigured() === false) {
-      this.state.map?.hideLayerToggle('outages');
+    } else {
+      await legacyRuntime?.hideLegacyUnconfiguredLayers(this.state);
     }
     if (!CYBER_LAYER_ENABLED) {
       this.state.map?.hideLayerToggle('cyberThreats');
@@ -1275,20 +1227,16 @@ export class App {
     // Clean up subscriptions, map, AIS, and breaking news
     this.unsubAiFlow?.();
     this.unsubFreeTier?.();
-    this.state.breakingBanner?.destroy();
-    if (SITE_VARIANT !== 'startup') {
-      void import('@/services/breaking-news-alerts').then(({ destroyBreakingNewsAlerts }) => {
-        destroyBreakingNewsAlerts();
-      }).catch(() => {});
+    if (IS_STARTUP_BUILD) {
+      this.state.breakingBanner?.destroy();
+    } else {
+      void import('@/app/non-startup-runtime')
+        .then(({ destroyLegacyRuntime }) => destroyLegacyRuntime(this.state))
+        .catch(() => {});
     }
     this.cachedModeBannerEl?.remove();
     this.cachedModeBannerEl = null;
     this.state.map?.destroy();
-    if (SITE_VARIANT !== 'startup') {
-      void import('@/services/maritime')
-        .then(({ disconnectAisStream }) => disconnectAisStream())
-        .catch(() => {});
-    }
   }
 
   private handleDeepLinks(): void {
@@ -1616,13 +1564,10 @@ export class App {
     this.refreshScheduler.scheduleRefresh(
       'correlation-engine',
       async () => {
-        const engine = this.state.correlationEngine;
-        if (!engine) return;
-        await engine.run(this.state);
-        for (const domain of ['military', 'escalation', 'economic', 'disaster'] as const) {
-          const panel = this.state.panels[`${domain}-correlation`] as CorrelationPanel | undefined;
-          panel?.updateCards(engine.getCards(domain));
-        }
+        if (IS_STARTUP_BUILD) return;
+        if (!this.state.correlationEngine) return;
+        const { refreshLegacyCorrelationEngine } = await import('@/app/non-startup-runtime');
+        await refreshLegacyCorrelationEngine(this.state);
       },
       REFRESH_INTERVALS.correlationEngine,
       () => this.shouldRefreshCorrelation(),

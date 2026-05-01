@@ -8,7 +8,6 @@ import type { PanelConfig, MapLayers, MilitaryFlight } from '@/types';
 import type { MapView } from '@/components/map-container-contract';
 import type { ClusteredEvent } from '@/types';
 import type { DashboardSnapshot } from '@/services/storage';
-import type { CIIPanel } from '@/components/CIIPanel';
 import type { PredictionPanel } from '@/components/PredictionPanel';
 import {
   buildMapUrl,
@@ -43,15 +42,11 @@ import {
 import { detectPlatform, allButtons, buttonsForPlatform } from '@/components/DownloadBanner';
 import type { Platform } from '@/components/DownloadBanner';
 import { invokeTauri } from '@/services/tauri-bridge';
-import { getCachedGpsInterference } from '@/services/gps-interference';
 import { dataFreshness } from '@/services/data-freshness';
 import { t } from '@/services/i18n';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 
-type AirlineIntelView = {
-  setLiveMode(enabled: boolean): void;
-  updateLivePositions(positions: unknown[]): void;
-};
+const IS_STARTUP_BUILD = import.meta.env.VITE_VARIANT === 'startup';
 
 export interface EventHandlerCallbacks {
   updateSearchIndex: () => void;
@@ -502,9 +497,9 @@ export class EventHandlerManager implements AppModule {
     document.addEventListener('visibilitychange', this.boundVisibilityHandler);
 
     this.boundFocalPointsReadyHandler = () => {
-      if (SITE_VARIANT === 'startup') return;
-      (this.ctx.panels.cii as CIIPanel)?.refresh(true);
-      this.callbacks.refreshOpenCountryBrief?.();
+      if (IS_STARTUP_BUILD) return;
+      void import('@/app/non-startup-event-runtime')
+        .then(({ refreshLegacyFocalPoints }) => refreshLegacyFocalPoints(this.ctx, this.callbacks));
     };
     window.addEventListener('focal-points-ready', this.boundFocalPointsReadyHandler);
 
@@ -992,6 +987,9 @@ export class EventHandlerManager implements AppModule {
   async setupExportPanel(): Promise<void> {
     // Always create — show/hide reactively via auth state subscription below.
     const { ExportPanel } = await import('@/utils');
+    const getLegacyExportPayload = IS_STARTUP_BUILD
+      ? null
+      : (await import('@/app/non-startup-event-runtime')).getLegacyExportPayload;
     this.ctx.exportPanel = new ExportPanel(() => {
       const allCards = this.ctx.correlationEngine?.getAllCards() ?? [];
       const disabledCount = this.ctx.disabledSources.size;
@@ -1011,12 +1009,12 @@ export class EventHandlerManager implements AppModule {
         convergenceCards: allCards.map(({ assessment: _a, ...card }) => card),
         monitors: this.ctx.monitors.length > 0 ? this.ctx.monitors : undefined,
       };
-      if (SITE_VARIANT === 'startup') return basePayload;
+      if (IS_STARTUP_BUILD) return basePayload;
       return {
         ...basePayload,
         intelligence: this.ctx.intelligenceCache,
         cyberThreats: this.ctx.cyberThreatsCache ?? undefined,
-        gpsJamming: getCachedGpsInterference() ?? undefined,
+        ...getLegacyExportPayload?.(),
       };
     });
 
@@ -1226,24 +1224,18 @@ export class EventHandlerManager implements AppModule {
         }
       }
 
-      if (layer === 'ais') {
-        if (enabled) {
-          this.ctx.map?.setLayerLoading('ais', true);
-          void import('@/services/maritime')
-            .then(({ initAisStream }) => initAisStream())
-            .catch(() => {});
-          this.callbacks.waitForAisData();
-        } else {
-          void import('@/services/maritime')
-            .then(({ disconnectAisStream }) => disconnectAisStream())
-            .catch(() => {});
-        }
+      if (!IS_STARTUP_BUILD) {
+        void import('@/app/non-startup-event-runtime')
+          .then(({ handleLegacyLayerChange }) => {
+            if (!handleLegacyLayerChange(this.ctx, this.callbacks, layer as keyof MapLayers, enabled)) {
+              if (enabled) {
+                this.callbacks.loadDataForLayer(layer);
+              } else {
+                this.callbacks.stopLayerActivity?.(layer as keyof MapLayers);
+              }
+            }
+          });
         return;
-      }
-
-      if (layer === 'flights') {
-        const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelView | undefined;
-        airlineIntel?.setLiveMode(enabled);
       }
 
       if (enabled) {
@@ -1253,15 +1245,9 @@ export class EventHandlerManager implements AppModule {
       }
     });
 
-    if (SITE_VARIANT !== 'startup') {
-      // Forward live aircraft positions to the legacy aviation panel contract, cache, and search index.
-      this.ctx.map?.setOnAircraftPositionsUpdate((positions) => {
-        this.ctx.intelligenceCache.aircraftPositions = positions;
-        const airlineIntel = this.ctx.panels['airline-intel'] as AirlineIntelView | undefined;
-        airlineIntel?.updateLivePositions(positions);
-        const military = this.ctx.intelligenceCache.military?.flights ?? [];
-        this.callbacks.updateFlightSource?.(positions, military);
-      });
+    if (!IS_STARTUP_BUILD) {
+      void import('@/app/non-startup-event-runtime')
+        .then(({ setupLegacyAircraftPositionUpdates }) => setupLegacyAircraftPositionUpdates(this.ctx, this.callbacks));
     }
   }
 

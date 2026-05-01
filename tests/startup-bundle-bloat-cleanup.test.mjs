@@ -47,11 +47,27 @@ test('startup search manager does not statically import country instability or l
 
 test('startup app keeps heavyweight ML and world-risk modules lazy', () => {
   const appSource = source('src/App.ts');
+  const legacyRuntimeSource = source('src/app/non-startup-runtime.ts');
+  const eventHandlersSource = source('src/app/event-handlers.ts');
   assert.doesNotMatch(appSource, /from ['"]@\/services\/ml-worker['"]/);
   assert.doesNotMatch(appSource, /from ['"]@\/services\/country-instability['"]/);
   assert.doesNotMatch(appSource, /from ['"]@\/services\/infrastructure['"]/);
+  assert.doesNotMatch(appSource, /@\/services\/maritime/);
+  assert.doesNotMatch(appSource, /@\/services\/bootstrap/);
+  assert.doesNotMatch(appSource, /@\/services\/correlation-engine/);
+  assert.doesNotMatch(appSource, /@\/components\/SignalModal/);
+  assert.doesNotMatch(appSource, /@\/components\/BreakingNewsBanner/);
+  assert.doesNotMatch(appSource, /@\/components\/IntelligenceGapBadge/);
   assert.match(appSource, /import\('@\/services\/ml-worker'\)/);
-  assert.match(appSource, /SITE_VARIANT !== 'startup'[\s\S]+import\('@\/services\/country-instability'\)/);
+  assert.match(appSource, /IS_STARTUP_BUILD \? null : await import\('@\/app\/non-startup-runtime'\)/);
+  assert.match(legacyRuntimeSource, /import\('@\/services\/country-instability'\)/);
+  assert.match(legacyRuntimeSource, /import\('@\/services\/maritime'\)/);
+  assert.match(legacyRuntimeSource, /import\('@\/services\/bootstrap'\)/);
+  assert.doesNotMatch(eventHandlersSource, /from ['"]@\/components\/CIIPanel['"]/);
+  assert.doesNotMatch(eventHandlersSource, /from ['"]@\/services\/gps-interference['"]/);
+  assert.doesNotMatch(eventHandlersSource, /@\/services\/maritime/);
+  assert.match(eventHandlersSource, /import\('@\/app\/non-startup-event-runtime'\)/);
+  assert.match(eventHandlersSource, /const IS_STARTUP_BUILD = import\.meta\.env\.VITE_VARIANT === 'startup'/);
 });
 
 test('startup build aliases i18n to the lightweight English-only service', () => {

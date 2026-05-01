@@ -4,7 +4,10 @@ import { test } from 'node:test';
 
 const panelsSource = readFileSync(new URL('../src/config/panels.ts', import.meta.url), 'utf8');
 const panelLayoutSource = readFileSync(new URL('../src/app/panel-layout.ts', import.meta.url), 'utf8');
+const nonStartupLayoutRuntimeSource = readFileSync(new URL('../src/app/non-startup-layout-runtime.ts', import.meta.url), 'utf8');
 const startupVariantSource = readFileSync(new URL('../src/config/variants/startup.ts', import.meta.url), 'utf8');
+const startupPanelsSource = readFileSync(new URL('../src/config/startup-panels.ts', import.meta.url), 'utf8');
+const viteConfigSource = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
 
 const legacyPanelKeys = [
   'live-webcams',
@@ -62,6 +65,9 @@ test('startup panel registry lives in its own variant module', () => {
   assert.doesNotMatch(panelsSource, /const STARTUP_PANELS/);
   assert.doesNotMatch(panelsSource, /const STARTUP_MAP_LAYERS/);
   assert.doesNotMatch(panelsSource, /const STARTUP_MOBILE_MAP_LAYERS/);
+  assert.match(startupPanelsSource, /STARTUP_PANELS/);
+  assert.match(viteConfigSource, /find: '@\/config\/panels'/);
+  assert.match(viteConfigSource, /startup-panels\.ts/);
 });
 
 test('startup variant includes target dashboards and excludes legacy WorldMonitor panels', () => {
@@ -99,6 +105,11 @@ test('startup panel layout repairs stale cross-variant panel storage', () => {
 });
 
 test('startup route does not call legacy WorldMonitor product links for premium gating or repo stars', () => {
-  assert.match(panelLayoutSource, /SITE_VARIANT === 'startup' \? '\/pro' : 'https:\/\/worldmonitor\.app\/pro'/);
-  assert.match(panelLayoutSource, /if \(SITE_VARIANT === 'startup'\) return;\s+try \{\s+const response = await fetch\('https:\/\/api\.github\.com\/repos\/koala73\/worldmonitor'\)/);
+  assert.doesNotMatch(panelLayoutSource, /https:\/\/worldmonitor\.app\/pro/);
+  assert.doesNotMatch(panelLayoutSource, /https:\/\/api\.github\.com\/repos\/koala73\/worldmonitor/);
+  assert.match(panelLayoutSource, /IS_STARTUP_BUILD[\s\S]+\(\) => window\.open\('\/pro', '_blank'\)/);
+  assert.match(panelLayoutSource, /import\('@\/app\/non-startup-layout-runtime'\)/);
+  assert.match(panelLayoutSource, /const IS_STARTUP_BUILD = import\.meta\.env\.VITE_VARIANT === 'startup'/);
+  assert.match(nonStartupLayoutRuntimeSource, /https:\/\/worldmonitor\.app\/pro/);
+  assert.match(nonStartupLayoutRuntimeSource, /https:\/\/api\.github\.com\/repos\/koala73\/worldmonitor/);
 });
