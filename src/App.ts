@@ -569,7 +569,6 @@ export class App {
       if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_REQUIRED_PANELS_KEY)) {
         const requiredStartupPanels = [
           'producthunt',
-          'funding',
           'startups',
           'vcblogs',
           'hardware',
@@ -587,6 +586,36 @@ export class App {
         }
         saveToStorage(STORAGE_KEYS.panels, panelSettings);
         localStorage.setItem(STARTUP_REQUIRED_PANELS_KEY, 'done');
+      }
+
+      const STARTUP_VC_AREA_MIGRATION_KEY = 'startupintelligence-startup-vc-area-v2';
+      if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_VC_AREA_MIGRATION_KEY)) {
+        delete panelSettings.funding;
+        const aiConfig = getEffectivePanelConfig('ai', 'startup');
+        panelSettings.ai = {
+          ...aiConfig,
+          ...panelSettings.ai,
+          name: aiConfig.name,
+          enabled: true,
+        };
+        try {
+          const rawOrder = localStorage.getItem(PANEL_ORDER_KEY);
+          const order = rawOrder ? JSON.parse(rawOrder) : [];
+          if (Array.isArray(order)) {
+            const filtered = order.filter((key) => key !== 'funding');
+            if (!filtered.includes('ai')) {
+              const insertAfter = filtered.includes('top-vc-signals')
+                ? filtered.indexOf('top-vc-signals') + 1
+                : filtered.includes('insights')
+                  ? filtered.indexOf('insights') + 1
+                  : 0;
+              filtered.splice(insertAfter, 0, 'ai');
+            }
+            localStorage.setItem(PANEL_ORDER_KEY, JSON.stringify(filtered));
+          }
+        } catch { /* corrupt order, skip */ }
+        saveToStorage(STORAGE_KEYS.panels, panelSettings);
+        localStorage.setItem(STARTUP_VC_AREA_MIGRATION_KEY, 'done');
       }
 
       // One-time migration: fix happy variant sessions that got cross-variant panels enabled

@@ -2,7 +2,17 @@ import type { RuntimeSecretKey, RuntimeFeatureId } from './runtime-config';
 
 export const SIGNUP_URLS: Partial<Record<RuntimeSecretKey, string>> = {
   GROQ_API_KEY: 'https://console.groq.com/keys',
+  GROQ_MODEL: 'https://console.groq.com/docs/models',
   OPENROUTER_API_KEY: 'https://openrouter.ai/settings/keys',
+  OPENROUTER_MODEL: 'https://openrouter.ai/models',
+  OPENAI_API_KEY: 'https://platform.openai.com/api-keys',
+  OPENAI_MODEL: 'https://platform.openai.com/docs/models',
+  ANTHROPIC_API_KEY: 'https://console.anthropic.com/settings/keys',
+  ANTHROPIC_MODEL: 'https://docs.anthropic.com/en/docs/about-claude/models',
+  MISTRAL_API_KEY: 'https://console.mistral.ai/api-keys',
+  MISTRAL_MODEL: 'https://docs.mistral.ai/getting-started/models/models_overview/',
+  HUGGINGFACE_API_KEY: 'https://huggingface.co/settings/tokens',
+  HUGGINGFACE_MODEL: 'https://huggingface.co/models',
   EXA_API_KEYS: 'https://dashboard.exa.ai/api-keys',
   BRAVE_API_KEYS: 'https://api-dashboard.search.brave.com/app/keys',
   SERPAPI_API_KEYS: 'https://serpapi.com/manage-api-key',
@@ -28,6 +38,12 @@ export const SIGNUP_URLS: Partial<Record<RuntimeSecretKey, string>> = {
 };
 
 export const PLAINTEXT_KEYS = new Set<RuntimeSecretKey>([
+  'GROQ_MODEL',
+  'OPENROUTER_MODEL',
+  'OPENAI_MODEL',
+  'ANTHROPIC_MODEL',
+  'MISTRAL_MODEL',
+  'HUGGINGFACE_MODEL',
   'OLLAMA_API_URL',
   'OLLAMA_MODEL',
   'WS_RELAY_URL',
@@ -38,7 +54,17 @@ export const MASKED_SENTINEL = '__SI_MASKED__';
 
 export const HUMAN_LABELS: Record<RuntimeSecretKey, string> = {
   GROQ_API_KEY: 'Groq API Key',
+  GROQ_MODEL: 'Groq Model',
   OPENROUTER_API_KEY: 'OpenRouter API Key',
+  OPENROUTER_MODEL: 'OpenRouter Model',
+  OPENAI_API_KEY: 'OpenAI API Key',
+  OPENAI_MODEL: 'OpenAI Model',
+  ANTHROPIC_API_KEY: 'Anthropic API Key',
+  ANTHROPIC_MODEL: 'Anthropic Model',
+  MISTRAL_API_KEY: 'Mistral API Key',
+  MISTRAL_MODEL: 'Mistral Model',
+  HUGGINGFACE_API_KEY: 'Hugging Face API Key',
+  HUGGINGFACE_MODEL: 'Hugging Face Model',
   EXA_API_KEYS: 'Exa API Keys',
   BRAVE_API_KEYS: 'Brave Search API Keys',
   SERPAPI_API_KEYS: 'SerpAPI Keys',
@@ -76,7 +102,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   {
     id: 'ai',
     label: 'AI & Summarization',
-    features: ['aiOllama', 'aiGroq', 'aiOpenRouter'],
+    features: ['aiOllama', 'aiGroq', 'aiOpenRouter', 'aiOpenAI', 'aiAnthropic', 'aiMistral', 'aiHuggingFace'],
   },
   {
     id: 'economy',

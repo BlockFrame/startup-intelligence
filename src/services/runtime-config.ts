@@ -3,7 +3,17 @@ import { invokeTauri } from './tauri-bridge';
 
 export type RuntimeSecretKey =
   | 'GROQ_API_KEY'
+  | 'GROQ_MODEL'
   | 'OPENROUTER_API_KEY'
+  | 'OPENROUTER_MODEL'
+  | 'OPENAI_API_KEY'
+  | 'OPENAI_MODEL'
+  | 'ANTHROPIC_API_KEY'
+  | 'ANTHROPIC_MODEL'
+  | 'MISTRAL_API_KEY'
+  | 'MISTRAL_MODEL'
+  | 'HUGGINGFACE_API_KEY'
+  | 'HUGGINGFACE_MODEL'
   | 'EXA_API_KEYS'
   | 'BRAVE_API_KEYS'
   | 'SERPAPI_API_KEYS'
@@ -33,6 +43,10 @@ export type RuntimeSecretKey =
 export type RuntimeFeatureId =
   | 'aiGroq'
   | 'aiOpenRouter'
+  | 'aiOpenAI'
+  | 'aiAnthropic'
+  | 'aiMistral'
+  | 'aiHuggingFace'
   | 'stockNewsSearchExa'
   | 'stockNewsSearchBrave'
   | 'stockNewsSearchSerpApi'
@@ -89,6 +103,10 @@ function getSidecarSecretValidateUrl(): string {
 const defaultToggles: Record<RuntimeFeatureId, boolean> = {
   aiGroq: true,
   aiOpenRouter: true,
+  aiOpenAI: true,
+  aiAnthropic: true,
+  aiMistral: true,
+  aiHuggingFace: true,
   stockNewsSearchExa: true,
   stockNewsSearchBrave: true,
   stockNewsSearchSerpApi: true,
@@ -126,14 +144,42 @@ export const RUNTIME_FEATURES: RuntimeFeatureDefinition[] = [
     name: 'Groq summarization',
     description: 'Primary fast LLM provider used for AI summary generation.',
     requiredSecrets: ['GROQ_API_KEY'],
-    fallback: 'Falls back to OpenRouter, then local browser model.',
+    fallback: 'Falls back to OpenRouter, OpenAI, Anthropic, Mistral, Hugging Face, then local browser model.',
   },
   {
     id: 'aiOpenRouter',
     name: 'OpenRouter summarization',
-    description: 'Secondary LLM provider for AI summary fallback.',
+    description: 'OpenRouter LLM provider for AI summary and analyst fallback.',
     requiredSecrets: ['OPENROUTER_API_KEY'],
-    fallback: 'Falls back to local browser model only.',
+    fallback: 'Falls back to OpenAI, Anthropic, Mistral, Hugging Face, then local browser model.',
+  },
+  {
+    id: 'aiOpenAI',
+    name: 'OpenAI summarization',
+    description: 'OpenAI LLM provider for investor summaries and analyst synthesis.',
+    requiredSecrets: ['OPENAI_API_KEY'],
+    fallback: 'Falls back to Anthropic, Mistral, Hugging Face, then local browser model.',
+  },
+  {
+    id: 'aiAnthropic',
+    name: 'Anthropic summarization',
+    description: 'Anthropic Claude provider for investor summaries and analyst synthesis.',
+    requiredSecrets: ['ANTHROPIC_API_KEY'],
+    fallback: 'Falls back to Mistral, Hugging Face, then local browser model.',
+  },
+  {
+    id: 'aiMistral',
+    name: 'Mistral summarization',
+    description: 'Mistral LLM provider for fast multilingual summaries.',
+    requiredSecrets: ['MISTRAL_API_KEY'],
+    fallback: 'Falls back to Hugging Face, then local browser model.',
+  },
+  {
+    id: 'aiHuggingFace',
+    name: 'Hugging Face summarization',
+    description: 'Hugging Face router provider for open model summaries.',
+    requiredSecrets: ['HUGGINGFACE_API_KEY'],
+    fallback: 'Falls back to local browser model.',
   },
   {
     id: 'stockNewsSearchExa',

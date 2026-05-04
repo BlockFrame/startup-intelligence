@@ -1,6 +1,6 @@
 import type { AssetType, MapLayers, NewsItem, RelatedAsset } from '@/types';
 
-export type TimeRange = '1h' | '6h' | '24h' | '48h' | '7d' | 'all';
+export type TimeRange = '1h' | '6h' | '8h' | '24h' | '48h' | '7d' | 'all';
 export type MapView = 'global' | 'america' | 'mena' | 'eu' | 'asia' | 'latam' | 'africa' | 'oceania';
 
 export interface MapContainerState {

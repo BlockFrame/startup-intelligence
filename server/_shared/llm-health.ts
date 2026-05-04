@@ -102,6 +102,18 @@ export function warmHealthCache(): void {
   if (typeof process !== 'undefined' && process.env?.OPENROUTER_API_KEY) {
     providerUrls.push('https://openrouter.ai/api/v1/chat/completions');
   }
+  if (typeof process !== 'undefined' && process.env?.OPENAI_API_KEY) {
+    providerUrls.push('https://api.openai.com/v1/chat/completions');
+  }
+  if (typeof process !== 'undefined' && process.env?.ANTHROPIC_API_KEY) {
+    providerUrls.push('https://api.anthropic.com/v1/messages');
+  }
+  if (typeof process !== 'undefined' && process.env?.MISTRAL_API_KEY) {
+    providerUrls.push('https://api.mistral.ai/v1/chat/completions');
+  }
+  if (typeof process !== 'undefined' && (process.env?.HUGGINGFACE_API_KEY || process.env?.HUGGINGFACE_TOKEN)) {
+    providerUrls.push('https://router.huggingface.co/v1/chat/completions');
+  }
 
   for (const url of providerUrls) {
     void isProviderAvailable(url);

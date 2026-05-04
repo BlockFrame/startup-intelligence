@@ -62,7 +62,7 @@ import type { CountryClickPayload } from './DeckGLMap';
 import { t } from '@/services/i18n';
 import type { ScenarioVisualState } from '@/config/scenario-templates';
 
-export type TimeRange = '1h' | '6h' | '24h' | '48h' | '7d' | 'all';
+export type TimeRange = '1h' | '6h' | '8h' | '24h' | '48h' | '7d' | 'all';
 export type MapView = 'global' | 'america' | 'mena' | 'eu' | 'asia' | 'latam' | 'africa' | 'oceania';
 
 interface MapState {
@@ -361,6 +361,7 @@ export class MapComponent {
     const ranges: Record<TimeRange, number> = {
       '1h': 60 * 60 * 1000,
       '6h': 6 * 60 * 60 * 1000,
+      '8h': 8 * 60 * 60 * 1000,
       '24h': 24 * 60 * 60 * 1000,
       '48h': 48 * 60 * 60 * 1000,
       '7d': 7 * 24 * 60 * 60 * 1000,

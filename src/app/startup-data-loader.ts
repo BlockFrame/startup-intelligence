@@ -1,10 +1,10 @@
 import type { AppContext, AppModule } from '@/app/app-context';
 import { enqueuePanelCall } from '@/app/pending-panel-data';
-import type { MapLayers, NewsItem } from '@/types';
+import type { ClusteredEvent, MapLayers, NewsItem } from '@/types';
 import { FEEDS } from '@/config/feeds';
 import { MARKET_SYMBOLS } from '@/config/markets';
 import { VARIANT_DEFAULTS } from '@/config/panels';
-import { fetchCategoryFeeds, getFeedFailures } from '@/services/rss';
+import { fetchCategoryFeeds, filterFreshStartupItems, getFeedFailures } from '@/services/rss';
 import { fetchMultipleStocks } from '@/services/market';
 import { getMarketWatchlistEntries } from '@/services/market-watchlist';
 import { getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
@@ -21,7 +21,11 @@ export class DataLoaderManager implements AppModule {
   updateSearchIndex: () => void = () => {};
 
   private readonly cacheMaxAgeMs = 20 * 60 * 1000;
-  private readonly startupFeedKeys = new Set((VARIANT_DEFAULTS.startup ?? []).filter((key) => Array.isArray((FEEDS as Record<string, unknown>)[key])));
+  private readonly startupFeedKeys = new Set([
+    ...(VARIANT_DEFAULTS.startup ?? []),
+    // Funding no longer has its own card, but still feeds VC ranking and briefs.
+    'funding',
+  ].filter((key) => Array.isArray((FEEDS as Record<string, unknown>)[key])));
 
   constructor(
     private readonly ctx: AppContext,
@@ -102,8 +106,48 @@ export class DataLoaderManager implements AppModule {
 
     this.ctx.allNews = collected;
     this.callPanel('top-vc-signals', 'updateSignals', collected);
+    this.callPanel('insights', 'updateInsights', this.buildStartupSignalClusters(collected));
     this.ctx.initialLoadComplete = true;
     this.updateMonitorResults();
+  }
+
+  private buildStartupSignalClusters(items: NewsItem[]): ClusteredEvent[] {
+    const seen = new Set<string>();
+    return items
+      .filter((item) => (item.startupSignal?.score ?? item.importanceScore ?? 0) > 0)
+      .sort((a, b) => {
+        const aScore = a.startupSignal?.score ?? a.importanceScore ?? 0;
+        const bScore = b.startupSignal?.score ?? b.importanceScore ?? 0;
+        return bScore - aScore || b.pubDate.getTime() - a.pubDate.getTime();
+      })
+      .filter((item) => {
+        const key = item.link || item.title;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 24)
+      .map((item, index) => ({
+        id: `startup-signal-${index}-${encodeURIComponent((item.link || item.title).slice(0, 48))}`,
+        primaryTitle: item.title,
+        primarySource: item.source,
+        primaryLink: item.link,
+        sourceCount: Math.max(1, item.corroborationCount ?? 1),
+        topSources: [{ name: item.source, tier: 2, url: item.link }],
+        allItems: [item],
+        firstSeen: item.pubDate,
+        lastUpdated: item.pubDate,
+        isAlert: (item.startupSignal?.score ?? item.importanceScore ?? 0) >= 82,
+        velocity: item.startupSignal
+          ? {
+            sourcesPerHour: Math.max(1, Math.round((item.startupSignal.score ?? 0) / 25)),
+            level: item.startupSignal.score >= 80 ? 'spike' : item.startupSignal.score >= 62 ? 'elevated' : 'normal',
+            trend: 'rising',
+            sentiment: 'neutral',
+            sentimentScore: 0,
+          }
+          : undefined,
+      }));
   }
 
   async loadMarkets(): Promise<void> {
@@ -197,8 +241,9 @@ export class DataLoaderManager implements AppModule {
     const cacheKey = `startup-news:${category}`;
     const cached = await getPersistentCache<NewsItem[]>(cacheKey).catch(() => null);
     if (cached && Date.now() - cached.updatedAt < this.cacheMaxAgeMs) {
-      this.renderNewsForCategory(category, cached.data);
-      return cached.data;
+      const freshCached = filterFreshStartupItems(cached.data);
+      this.renderNewsForCategory(category, freshCached);
+      return freshCached;
     }
 
     try {

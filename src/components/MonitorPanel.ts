@@ -6,6 +6,14 @@ import { generateId, formatTime, getCSSColor } from '@/utils';
 import { sanitizeUrl } from '@/utils/sanitize';
 import { h, replaceChildren, clearChildren } from '@/utils/dom-utils';
 
+const MONITOR_PRESETS: Array<{ label: string; keywords: string[] }> = [
+  { label: 'AI funding', keywords: ['AI funding', 'Series A AI', 'seed AI'] },
+  { label: 'Agents', keywords: ['AI agents', 'agentic AI', 'workflow automation'] },
+  { label: 'Semiconductors', keywords: ['semiconductor startup', 'AI chip', 'GPU supply'] },
+  { label: 'IPO / M&A', keywords: ['IPO filing', 'acquisition', 'startup acquired'] },
+  { label: 'VC rounds', keywords: ['venture capital', 'Series A', 'Series B'] },
+];
+
 export class MonitorPanel extends Panel {
   private monitors: Monitor[] = [];
   private onMonitorsChange?: (monitors: Monitor[]) => void;
@@ -28,9 +36,16 @@ export class MonitorPanel extends Panel {
     });
 
     const inputContainer = h('div', { className: 'monitor-input-container' },
+      h('div', { className: 'monitor-intro' }, t('components.monitor.intro')),
       input,
       h('button', { className: 'monitor-add-btn', id: 'addMonitorBtn', onClick: () => this.addMonitor() },
         t('components.monitor.add'),
+      ),
+      h('div', { className: 'monitor-presets' },
+        ...MONITOR_PRESETS.map((preset) => h('button', {
+          className: 'monitor-preset-btn',
+          onClick: () => this.addMonitorFromKeywords(preset.keywords),
+        }, preset.label)),
       ),
     );
 
@@ -50,14 +65,21 @@ export class MonitorPanel extends Panel {
 
     if (!keywords) return;
 
-    const monitor: Monitor = {
-      id: generateId(),
-      keywords: keywords.split(',').map((k) => k.trim().toLowerCase()),
-      color: MONITOR_COLORS[this.monitors.length % MONITOR_COLORS.length] ?? getCSSColor('--status-live'),
-    };
-
-    this.monitors.push(monitor);
+    this.addMonitorFromKeywords(keywords.split(',').map((k) => k.trim()));
     input.value = '';
+  }
+
+  private addMonitorFromKeywords(rawKeywords: string[]): void {
+    const keywords = rawKeywords.map((keyword) => keyword.trim().toLowerCase()).filter(Boolean);
+    if (keywords.length === 0) return;
+    const key = keywords.join('|');
+    if (this.monitors.some((monitor) => monitor.keywords.join('|') === key)) return;
+
+    this.monitors.push({
+      id: generateId(),
+      keywords,
+      color: MONITOR_COLORS[this.monitors.length % MONITOR_COLORS.length] ?? getCSSColor('--status-live'),
+    });
     this.renderMonitorsList();
     this.onMonitorsChange?.(this.monitors);
   }

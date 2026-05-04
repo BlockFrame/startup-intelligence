@@ -63,7 +63,7 @@ const FULL_PANELS: Record<string, PanelConfig> = {
   heatmap: { name: 'Sector Heatmap', enabled: true, priority: 2 },
   ai: { name: 'AI/ML', enabled: true, priority: 2 },
   layoffs: { name: 'Layoffs Tracker', enabled: true, priority: 2 },
-  monitors: { name: 'My Monitors', enabled: true, priority: 2 },
+  monitors: { name: 'Investment Monitors', enabled: true, priority: 2 },
   'satellite-fires': { name: 'Fires', enabled: true, priority: 2 },
   'macro-signals': { name: 'Market Regime', enabled: true, priority: 2 },
   'fear-greed': { name: 'Fear & Greed', enabled: true, priority: 2 },
@@ -281,7 +281,7 @@ const TECH_PANELS: Record<string, PanelConfig> = {
   stablecoins: { name: 'Stablecoins', enabled: true, priority: 2 },
   'airline-intel': { name: 'Airline Intelligence', enabled: true, priority: 2 },
   'world-clock': { name: 'World Clock', enabled: true, priority: 2 },
-  monitors: { name: 'My Monitors', enabled: true, priority: 2 },
+  monitors: { name: 'Investment Monitors', enabled: true, priority: 2 },
   'tech-hubs': { name: 'Hot Tech Hubs', enabled: false, priority: 2 },
   'ai-regulation': { name: 'AI Regulation Dashboard', enabled: false, priority: 2 },
 };
@@ -470,7 +470,7 @@ const FINANCE_PANELS: Record<string, PanelConfig> = {
   'wsb-ticker-scanner': { name: 'WSB Ticker Scanner', enabled: true, priority: 75, premium: 'locked' },
   'airline-intel': { name: 'Airline Intelligence', enabled: true, priority: 2 },
   'world-clock': { name: 'World Clock', enabled: true, priority: 2 },
-  monitors: { name: 'My Monitors', enabled: true, priority: 2 },
+  monitors: { name: 'Investment Monitors', enabled: true, priority: 2 },
 };
 
 const FINANCE_MAP_LAYERS: MapLayers = {
@@ -770,7 +770,7 @@ const COMMODITY_PANELS: Record<string, PanelConfig> = {
   'airline-intel': { name: 'Airline Intelligence', enabled: true, priority: 2 },
   polymarket: { name: 'Commodity Predictions', enabled: true, priority: 2 },
   'world-clock': { name: 'World Clock', enabled: true, priority: 2 },
-  monitors: { name: 'My Monitors', enabled: true, priority: 2 },
+  monitors: { name: 'Investment Monitors', enabled: true, priority: 2 },
 };
 
 const COMMODITY_MAP_LAYERS: MapLayers = {

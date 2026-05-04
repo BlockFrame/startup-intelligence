@@ -16,7 +16,7 @@ import { CHROME_UA } from '../../../_shared/constants';
 import { isProviderAvailable } from '../../../_shared/llm-health';
 import { sanitizeHeadlinesLight, sanitizeHeadlines, sanitizeForPrompt } from '../../../_shared/llm-sanitize.js';
 import { isCallerPremium } from '../../../_shared/premium-check';
-import { stripThinkingTags } from '../../../_shared/llm';
+import { buildLlmRequestBody, extractLlmText, stripThinkingTags } from '../../../_shared/llm';
 
 // ======================================================================
 // Reasoning preamble detection
@@ -66,6 +66,11 @@ export async function summarizeArticle(
     ollama: 'OLLAMA_API_URL not configured',
     groq: 'GROQ_API_KEY not configured',
     openrouter: 'OPENROUTER_API_KEY not configured',
+    openai: 'OPENAI_API_KEY not configured',
+    anthropic: 'ANTHROPIC_API_KEY not configured',
+    mistral: 'MISTRAL_API_KEY not configured',
+    huggingface: 'HUGGINGFACE_API_KEY or HUGGINGFACE_TOKEN not configured',
+    generic: 'LLM_API_URL/LLM_API_KEY not configured',
   };
 
   const credentials = getProviderCredentials(provider);
@@ -83,7 +88,7 @@ export async function summarizeArticle(
     };
   }
 
-  const { apiUrl, model, headers: providerHeaders, extraBody } = credentials;
+  const { apiUrl, model, headers: providerHeaders } = credentials;
 
   // Request validation
   if (!headlines || !Array.isArray(headlines) || headlines.length === 0) {
@@ -132,17 +137,14 @@ export async function summarizeArticle(
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { ...providerHeaders, 'User-Agent': CHROME_UA },
-          body: JSON.stringify({
-            model,
-            messages: [
+          body: JSON.stringify(buildLlmRequestBody(
+            credentials,
+            [
               { role: 'system', content: effectiveSystemPrompt },
               { role: 'user', content: userPrompt },
             ],
-            temperature: 0.3,
-            max_tokens: 100,
-            top_p: 0.9,
-            ...extraBody,
-          }),
+            { temperature: 0.3, maxTokens: 100, topP: 0.9 },
+          )),
           signal: AbortSignal.timeout(25_000),
         });
 
@@ -153,9 +155,8 @@ export async function summarizeArticle(
         }
 
         const data = await response.json() as any;
-        const tokens = (data.usage?.total_tokens as number) || 0;
-        const message = data.choices?.[0]?.message;
-        const rawText = typeof message?.content === 'string' ? message.content.trim() : '';
+        const tokens = (data.usage?.total_tokens as number) || (data.usage?.input_tokens as number) || 0;
+        const rawText = extractLlmText(credentials, data);
         let rawContent = stripThinkingTags(rawText);
 
         if (['brief', 'analysis'].includes(mode) && rawContent.length < 20) {

@@ -437,6 +437,7 @@ const TECH_FEEDS: Record<string, Feed[]> = {
     { name: 'Fast Company', url: rss('https://feeds.feedburner.com/fastcompany/headlines') },
   ],
   ai: [
+    { name: 'OpenAI Official', url: rss('https://openai.com/news/rss.xml') },
     { name: 'AI News', url: rss('https://news.google.com/rss/search?q=(OpenAI+OR+Anthropic+OR+Google+AI+OR+"large+language+model"+OR+ChatGPT+OR+Claude+OR+"AI+model")+when:2d&hl=en-US&gl=US&ceid=US:en') },
     { name: 'VentureBeat AI', url: rss('https://venturebeat.com/category/ai/feed/') },
     { name: 'The Verge AI', url: rss('https://www.theverge.com/rss/ai-artificial-intelligence/index.xml') },
@@ -531,10 +532,9 @@ const TECH_FEEDS: Record<string, Feed[]> = {
     { name: 'Tech IPO News', url: rss('https://news.google.com/rss/search?q=tech+IPO+OR+"tech+company"+IPO+when:7d&hl=en-US&gl=US&ceid=US:en') },
   ],
   funding: [
-    { name: 'SEC Filings', url: rss('https://news.google.com/rss/search?q=(S-1+OR+"IPO+filing"+OR+"SEC+filing")+startup+when:7d&hl=en-US&gl=US&ceid=US:en') },
-    { name: 'VC News', url: rss('https://news.google.com/rss/search?q=("Series+A"+OR+"Series+B"+OR+"Series+C"+OR+"funding+round"+OR+"venture+capital")+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'VC News', url: rss('https://news.google.com/rss/search?q=("startup+raised"+OR+"AI+startup+raised"+OR+"fintech+startup+raised"+OR+"led+by"+("Series+A"+OR+"Series+B"+OR+"Series+C"))+when:7d&hl=en-US&gl=US&ceid=US:en') },
     { name: 'Seed & Pre-Seed', url: rss('https://news.google.com/rss/search?q=("seed+round"+OR+"pre-seed"+OR+"angel+round"+OR+"seed+funding")+when:7d&hl=en-US&gl=US&ceid=US:en') },
-    { name: 'Startup Funding', url: rss('https://news.google.com/rss/search?q=("startup+funding"+OR+"raised+funding"+OR+"raised+$"+OR+"funding+announced")+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Crunchbase Funding', url: rss('https://news.google.com/rss/search?q=site:news.crunchbase.com+("funding"+OR+"raises"+OR+"Series+A"+OR+"Series+B"+OR+"seed")+when:7d&hl=en-US&gl=US&ceid=US:en') },
   ],
   producthunt: [
     { name: 'Product Hunt', url: rss('https://www.producthunt.com/feed') },

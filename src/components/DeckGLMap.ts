@@ -128,7 +128,7 @@ import {
 import { isAllowedPreviewUrl } from '@/utils/imagery-preview';
 import type { WebcamEntry, WebcamCluster } from '@/generated/client/startup_intelligence/webcam/v1/service_client';
 
-export type TimeRange = '1h' | '6h' | '24h' | '48h' | '7d' | 'all';
+export type TimeRange = '1h' | '6h' | '8h' | '24h' | '48h' | '7d' | 'all';
 export type DeckMapView = 'global' | 'america' | 'mena' | 'eu' | 'asia' | 'latam' | 'africa' | 'oceania';
 type MapInteractionMode = 'flat' | '3d';
 
@@ -996,6 +996,7 @@ export class DeckGLMap {
     const ranges: Record<TimeRange, number> = {
       '1h': 60 * 60 * 1000,
       '6h': 6 * 60 * 60 * 1000,
+      '8h': 8 * 60 * 60 * 1000,
       '24h': 24 * 60 * 60 * 1000,
       '48h': 48 * 60 * 60 * 1000,
       '7d': 7 * 24 * 60 * 60 * 1000,

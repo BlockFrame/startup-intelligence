@@ -1,7 +1,7 @@
 /**
  * Summarization Service with Fallback Chain
  * Server-side Redis caching handles cross-user deduplication
- * Fallback: Ollama -> Groq -> OpenRouter -> Browser T5
+ * Fallback: Ollama -> Groq -> OpenRouter -> OpenAI -> Anthropic -> Mistral -> Hugging Face -> Browser T5
  *
  * Uses NewsServiceClient.summarizeArticle() RPC instead of legacy
  * per-provider fetch endpoints.
@@ -18,7 +18,16 @@ import { NewsServiceClient, type SummarizeArticleResponse } from '@/generated/cl
 import { createCircuitBreaker } from '@/utils';
 import { buildSummaryCacheKey } from '@/utils/summary-cache-key';
 
-export type SummarizationProvider = 'ollama' | 'groq' | 'openrouter' | 'browser' | 'cache';
+export type ApiSummarizationProvider =
+  | 'ollama'
+  | 'groq'
+  | 'openrouter'
+  | 'openai'
+  | 'anthropic'
+  | 'mistral'
+  | 'huggingface';
+
+export type SummarizationProvider = ApiSummarizationProvider | 'browser' | 'cache';
 
 export interface SummarizationResult {
   summary: string;
@@ -52,7 +61,7 @@ const emptySummaryFallback: SummarizeArticleResponse = { summary: '', provider: 
 
 interface ApiProviderDef {
   featureId: RuntimeFeatureId;
-  provider: SummarizationProvider;
+  provider: ApiSummarizationProvider;
   label: string;
 }
 
@@ -60,15 +69,16 @@ const API_PROVIDERS: ApiProviderDef[] = [
   { featureId: 'aiOllama',      provider: 'ollama',     label: 'Ollama' },
   { featureId: 'aiGroq',        provider: 'groq',       label: 'Groq AI' },
   { featureId: 'aiOpenRouter',  provider: 'openrouter', label: 'OpenRouter' },
+  { featureId: 'aiOpenAI',      provider: 'openai',     label: 'OpenAI' },
+  { featureId: 'aiAnthropic',   provider: 'anthropic',  label: 'Anthropic' },
+  { featureId: 'aiMistral',     provider: 'mistral',    label: 'Mistral' },
+  { featureId: 'aiHuggingFace', provider: 'huggingface', label: 'Hugging Face' },
 ];
 
 let lastAttemptedProvider = 'none';
 
 function shouldSkipSummarizationRpcInDev(): boolean {
-  if (SITE_VARIANT !== 'startup') return false;
-  if (typeof window === 'undefined') return false;
-  if (getRpcBaseUrl()) return false;
-  return window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+  return false;
 }
 
 // ── Unified API provider caller (via SummarizeArticle RPC) ──
@@ -168,7 +178,8 @@ async function runApiChain(
 }
 
 /**
- * Generate a summary using the fallback chain: Ollama -> Groq -> OpenRouter -> Browser T5
+ * Generate a summary using the fallback chain:
+ * Ollama -> Groq -> OpenRouter -> OpenAI -> Anthropic -> Mistral -> Hugging Face -> Browser T5
  * Server-side Redis caching is handled by the SummarizeArticle RPC handler
  * @param geoContext Optional geographic signal context to include in the prompt
  */

@@ -16,6 +16,7 @@ const FEED_COOLDOWN_MS = 5 * 60 * 1000;
 const MAX_FAILURES = 2;
 const MAX_CACHE_ENTRIES = 100;
 const FEED_SCOPE_SEPARATOR = '::';
+const STARTUP_MAX_ITEM_AGE_MS = 8 * 24 * 60 * 60 * 1000;
 const feedFailures = new Map<string, { count: number; cooldownUntil: number }>();
 const feedCache = new Map<string, { items: NewsItem[]; timestamp: number }>();
 const CACHE_TTL = 30 * 60 * 1000;
@@ -45,10 +46,57 @@ function getPersistentFeedKey(feedScope: string): string {
   return `feed:${feedScope}`;
 }
 
+function extractTitleDate(title: string, now = new Date()): Date | null {
+  const monthNames = 'jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?';
+  const monthMatch = title.match(new RegExp(`\\b(${monthNames})\\s+(\\d{1,2})(?:,\\s*(\\d{4}))?\\b`, 'i'));
+  if (monthMatch) {
+    const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+      .findIndex((prefix) => monthMatch[1]!.toLowerCase().startsWith(prefix));
+    const day = Number(monthMatch[2]);
+    const year = Number(monthMatch[3] || now.getFullYear());
+    const parsed = new Date(Date.UTC(year, monthIndex, day));
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  const numericMatch = title.match(/\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b/);
+  if (!numericMatch) return null;
+  const first = Number(numericMatch[1]);
+  const second = Number(numericMatch[2]);
+  const yearRaw = numericMatch[3];
+  const year = yearRaw ? Number(yearRaw.length === 2 ? `20${yearRaw}` : yearRaw) : now.getFullYear();
+  const day = first > 12 ? first : second;
+  const month = first > 12 ? second : first;
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function isFreshStartupItem(item: NewsItem, feedUrl = ''): boolean {
+  if (SITE_VARIANT !== 'startup') return true;
+  const now = Date.now();
+  const ageMs = now - item.pubDate.getTime();
+  if (ageMs > STARTUP_MAX_ITEM_AGE_MS) return false;
+  if (ageMs < -6 * 60 * 60 * 1000) return false;
+
+  const titleDate = extractTitleDate(item.title);
+  if (titleDate && now - titleDate.getTime() > STARTUP_MAX_ITEM_AGE_MS) return false;
+
+  // Google News can refresh an old article with a fresh pubDate. Keep it, but
+  // drop obvious archival/company-profile surfaces that pollute VC dealflow.
+  if (feedUrl.includes('news.google.com') && /\b(company profile|valuation, funding & investors|archive|recap)\b/i.test(item.title)) {
+    return false;
+  }
+
+  return true;
+}
+
+export function filterFreshStartupItems(items: NewsItem[], feedUrl = ''): NewsItem[] {
+  return items.filter((item) => isFreshStartupItem(item, feedUrl));
+}
+
 async function readPersistentFeed(key: string): Promise<NewsItem[] | null> {
   const entry = await getPersistentCache<Array<Omit<NewsItem, 'pubDate'> & { pubDate: string }>>(key);
   if (!entry?.data?.length) return null;
-  return fromSerializable(entry.data);
+  return filterFreshStartupItems(fromSerializable(entry.data));
 }
 
 async function loadPersistentFeed(feedScope: string): Promise<NewsItem[] | null> {
@@ -250,9 +298,9 @@ export async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
     const isAtom = items.length === 0;
     if (isAtom) items = doc.querySelectorAll('entry');
 
-    const parsed = Array.from(items)
+    const parsed = filterFreshStartupItems(Array.from(items)
       .slice(0, 5)
-      .map((item) => {
+      .map((item): NewsItem => {
         const title = item.querySelector('title')?.textContent || '';
         let link = '';
         if (isAtom) {
@@ -282,7 +330,7 @@ export async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
           lang: feed.lang,
           ...(SITE_VARIANT === 'happy' && { imageUrl: extractImageUrl(item) }),
         };
-      });
+      }), url);
 
     feedCache.set(feedScope, { items: parsed, timestamp: Date.now() });
     void setPersistentCache(getPersistentFeedKey(feedScope), toSerializable(parsed));
@@ -305,14 +353,14 @@ export async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
     }
 
     const aiCandidates = parsed
-      .filter(item => item.threat.source === 'keyword')
+      .filter(item => item.threat?.source === 'keyword')
       .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
       .slice(0, AI_CLASSIFY_MAX_PER_FEED);
 
     for (const item of aiCandidates) {
       if (!canQueueAiClassification(item.title)) continue;
       classifyWithAI(item.title, SITE_VARIANT).then((aiResult) => {
-        if (aiResult && aiResult.confidence > item.threat.confidence) {
+        if (aiResult && aiResult.confidence > (item.threat?.confidence ?? 0)) {
           item.threat = aiResult;
           item.isAlert = aiResult.level === 'critical' || aiResult.level === 'high';
         }

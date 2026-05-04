@@ -37,7 +37,7 @@ export class TopVCSignalsPanel extends Panel {
   constructor() {
     super({
       id: 'top-vc-signals',
-      title: 'Top VC Signals',
+      title: 'Highest-Conviction Signals',
       showCount: true,
       defaultRowSpan: 2,
       infoTooltip: 'Highest-scoring startup and market signals ranked for investor relevance.',

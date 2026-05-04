@@ -23,6 +23,10 @@ const keyBackedFeatures: RuntimeFeatureId[] = [
   'aiOllama',
   'aiGroq',
   'aiOpenRouter',
+  'aiOpenAI',
+  'aiAnthropic',
+  'aiMistral',
+  'aiHuggingFace',
   'economicFred',
   'energyEia',
 ];
@@ -121,7 +125,7 @@ export function getDesktopReadinessChecks(localBackendEnabled: boolean): Desktop
     { id: 'startup', label: 'Desktop startup + sidecar API health', ready: localBackendEnabled },
     { id: 'map', label: 'Map rendering (local layers + static geo assets)', ready: true },
     { id: 'core-intel', label: 'Core intelligence panels (Live News, Monitor, Strategic Risk)', ready: true },
-    { id: 'summaries', label: 'Summaries (provider-backed or browser fallback)', ready: isFeatureAvailable('aiOllama') || isFeatureAvailable('aiGroq') || isFeatureAvailable('aiOpenRouter') },
+    { id: 'summaries', label: 'Summaries (provider-backed or browser fallback)', ready: isFeatureAvailable('aiOllama') || isFeatureAvailable('aiGroq') || isFeatureAvailable('aiOpenRouter') || isFeatureAvailable('aiOpenAI') || isFeatureAvailable('aiAnthropic') || isFeatureAvailable('aiMistral') || isFeatureAvailable('aiHuggingFace') },
     { id: 'market', label: 'Market panel live data paths', ready: true },
     { id: 'live-tracking', label: 'At least one live-tracking mode (AIS or OpenSky)', ready: liveTrackingReady },
   ];

@@ -1294,8 +1294,11 @@ export class EventHandlerManager implements AppModule {
     const mapContainer = document.getElementById('mapContainer');
     const resizeHandle = document.getElementById('mapResizeHandle');
     if (!mapSection || !resizeHandle || !mapContainer) return;
+    const isStartup = SITE_VARIANT === 'startup';
 
-    const getMinHeight = () => (window.innerWidth >= 1600 ? 280 : 350);
+    const getMinHeight = () => SITE_VARIANT === 'startup'
+      ? (window.innerWidth >= 1600 ? 240 : 260)
+      : (window.innerWidth >= 1600 ? 280 : 350);
     const getMaxHeight = () => {
       if (window.innerWidth < 1600) return Math.max(getMinHeight(), window.innerHeight - 150);
 
@@ -1316,7 +1319,7 @@ export class EventHandlerManager implements AppModule {
       const numeric = Number.parseInt(savedHeight, 10);
       if (Number.isFinite(numeric)) {
         const clamped = Math.max(getMinHeight(), Math.min(numeric, getMaxHeight()));
-        if (window.innerWidth >= 1600) {
+        if (window.innerWidth >= 1600 && !isStartup) {
           mapContainer.style.flex = 'none';
           mapContainer.style.height = `${clamped}px`;
         } else {
@@ -1329,12 +1332,17 @@ export class EventHandlerManager implements AppModule {
         localStorage.removeItem('map-height');
       }
     }
+    const savedWidth = isStartup ? localStorage.getItem('startup-map-width') : null;
+    if (savedWidth) {
+      mapSection.style.width = savedWidth;
+      mapSection.style.alignSelf = 'flex-start';
+    }
 
     let isResizing = false;
     let startY = 0;
     let startHeight = 0;
 
-    const getTarget = () => (window.innerWidth >= 1600 ? mapContainer : mapSection);
+    const getTarget = () => (window.innerWidth >= 1600 && !isStartup ? mapContainer : mapSection);
 
     this.boundMapEndResizeHandler = () => {
       if (!isResizing) return;
@@ -1344,10 +1352,13 @@ export class EventHandlerManager implements AppModule {
       mapSection.classList.remove('resizing');
       document.body.style.cursor = '';
       localStorage.setItem('map-height', getTarget().style.height);
+      if (isStartup && mapSection.style.width) {
+        localStorage.setItem('startup-map-width', mapSection.style.width);
+      }
     };
     const endResize = this.boundMapEndResizeHandler;
 
-    resizeHandle.addEventListener('mousedown', (e) => {
+    const beginResize = (e: MouseEvent) => {
       isResizing = true;
       startY = e.clientY;
       const target = getTarget();
@@ -1356,7 +1367,9 @@ export class EventHandlerManager implements AppModule {
       mapSection.classList.add('resizing');
       document.body.style.cursor = 'ns-resize';
       e.preventDefault();
-    });
+    };
+
+    resizeHandle.addEventListener('mousedown', beginResize);
 
     resizeHandle.addEventListener('dblclick', () => {
       const isWide = window.innerWidth >= 1600;
@@ -1390,7 +1403,7 @@ export class EventHandlerManager implements AppModule {
 
     this.boundMapResizeMoveHandler = (e: MouseEvent) => {
       if (!isResizing) return;
-      const isWide = window.innerWidth >= 1600;
+      const isWide = window.innerWidth >= 1600 && !isStartup;
       const target = isWide ? mapContainer : mapSection;
 
       const deltaY = e.clientY - startY;
@@ -1516,11 +1529,12 @@ export class EventHandlerManager implements AppModule {
 
     const toggle = () => {
       isFullscreen = !isFullscreen;
-      mapSection.classList.toggle('live-news-fullscreen', isFullscreen);
-      document.body.classList.toggle('live-news-fullscreen-active', isFullscreen);
+      mapSection.classList.toggle('map-fullscreen', isFullscreen);
+      document.body.classList.toggle('map-fullscreen-active', isFullscreen);
       btn.innerHTML = isFullscreen ? shrinkSvg : expandSvg;
       btn.title = isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
-      this.syncMapAfterLayoutChange();
+      window.setTimeout(() => this.syncMapAfterLayoutChange(), 50);
+      window.setTimeout(() => this.syncMapAfterLayoutChange(), 280);
     };
 
     btn.addEventListener('click', toggle);

@@ -40,7 +40,7 @@ export const DEFAULT_PANELS: Record<string, PanelConfig> = {
   'satellite-fires': { name: 'Fires & Operational Risk', enabled: true, priority: 2 },
   'airline-intel': { name: 'Airline Intelligence', enabled: true, priority: 2 },
   // Tracking
-  monitors: { name: 'My Monitors', enabled: true, priority: 2 },
+  monitors: { name: 'Investment Monitors', enabled: true, priority: 2 },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

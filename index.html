@@ -104,23 +104,23 @@
 
     <!-- Critical CSS: inline skeleton visible before JS boots -->
     <style>
-      /* ---------- skeleton shell (dark default) ---------- */
-      .skeleton-shell{display:flex;flex-direction:column;height:100vh;background:#0a0a0a;font-family:'SF Mono','Monaco','Cascadia Code','Fira Code','DejaVu Sans Mono','Liberation Mono',monospace;overflow:hidden}
-      .skeleton-header{display:flex;align-items:center;justify-content:space-between;height:40px;padding:8px 16px;background:#141414;border-bottom:1px solid #2a2a2a;flex-shrink:0}
+      /* ---------- skeleton shell (neutral dark default) ---------- */
+      .skeleton-shell{display:flex;flex-direction:column;height:100vh;background:#0b0d0e;font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,Arial,sans-serif;overflow:hidden}
+      .skeleton-header{display:flex;align-items:center;justify-content:space-between;height:52px;padding:8px 16px;background:#0f1213;border-bottom:1px solid #283034;flex-shrink:0}
       .skeleton-header-left{display:flex;align-items:center;gap:12px}
       .skeleton-header-right{display:flex;align-items:center;gap:12px}
-      .skeleton-pill{height:24px;border-radius:4px;background:#1e1e1e}
-      .skeleton-dot{width:8px;height:8px;border-radius:50%;background:#0f5040}
-      .skeleton-main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0a0a0a}
-      .skeleton-map{height:50vh;min-height:200px;border:1px solid #2a2a2a;background:#020a08;display:flex;flex-direction:column;flex-shrink:0}
-      .skeleton-map-bar{height:32px;display:flex;align-items:center;padding:0 12px;background:#141414;border-bottom:1px solid #2a2a2a}
+      .skeleton-pill{height:24px;border-radius:8px;background:#15191b}
+      .skeleton-dot{width:8px;height:8px;border-radius:50%;background:#20d39b}
+      .skeleton-main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0b0d0e}
+      .skeleton-map{height:46vh;min-height:280px;border:1px solid #283034;background:#101516;display:flex;flex-direction:column;flex-shrink:0}
+      .skeleton-map-bar{height:36px;display:flex;align-items:center;padding:0 12px;background:#15191b;border-bottom:1px solid #283034}
       .skeleton-map-body{flex:1;position:relative;overflow:hidden}
-      .skeleton-map-body::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,#0a2a20 0%,#020a08 100%);opacity:.5}
-      .skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px;padding:4px;align-content:start}
-      .skeleton-panel{height:320px;background:#141414;border:1px solid #2a2a2a;border-radius:0;display:flex;flex-direction:column}
-      .skeleton-panel-header{height:36px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #1a1a1a}
+      .skeleton-map-body::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#101516 0%,#15191b 50%,#0d1112 100%);opacity:1}
+      .skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:16px;align-content:start}
+      .skeleton-panel{height:320px;background:#15191b;border:1px solid #283034;border-radius:8px;display:flex;flex-direction:column;box-shadow:0 18px 42px rgba(0,0,0,.34)}
+      .skeleton-panel-header{height:40px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #20272a}
       .skeleton-panel-body{flex:1;padding:12px;display:flex;flex-direction:column;gap:10px}
-      .skeleton-line{height:14px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:skel-shimmer 1.5s infinite}
+      .skeleton-line{height:14px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(32,211,155,.16) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:skel-shimmer 1.5s infinite}
       .skeleton-line.w75{width:75%}.skeleton-line.w60{width:60%}.skeleton-line.w50{width:50%}.skeleton-line.w85{width:85%}.skeleton-line.w40{width:40%}
 
       @keyframes skel-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}

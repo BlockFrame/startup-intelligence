@@ -233,6 +233,16 @@ export class PanelLayoutManager implements AppModule {
     const legacyHeaderLinks = legacyChrome?.renderLegacyHeaderLinks(t('header.viewOnGitHub')) ?? '';
     const legacyMobileFooterLinks = legacyChrome?.renderLegacyMobileFooterLinks(this.ctx.isDesktopApp) ?? '';
     const legacyFooterLinks = legacyChrome?.renderLegacyFooterLinks(this.ctx.isDesktopApp) ?? '';
+    const regionOptions = [
+      { value: 'global', label: 'Global' },
+      { value: 'america', label: 'Americas' },
+      { value: 'mena', label: 'MENA' },
+      { value: 'eu', label: 'Europe' },
+      { value: 'asia', label: 'Asia' },
+      { value: 'latam', label: 'Latin America' },
+      { value: 'africa', label: 'Africa' },
+      { value: 'oceania', label: 'Oceania' },
+    ];
 
     this.ctx.container.innerHTML = `
       ${this.ctx.isDesktopApp ? '<div class="tauri-titlebar" data-tauri-drag-region></div>' : ''}
@@ -323,7 +333,7 @@ export class PanelLayoutManager implements AppModule {
               <span class="variant-label">Good News</span>
             </a>`;
       })()}</div>
-          <span class="logo">${SITE_VARIANT === 'startup' ? 'STARTUP INTELLIGENCE' : 'MONITOR'}</span><span class="logo-mobile">${SITE_VARIANT === 'startup' ? 'Startup Intelligence' : 'Startup Intelligence'}</span><span class="version">v${__APP_VERSION__}</span>${BETA_MODE ? '<span class="beta-badge">BETA</span>' : ''}
+          <span class="logo">${SITE_VARIANT === 'startup' ? 'Startup Intelligence' : 'Startup Intelligence'}</span><span class="logo-mobile">Startup Intelligence</span><span class="version">v${__APP_VERSION__}</span>${BETA_MODE ? '<span class="beta-badge">BETA</span>' : ''}
           ${legacyHeaderLinks}
           <button class="mobile-settings-btn" id="mobileSettingsBtn" title="${t('header.settings')}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -334,14 +344,7 @@ export class PanelLayoutManager implements AppModule {
           </div>
           <div class="region-selector">
             <select id="regionSelect" class="region-select">
-              <option value="global">${t('components.deckgl.views.global')}</option>
-              <option value="america">${t('components.deckgl.views.americas')}</option>
-              <option value="mena">${t('components.deckgl.views.mena')}</option>
-              <option value="eu">${t('components.deckgl.views.europe')}</option>
-              <option value="asia">${t('components.deckgl.views.asia')}</option>
-              <option value="latam">${t('components.deckgl.views.latam')}</option>
-              <option value="africa">${t('components.deckgl.views.africa')}</option>
-              <option value="oceania">${t('components.deckgl.views.oceania')}</option>
+              ${regionOptions.map((region) => `<option value="${region.value}">${region.label}</option>`).join('')}
             </select>
           </div>
           <button class="mobile-search-btn" id="mobileSearchBtn" aria-label="${t('header.search')}">
@@ -360,7 +363,7 @@ export class PanelLayoutManager implements AppModule {
       <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
       <nav class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-header">
-          <span class="mobile-menu-title">${SITE_VARIANT === 'startup' ? 'STARTUP INTELLIGENCE' : 'WORLD MONITOR'}</span>
+          <span class="mobile-menu-title">Startup Intelligence</span>
           <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close menu">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -393,7 +396,7 @@ export class PanelLayoutManager implements AppModule {
         <div class="mobile-menu-divider"></div>
         <button class="mobile-menu-item" id="mobileMenuRegion">
           <span class="mobile-menu-item-icon">🌐</span>
-          <span class="mobile-menu-item-label">${t('components.deckgl.views.global')}</span>
+          <span class="mobile-menu-item-label">Global</span>
           <span class="mobile-menu-chevron">▸</span>
         </button>
         <div class="mobile-menu-divider"></div>
@@ -421,16 +424,7 @@ export class PanelLayoutManager implements AppModule {
       <div class="region-bottom-sheet" id="regionBottomSheet">
         <div class="region-sheet-header">${t('header.selectRegion')}</div>
         <div class="region-sheet-divider"></div>
-        ${[
-        { value: 'global', label: t('components.deckgl.views.global') },
-        { value: 'america', label: t('components.deckgl.views.americas') },
-        { value: 'mena', label: t('components.deckgl.views.mena') },
-        { value: 'eu', label: t('components.deckgl.views.europe') },
-        { value: 'asia', label: t('components.deckgl.views.asia') },
-        { value: 'latam', label: t('components.deckgl.views.latam') },
-        { value: 'africa', label: t('components.deckgl.views.africa') },
-        { value: 'oceania', label: t('components.deckgl.views.oceania') },
-      ].map(r =>
+        ${regionOptions.map(r =>
         `<button class="region-sheet-option ${r.value === 'global' ? 'active' : ''}" data-region="${r.value}">
           <span>${r.label}</span>
           <span class="region-sheet-check">${r.value === 'global' ? '✓' : ''}</span>
@@ -465,6 +459,15 @@ export class PanelLayoutManager implements AppModule {
           <div class="map-bottom-grid" id="mapBottomGrid"></div>
         </div>
         <div class="map-width-resize-handle" id="mapWidthResizeHandle"></div>
+        ${SITE_VARIANT === 'startup' ? `
+          <div class="vc-news-filter" id="vcNewsFilter" aria-label="News freshness filter">
+            <span class="vc-news-filter-label">News freshness</span>
+            ${(['1h', '8h', '24h', '48h', '7d', 'all'] as const).map((range) =>
+              `<button type="button" class="vc-news-filter-btn ${range === (this.ctx.initialUrlState?.timeRange ?? this.ctx.currentTimeRange) ? 'active' : ''}" data-range="${range}">${range === 'all' ? 'All' : range}</button>`
+            ).join('')}
+            <span class="vc-news-filter-hint">Filters news cards only</span>
+          </div>
+        ` : ''}
         <div class="panels-grid" id="panelsGrid"></div>
         <button class="search-mobile-fab" id="searchMobileFab" aria-label="Search">\u{1F50D}</button>
       </div>
@@ -475,7 +478,7 @@ export class PanelLayoutManager implements AppModule {
         <div class="site-footer-brand">
           <img src="/favico/favicon-32x32.png" alt="" width="28" height="28" class="site-footer-icon" />
           <div class="site-footer-brand-text">
-          <span class="site-footer-name">${SITE_VARIANT === 'startup' ? 'STARTUP INTELLIGENCE' : 'WORLD MONITOR'}</span>
+          <span class="site-footer-name">Startup Intelligence</span>
           <span class="site-footer-sub">v${__APP_VERSION__}${SITE_VARIANT === 'startup' ? '' : ' &middot; <a href="https://x.com/eliehabib" target="_blank" rel="noopener" class="site-footer-credit">@eliehabib</a>'}</span>
           </div>
         </div>
@@ -789,7 +792,6 @@ export class PanelLayoutManager implements AppModule {
     this.createNewsPanel('regionalStartups', 'panels.regionalStartups');
     this.createNewsPanel('unicorns', 'panels.unicorns');
     this.createNewsPanel('accelerators', 'panels.accelerators');
-    this.createNewsPanel('funding', 'panels.funding');
     this.createNewsPanel('producthunt', 'panels.producthunt');
     this.createNewsPanel('security', 'panels.security');
     this.createNewsPanel('policy', 'panels.policy');
@@ -849,7 +851,7 @@ export class PanelLayoutManager implements AppModule {
       pan: { x: 0, y: 0 },
       view: this.ctx.isMobile ? this.ctx.resolvedLocation : 'global',
       layers: this.ctx.mapLayers,
-      timeRange: '7d',
+      timeRange: this.ctx.initialUrlState?.timeRange ?? this.ctx.currentTimeRange,
     }, preferGlobe);
     this.ctx.map = map;
 
@@ -1053,11 +1055,13 @@ export class PanelLayoutManager implements AppModule {
 
     this.ctx.map.onTimeRangeChanged((range) => {
       this.ctx.currentTimeRange = range;
+      this.syncStartupNewsFilter(range);
       this.applyTimeRangeFilterDebounced();
     });
 
     this.applyPanelSettings();
     this.applyInitialUrlState();
+    this.setupStartupNewsFilter();
 
     if (import.meta.env.DEV) {
       const configured = new Set(Object.keys(ALL_PANELS).filter(k => k !== 'map'));
@@ -1065,6 +1069,28 @@ export class PanelLayoutManager implements AppModule {
       const extra = [...created].filter(k => !configured.has(k) && k !== 'runtime-config' && !k.startsWith('cw-') && !k.startsWith('mcp-'));
       if (extra.length) console.warn('[PanelLayoutManager] Panels created but not in ALL_PANELS:', extra);
     }
+  }
+
+  private syncStartupNewsFilter(range: import('@/components/map-container-contract').TimeRange): void {
+    if (SITE_VARIANT !== 'startup') return;
+    document.querySelectorAll<HTMLButtonElement>('.vc-news-filter-btn').forEach((button) => {
+      button.classList.toggle('active', button.dataset.range === range);
+    });
+  }
+
+  private setupStartupNewsFilter(): void {
+    if (SITE_VARIANT !== 'startup') return;
+    const filter = document.getElementById('vcNewsFilter');
+    if (!filter) return;
+    filter.querySelectorAll<HTMLButtonElement>('[data-range]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const range = button.dataset.range as import('@/components/map-container-contract').TimeRange | undefined;
+        if (!range) return;
+        this.ctx.map?.setTimeRange(range);
+        this.syncStartupNewsFilter(range);
+      });
+    });
+    this.syncStartupNewsFilter(this.ctx.currentTimeRange);
   }
 
   private applyTimeRangeFilterToNewsPanels(): void {
@@ -1087,7 +1113,7 @@ export class PanelLayoutManager implements AppModule {
   private filterItemsByTimeRange(items: import('@/types').NewsItem[], range: import('@/components/map-container-contract').TimeRange = this.ctx.currentTimeRange): import('@/types').NewsItem[] {
     if (range === 'all') return items;
     const ranges: Record<string, number> = {
-      '1h': 60 * 60 * 1000, '6h': 6 * 60 * 60 * 1000,
+      '1h': 60 * 60 * 1000, '6h': 6 * 60 * 60 * 1000, '8h': 8 * 60 * 60 * 1000,
       '24h': 24 * 60 * 60 * 1000, '48h': 48 * 60 * 60 * 1000,
       '7d': 7 * 24 * 60 * 60 * 1000, 'all': Infinity,
     };
@@ -1101,6 +1127,7 @@ export class PanelLayoutManager implements AppModule {
   private getTimeRangeLabel(): string {
     const labels: Record<string, string> = {
       '1h': 'the last hour', '6h': 'the last 6 hours',
+      '8h': 'the last 8 hours',
       '24h': 'the last 24 hours', '48h': 'the last 48 hours',
       '7d': 'the last 7 days', 'all': 'all time',
     };

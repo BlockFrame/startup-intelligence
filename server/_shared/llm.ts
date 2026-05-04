@@ -7,9 +7,18 @@ export interface ProviderCredentials {
   model: string;
   headers: Record<string, string>;
   extraBody?: Record<string, unknown>;
+  bodyFormat?: 'openai' | 'anthropic';
 }
 
-export type LlmProviderName = 'ollama' | 'groq' | 'openrouter' | 'generic';
+export type LlmProviderName =
+  | 'ollama'
+  | 'groq'
+  | 'openrouter'
+  | 'openai'
+  | 'anthropic'
+  | 'mistral'
+  | 'huggingface'
+  | 'generic';
 
 export interface ProviderCredentialOverrides {
   model?: string;
@@ -61,7 +70,48 @@ export function getProviderCredentials(
     if (!apiKey) return null;
     return {
       apiUrl: 'https://api.groq.com/openai/v1/chat/completions',
-      model: overrides.model || 'llama-3.1-8b-instant',
+      model: overrides.model || process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    };
+  }
+
+  if (provider === 'openai') {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return null;
+    return {
+      apiUrl: 'https://api.openai.com/v1/chat/completions',
+      model: overrides.model || process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    };
+  }
+
+  if (provider === 'anthropic') {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return null;
+    return {
+      apiUrl: 'https://api.anthropic.com/v1/messages',
+      model: overrides.model || process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-latest',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      bodyFormat: 'anthropic',
+    };
+  }
+
+  if (provider === 'mistral') {
+    const apiKey = process.env.MISTRAL_API_KEY;
+    if (!apiKey) return null;
+    return {
+      apiUrl: 'https://api.mistral.ai/v1/chat/completions',
+      model: overrides.model || process.env.MISTRAL_MODEL || 'mistral-small-latest',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -74,12 +124,25 @@ export function getProviderCredentials(
     if (!apiKey) return null;
     return {
       apiUrl: 'https://openrouter.ai/api/v1/chat/completions',
-      model: overrides.model || 'google/gemini-2.5-flash',
+      model: overrides.model || process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://startupintelligence.app',
         'X-Title': 'Startup Intelligence',
+      },
+    };
+  }
+
+  if (provider === 'huggingface') {
+    const apiKey = process.env.HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_TOKEN;
+    if (!apiKey) return null;
+    return {
+      apiUrl: 'https://router.huggingface.co/v1/chat/completions',
+      model: overrides.model || process.env.HUGGINGFACE_MODEL || 'meta-llama/Llama-3.1-8B-Instruct',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
       },
     };
   }
@@ -124,7 +187,7 @@ export function stripThinkingTags(text: string): string {
 }
 
 
-const PROVIDER_CHAIN = ['ollama', 'groq', 'openrouter', 'generic'] as const;
+const PROVIDER_CHAIN = ['ollama', 'groq', 'openrouter', 'openai', 'anthropic', 'mistral', 'huggingface', 'generic'] as const;
 const PROVIDER_SET = new Set<string>(PROVIDER_CHAIN);
 
 export interface LlmCallOptions {
@@ -188,6 +251,69 @@ function callLlmProfile(
     providerOrder: [provider, ...remaining],
     modelOverrides: model ? { [provider]: model } as Partial<Record<LlmProviderName, string>> : undefined,
   });
+}
+
+function splitSystemMessage(messages: Array<{ role: string; content: string }>): {
+  system?: string;
+  messages: Array<{ role: string; content: string }>;
+} {
+  const first = messages[0];
+  if (first?.role !== 'system') return { messages };
+  return { system: first.content, messages: messages.slice(1) };
+}
+
+export function buildLlmRequestBody(
+  creds: ProviderCredentials,
+  messages: Array<{ role: string; content: string }>,
+  opts: { temperature: number; maxTokens: number; stream?: boolean; topP?: number },
+): Record<string, unknown> {
+  if (creds.bodyFormat === 'anthropic') {
+    const split = splitSystemMessage(messages);
+    return {
+      model: creds.model,
+      system: split.system,
+      messages: split.messages.map((message) => ({
+        role: message.role === 'assistant' ? 'assistant' : 'user',
+        content: message.content,
+      })),
+      temperature: opts.temperature,
+      max_tokens: opts.maxTokens,
+      top_p: opts.topP,
+      stream: opts.stream,
+    };
+  }
+
+  return {
+    ...creds.extraBody,
+    model: creds.model,
+    messages,
+    temperature: opts.temperature,
+    max_tokens: opts.maxTokens,
+    top_p: opts.topP,
+    stream: opts.stream,
+  };
+}
+
+export function extractLlmText(creds: ProviderCredentials, data: any): string {
+  if (creds.bodyFormat === 'anthropic') {
+    const parts = Array.isArray(data?.content) ? data.content : [];
+    return parts
+      .map((part: any) => typeof part?.text === 'string' ? part.text : '')
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+  }
+
+  return (typeof data?.choices?.[0]?.message?.content === 'string'
+    ? data.choices[0].message.content
+    : '').trim();
+}
+
+function extractLlmStreamDelta(creds: ProviderCredentials, chunk: any): string {
+  if (creds.bodyFormat === 'anthropic') {
+    return typeof chunk?.delta?.text === 'string' ? chunk.delta.text : '';
+  }
+  return typeof chunk?.choices?.[0]?.delta?.content === 'string' ? chunk.choices[0].delta.content : '';
 }
 
 /** Cheap/fast model for extraction and parsing tasks. Configurable via LLM_TOOL_PROVIDER / LLM_TOOL_MODEL. */
@@ -279,14 +405,7 @@ export function callLlmReasoningStream(opts: LlmStreamOptions): ReadableStream<U
           const resp = await fetch(creds.apiUrl, {
             method: 'POST',
             headers: { ...creds.headers, 'User-Agent': CHROME_UA },
-            body: JSON.stringify({
-              ...creds.extraBody,
-              model: creds.model,
-              messages,
-              temperature,
-              max_tokens: maxTokens,
-              stream: true,
-            }),
+            body: JSON.stringify(buildLlmRequestBody(creds, messages, { temperature, maxTokens, stream: true })),
             signal: activeController.signal,
           });
           // Timeout stays active — it must bound the streaming body read, not just the connection
@@ -314,10 +433,8 @@ export function callLlmReasoningStream(opts: LlmStreamOptions): ReadableStream<U
               const payload = line.slice(6).trim();
               if (payload === '[DONE]') { providerDone = true; break; }
               try {
-                const chunk = JSON.parse(payload) as {
-                  choices?: Array<{ delta?: { content?: string }; finish_reason?: string }>;
-                };
-                const delta = chunk.choices?.[0]?.delta?.content;
+                const chunk = JSON.parse(payload);
+                const delta = extractLlmStreamDelta(creds, chunk);
                 if (delta) {
                   hasContent = true;
                   emit({ delta });
@@ -405,13 +522,7 @@ export async function callLlm(opts: LlmCallOptions): Promise<LlmCallResult | nul
       const resp = await fetch(creds.apiUrl, {
         method: 'POST',
         headers: { ...creds.headers, 'User-Agent': CHROME_UA },
-        body: JSON.stringify({
-          ...creds.extraBody,
-          model: creds.model,
-          messages,
-          temperature,
-          max_tokens: maxTokens,
-        }),
+        body: JSON.stringify(buildLlmRequestBody(creds, messages, { temperature, maxTokens })),
         signal: AbortSignal.timeout(timeoutMs),
       });
 
@@ -421,18 +532,15 @@ export async function callLlm(opts: LlmCallOptions): Promise<LlmCallResult | nul
         continue;
       }
 
-      const data = (await resp.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-        usage?: { total_tokens?: number };
-      };
+      const data = (await resp.json()) as any;
 
-      let content = data.choices?.[0]?.message?.content?.trim() || '';
+      let content = extractLlmText(creds, data);
       if (!content) {
         if (forcedProvider) return null;
         continue;
       }
 
-      const tokens = data.usage?.total_tokens ?? 0;
+      const tokens = data.usage?.total_tokens ?? data.usage?.input_tokens ?? 0;
 
       if (shouldStrip) {
         content = stripThinkingTags(content);

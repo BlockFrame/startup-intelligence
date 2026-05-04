@@ -676,7 +676,6 @@ export class Panel {
     this.onColTouchCancel = this.onColTouchEnd;
   }
 
-
   protected setDataBadge(state: 'live' | 'cached' | 'unavailable', detail?: string): void {
     if (!this.statusBadgeEl) return;
     const labels = {

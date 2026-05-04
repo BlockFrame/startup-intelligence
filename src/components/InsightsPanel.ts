@@ -61,8 +61,10 @@ export class InsightsPanel extends Panel {
       void this.updateInsights(this.lastClusters);
     });
 
-    this.fwSelector = new FrameworkSelector({ panelId: 'insights', isPremium: hasPremiumAccess(), panel: this, note: 'Applies to client-generated analysis only' });
-    this.header.appendChild(this.fwSelector.el);
+    if (SITE_VARIANT !== 'startup') {
+      this.fwSelector = new FrameworkSelector({ panelId: 'insights', isPremium: hasPremiumAccess(), panel: this, note: 'Applies to client-generated analysis only' });
+      this.header.appendChild(this.fwSelector.el);
+    }
   }
 
   public setMilitaryFlights(flights: MilitaryFlight[]): void {
@@ -184,6 +186,11 @@ export class InsightsPanel extends Panel {
     this.updateGeneration++;
     const thisGeneration = this.updateGeneration;
 
+    if (SITE_VARIANT === 'startup') {
+      void this.updateStartupInvestorBrief(clusters, thisGeneration);
+      return;
+    }
+
     // Try server-side pre-computed insights first (instant, works even without clusters)
     const serverInsights = getServerInsights();
     if (serverInsights) {
@@ -204,6 +211,137 @@ export class InsightsPanel extends Panel {
       return;
     }
     await this.updateFromClient(clusters, thisGeneration);
+  }
+
+  private async updateStartupInvestorBrief(clusters: ClusteredEvent[], thisGeneration: number): Promise<void> {
+    if (clusters.length === 0) {
+      this.setDataBadge('unavailable');
+      this.setContent('<div class="insights-empty">Waiting for investor-grade startup signals...</div>');
+      return;
+    }
+
+    const scored = clusters
+      .map((cluster) => {
+        const primary = cluster.allItems[0];
+        const score = Math.round(primary?.startupSignal?.score ?? primary?.importanceScore ?? 0);
+        return { cluster, primary, score };
+      })
+      .filter((item) => item.primary && item.score > 0)
+      .sort((a, b) => b.score - a.score || b.cluster.lastUpdated.getTime() - a.cluster.lastUpdated.getTime());
+
+    if (scored.length === 0) {
+      this.setDataBadge('unavailable');
+      this.setContent('<div class="insights-empty">No ranked startup signals yet.</div>');
+      return;
+    }
+
+    const top = scored[0]!;
+    const kinds = new Map<string, number>();
+    for (const item of scored) {
+      const label = item.primary?.startupSignal?.label ?? 'Signal';
+      kinds.set(label, (kinds.get(label) ?? 0) + 1);
+    }
+    const themes = [...kinds.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([label]) => label);
+    const averageScore = Math.round(scored.reduce((sum, item) => sum + item.score, 0) / scored.length);
+    const highConviction = scored.filter((item) => item.score >= 70).length;
+    const topSignal = top.primary?.startupSignal;
+    const entities = topSignal?.entities;
+    const entityLine = [
+      entities?.companies?.length ? `Companies: ${entities.companies.slice(0, 3).join(', ')}` : '',
+      entities?.fundingStage ? `Stage: ${entities.fundingStage}` : '',
+      entities?.fundingAmount ? `Amount: ${entities.fundingAmount}` : '',
+      entities?.investors?.length ? `Investors: ${entities.investors.slice(0, 3).join(', ')}` : '',
+      entities?.geographies?.length ? `Geo: ${entities.geographies.slice(0, 3).join(', ')}` : '',
+    ].filter(Boolean).join(' · ');
+
+    const brief = [
+      `Key signal: ${topSignal?.label ?? 'Startup signal'} — ${top.cluster.primaryTitle}`,
+      `Why it matters: Current feed is concentrated around ${themes.join(', ') || 'startup market signals'}, with ${highConviction} high-conviction item${highConviction === 1 ? '' : 's'} and an average VC score of ${averageScore}.`,
+      `Investor angle: Start with the highest VC-score stories, then validate traction, moat, buyer urgency, and whether the signal is confirmed by funding, customer adoption, or strategic distribution.`,
+      entityLine ? `Diligence focus: ${entityLine}` : 'Diligence focus: Identify company, stage, investor syndicate, customer proof, and likely acquirers before spending partner time.',
+      'Watch next: repeat mentions, follow-on financing, customer announcements, regulatory constraints, infrastructure bottlenecks, and credible incumbent response.',
+    ].join('\n\n');
+
+    const rows = scored.slice(0, 6).map(({ cluster, primary, score }) => {
+      const signal = primary?.startupSignal;
+      return `
+        <div class="insight-story">
+          <div class="insight-story-header">
+            <span class="insight-sentiment-dot ${score >= 70 ? 'positive' : 'neutral'}"></span>
+            <a class="insight-story-title" href="${sanitizeUrl(cluster.primaryLink)}" target="_blank" rel="noopener">${escapeHtml(cluster.primaryTitle.slice(0, 120))}${cluster.primaryTitle.length > 120 ? '...' : ''}</a>
+          </div>
+          <div class="insight-badges">
+            <span class="insight-badge isq-strong">VC ${score}</span>
+            <span class="insight-badge multi">${escapeHtml(signal?.label ?? 'Signal')}</span>
+            <span class="insight-badge">${escapeHtml(cluster.primarySource)}</span>
+          </div>
+          ${signal?.rationale ? `<div class="vc-signal-rationale">${escapeHtml(signal.rationale)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    const renderBrief = (summary: string, source: string) => {
+      this.setDataBadge(source === 'cache' ? 'cached' : 'live', source === 'rules' ? 'rules fallback' : source);
+      this.setContent(`
+        ${this.renderWorldBrief(summary)}
+        <div class="insight-badges">
+          <span class="insight-badge ${source === 'rules' ? 'multi' : 'confirmed'}">${source === 'rules' ? 'Rules fallback' : `GenAI · ${escapeHtml(source)}`}</span>
+        </div>
+        <div class="insights-stats">
+          <div class="insight-stat">
+            <span class="insight-stat-value">${scored.length}</span>
+            <span class="insight-stat-label">Ranked signals</span>
+          </div>
+          <div class="insight-stat">
+            <span class="insight-stat-value">${highConviction}</span>
+            <span class="insight-stat-label">High conviction</span>
+          </div>
+          <div class="insight-stat">
+            <span class="insight-stat-value">${averageScore}</span>
+            <span class="insight-stat-label">Avg VC score</span>
+          </div>
+        </div>
+        <div class="insights-section">
+          <div class="insights-section-title">INVESTOR WATCHLIST</div>
+          ${rows}
+        </div>
+      `);
+    };
+
+    renderBrief(brief, 'rules');
+
+    const headlines = scored
+      .slice(0, 8)
+      .map(({ cluster, primary, score }) => {
+        const label = primary?.startupSignal?.label ?? 'Startup signal';
+        const rationale = primary?.startupSignal?.rationale ?? '';
+        return `[VC ${score}] ${label}: ${cluster.primaryTitle}${rationale ? ` — ${rationale}` : ''}`;
+      });
+
+    if (headlines.length < 2) return;
+
+    const aiContext = [
+      'You are writing for a VC partner using Startup Intelligence.',
+      'Generate a concise investor brief, not generic news summary.',
+      'Focus on investment thesis, timing, diligence questions, market map, and watchlist.',
+      'Avoid hype. Call out uncertainty and what must be verified.',
+      entityLine ? `Known entities: ${entityLine}` : '',
+      themes.length ? `Dominant themes: ${themes.join(', ')}` : '',
+    ].filter(Boolean).join('\n');
+
+    const aiResult = await generateSummary(
+      headlines,
+      undefined,
+      aiContext,
+      'en',
+      { skipBrowserFallback: true },
+    );
+
+    if (this.updateGeneration !== thisGeneration || !aiResult?.summary) return;
+    renderBrief(aiResult.summary, aiResult.cached ? 'cache' : `${aiResult.provider}${aiResult.model ? ` / ${aiResult.model}` : ''}`);
   }
 
   private async updateFromServer(

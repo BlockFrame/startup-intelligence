@@ -28,6 +28,7 @@ import { getHydratedData } from '@/services/bootstrap';
 
 const client = new MarketServiceClient(getRpcBaseUrl(), { fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args) });
 const MARKET_QUOTES_CACHE_TTL_MS = 5 * 60 * 1000;
+const MARKET_QUOTES_CACHE_VERSION = 'v2';
 const stockBreaker = createCircuitBreaker<ListMarketQuotesResponse>({ name: 'Market Quotes', cacheTtlMs: MARKET_QUOTES_CACHE_TTL_MS, persistCache: true });
 const commodityBreaker = createCircuitBreaker<ListCommodityQuotesResponse>({ name: 'Commodity Quotes', cacheTtlMs: MARKET_QUOTES_CACHE_TTL_MS, persistCache: true });
 const sectorBreaker = createCircuitBreaker<GetSectorSummaryResponse>({ name: 'Sector Summary v2', cacheTtlMs: MARKET_QUOTES_CACHE_TTL_MS, persistCache: true });
@@ -113,7 +114,7 @@ export async function fetchMultipleStocks(
     }
   }
   const allSymbolStrings = [...symbolMetaMap.keys()];
-  const setKey = symbolSetKey(allSymbolStrings);
+  const setKey = `${MARKET_QUOTES_CACHE_VERSION}:${symbolSetKey(allSymbolStrings)}`;
 
   const resp = await stockBreaker.execute(async () => {
     return client.listMarketQuotes({ symbols: allSymbolStrings });

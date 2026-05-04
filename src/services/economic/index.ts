@@ -662,12 +662,41 @@ export interface TechReadinessScore {
   };
 }
 
+const TECH_READINESS_FALLBACK: TechReadinessScore[] = [
+  { country: 'USA', countryName: 'United States', score: 92, rank: 1, components: { internet: 92, mobile: 111, broadband: 38, rdSpend: 3.5 } },
+  { country: 'SGP', countryName: 'Singapore', score: 90, rank: 2, components: { internet: 94, mobile: 161, broadband: 27, rdSpend: 2.2 } },
+  { country: 'KOR', countryName: 'South Korea', score: 89, rank: 3, components: { internet: 97, mobile: 141, broadband: 45, rdSpend: 4.9 } },
+  { country: 'TWN', countryName: 'Taiwan', score: 88, rank: 4, components: { internet: 91, mobile: 124, broadband: 35, rdSpend: 3.8 } },
+  { country: 'ISR', countryName: 'Israel', score: 87, rank: 5, components: { internet: 91, mobile: 126, broadband: 31, rdSpend: 5.6 } },
+  { country: 'SWE', countryName: 'Sweden', score: 86, rank: 6, components: { internet: 95, mobile: 126, broadband: 40, rdSpend: 3.4 } },
+  { country: 'FIN', countryName: 'Finland', score: 85, rank: 7, components: { internet: 94, mobile: 129, broadband: 35, rdSpend: 3.0 } },
+  { country: 'NLD', countryName: 'Netherlands', score: 84, rank: 8, components: { internet: 95, mobile: 126, broadband: 43, rdSpend: 2.3 } },
+  { country: 'CHE', countryName: 'Switzerland', score: 83, rank: 9, components: { internet: 96, mobile: 107, broadband: 48, rdSpend: 3.4 } },
+  { country: 'JPN', countryName: 'Japan', score: 82, rank: 10, components: { internet: 93, mobile: 163, broadband: 37, rdSpend: 3.3 } },
+  { country: 'DEU', countryName: 'Germany', score: 81, rank: 11, components: { internet: 92, mobile: 128, broadband: 44, rdSpend: 3.1 } },
+  { country: 'GBR', countryName: 'United Kingdom', score: 80, rank: 12, components: { internet: 97, mobile: 119, broadband: 41, rdSpend: 2.9 } },
+  { country: 'CAN', countryName: 'Canada', score: 78, rank: 13, components: { internet: 94, mobile: 89, broadband: 41, rdSpend: 1.7 } },
+  { country: 'FRA', countryName: 'France', score: 77, rank: 14, components: { internet: 86, mobile: 110, broadband: 47, rdSpend: 2.2 } },
+  { country: 'EST', countryName: 'Estonia', score: 76, rank: 15, components: { internet: 91, mobile: 145, broadband: 34, rdSpend: 1.8 } },
+  { country: 'IRL', countryName: 'Ireland', score: 75, rank: 16, components: { internet: 95, mobile: 107, broadband: 31, rdSpend: 1.2 } },
+  { country: 'AUS', countryName: 'Australia', score: 74, rank: 17, components: { internet: 96, mobile: 111, broadband: 35, rdSpend: 1.8 } },
+  { country: 'ARE', countryName: 'United Arab Emirates', score: 73, rank: 18, components: { internet: 100, mobile: 202, broadband: 35, rdSpend: 1.5 } },
+  { country: 'CHN', countryName: 'China', score: 72, rank: 19, components: { internet: 76, mobile: 122, broadband: 39, rdSpend: 2.6 } },
+  { country: 'IND', countryName: 'India', score: 66, rank: 20, components: { internet: 48, mobile: 82, broadband: 2, rdSpend: 0.7 } },
+];
+
+function filterTechReadiness(scores: TechReadinessScore[], countries?: string[]): TechReadinessScore[] {
+  if (!countries?.length) return scores;
+  const requested = new Set(countries);
+  return scores.filter(score => requested.has(score.country));
+}
+
 export async function getTechReadinessRankings(
   countries?: string[],
 ): Promise<TechReadinessScore[]> {
   // Fast path: bootstrap-hydrated data available on first page load
   const hydrated = getHydratedData('techReadiness') as TechReadinessScore[] | undefined;
-  if (hydrated?.length && !countries) return hydrated;
+  if (hydrated?.length) return filterTechReadiness(hydrated, countries);
 
   // Fallback: fetch the pre-computed seed key directly from bootstrap endpoint.
   // Data is seeded by seed-wb-indicators.mjs — never call WB API from frontend.
@@ -678,15 +707,12 @@ export async function getTechReadinessRankings(
     if (resp.ok) {
       const { data } = (await resp.json()) as { data: { techReadiness?: TechReadinessScore[] } };
       if (data.techReadiness?.length) {
-        const scores = countries
-          ? data.techReadiness.filter(s => countries.includes(s.country))
-          : data.techReadiness;
-        return scores;
+        return filterTechReadiness(data.techReadiness, countries);
       }
     }
   } catch { /* fall through */ }
 
-  return [];
+  return filterTechReadiness(TECH_READINESS_FALLBACK, countries);
 }
 
 export async function getCountryComparison(

@@ -76,9 +76,23 @@ const MARKER_COLORS: Record<StartupMarkerKind, string> = {
   techEvent: '#ec4899',
 };
 
+const LAYER_BY_KIND: Record<StartupMarkerKind, keyof MapLayers> = {
+  datacenter: 'datacenters',
+  startupHub: 'startupHubs',
+  cloudRegion: 'cloudRegions',
+  accelerator: 'accelerators',
+  techHQ: 'techHQs',
+  techEvent: 'techEvents',
+};
+
+const COUNTRY_BOUNDARY_SOURCE = 'startup-country-boundaries';
+const COUNTRY_BOUNDARY_GLOW_LAYER = 'startup-country-boundaries-glow';
+const COUNTRY_BOUNDARY_LAYER = 'startup-country-boundaries-line';
+
 export class StartupMapContainer implements AppMap {
   private map: maplibregl.Map | null = null;
   private markers: maplibregl.Marker[] = [];
+  private resizeObserver: ResizeObserver | null = null;
   private state: MapContainerState;
   private globeMode: boolean;
   private techEvents: StartupMapData['techEvent'][] = [];
@@ -102,21 +116,30 @@ export class StartupMapContainer implements AppMap {
     const style = getStyleForProvider(provider, theme);
     this.container.classList.add('deckgl-mode', 'startup-map-mode');
     this.container.innerHTML = '';
-    this.map = new maplibregl.Map({
-      container: this.container,
-      style,
-      center: [center.lon, center.lat],
-      zoom: this.state.zoom || center.zoom,
-      attributionControl: {},
-      pitch: this.globeMode ? 28 : 0,
-      bearing: this.globeMode ? -12 : 0,
-      dragRotate: this.globeMode,
-    });
+    try {
+      this.map = new maplibregl.Map({
+        container: this.container,
+        style,
+        center: [center.lon, center.lat],
+        zoom: this.state.zoom || center.zoom,
+        attributionControl: {},
+        pitch: this.globeMode ? 28 : 0,
+        bearing: this.globeMode ? -12 : 0,
+        dragRotate: this.globeMode,
+      });
+    } catch (error) {
+      console.warn('[startup-map] WebGL unavailable; map disabled for this browser session', error);
+      this.renderStaticFallback();
+      this.renderLegend(isLightMapTheme(theme));
+      return;
+    }
     this.map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-left');
     this.map.on('load', () => {
       this.applyGlobeMode();
+      void this.renderCountryBoundaries();
       this.renderMarkers();
       this.renderLegend(isLightMapTheme(theme));
+      this.resize();
     });
     this.map.on('moveend', () => this.emitState());
     this.map.on('contextmenu', (event) => {
@@ -130,26 +153,51 @@ export class StartupMapContainer implements AppMap {
     this.map.on('click', (event) => {
       this.onCountryClick?.({ lat: event.lngLat.lat, lon: event.lngLat.lng });
     });
-    this.renderControls();
+    this.resizeObserver = new ResizeObserver(() => this.resize());
+    this.resizeObserver.observe(this.container);
   }
 
-  private renderControls(): void {
-    const controls = document.createElement('div');
-    controls.className = 'startup-map-controls';
-    controls.innerHTML = `
-      <div class="time-range-selector">
-        ${(['1h', '6h', '24h', '48h', '7d', 'all'] as TimeRange[]).map((range) => (
-          `<button class="time-range-btn ${this.state.timeRange === range ? 'active' : ''}" data-range="${range}">${range === 'all' ? 'All' : range}</button>`
-        )).join('')}
-      </div>
-    `;
-    controls.querySelectorAll<HTMLButtonElement>('[data-range]').forEach((button) => {
-      button.addEventListener('click', () => {
-        this.setTimeRange(button.dataset.range as TimeRange);
-        controls.querySelectorAll('.time-range-btn').forEach((el) => el.classList.toggle('active', el === button));
-      });
-    });
-    this.container.appendChild(controls);
+  private async renderCountryBoundaries(): Promise<void> {
+    if (!this.map || !this.map.isStyleLoaded()) return;
+    try {
+      if (!this.map.getSource(COUNTRY_BOUNDARY_SOURCE)) {
+        const response = await fetch('/data/countries.geojson');
+        if (!response.ok) throw new Error(`countries.geojson ${response.status}`);
+        const data = await response.json() as GeoJSON.FeatureCollection;
+        this.map.addSource(COUNTRY_BOUNDARY_SOURCE, {
+          type: 'geojson',
+          data,
+        });
+      }
+      const firstSymbolLayer = this.map.getStyle().layers?.find((layer) => layer.type === 'symbol')?.id;
+      if (!this.map.getLayer(COUNTRY_BOUNDARY_GLOW_LAYER)) {
+        this.map.addLayer({
+          id: COUNTRY_BOUNDARY_GLOW_LAYER,
+          type: 'line',
+          source: COUNTRY_BOUNDARY_SOURCE,
+          paint: {
+            'line-color': '#b7ff00',
+            'line-opacity': 0.28,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 0, 1.4, 4, 2.6, 8, 4.2],
+            'line-blur': 1.8,
+          },
+        }, firstSymbolLayer);
+      }
+      if (!this.map.getLayer(COUNTRY_BOUNDARY_LAYER)) {
+        this.map.addLayer({
+          id: COUNTRY_BOUNDARY_LAYER,
+          type: 'line',
+          source: COUNTRY_BOUNDARY_SOURCE,
+          paint: {
+            'line-color': '#b7ff00',
+            'line-opacity': 0.86,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 0, 0.55, 4, 1.05, 8, 1.8],
+          },
+        }, firstSymbolLayer);
+      }
+    } catch (error) {
+      console.warn('[startup-map] Country boundary overlay unavailable', error);
+    }
   }
 
   private renderLegend(isLight: boolean): void {
@@ -158,7 +206,7 @@ export class StartupMapContainer implements AppMap {
     const legend = document.createElement('div');
     legend.className = `startup-map-legend ${isLight ? 'light' : 'dark'}`;
     legend.innerHTML = `
-      <div class="startup-map-legend-title">LEGEND</div>
+      <div class="startup-map-legend-title">MAP FILTERS</div>
       ${this.legendItem('startupHub', 'Startup Hub')}
       ${this.legendItem('techHQ', 'Tech HQ')}
       ${this.legendItem('accelerator', 'Accelerator')}
@@ -166,11 +214,29 @@ export class StartupMapContainer implements AppMap {
       ${this.legendItem('datacenter', 'Datacenter')}
       ${this.legendItem('techEvent', 'Tech Event')}
     `;
+    legend.querySelectorAll<HTMLButtonElement>('[data-kind]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const kind = button.dataset.kind as StartupMarkerKind | undefined;
+        if (!kind) return;
+        const layer = LAYER_BY_KIND[kind];
+        const next = !this.state.layers[layer];
+        this.state.layers = { ...this.state.layers, [layer]: next };
+        button.classList.toggle('is-off', !next);
+        button.setAttribute('aria-pressed', String(next));
+        this.onLayerChange?.(layer, next, 'user');
+        this.renderMarkers();
+      });
+    });
     this.container.appendChild(legend);
   }
 
   private legendItem(kind: StartupMarkerKind, label: string): string {
-    return `<div class="startup-map-legend-item"><span style="background:${MARKER_COLORS[kind]}"></span>${label}</div>`;
+    const active = this.state.layers[LAYER_BY_KIND[kind]];
+    return `<button type="button" class="startup-map-legend-item ${active ? '' : 'is-off'}" data-kind="${kind}" aria-pressed="${active}">
+      <span class="startup-map-legend-icon startup-map-legend-icon-${kind}" style="--legend-color:${MARKER_COLORS[kind]}"></span>
+      <span class="startup-map-legend-label">${label}</span>
+      <span class="startup-map-legend-state">${active ? 'On' : 'Off'}</span>
+    </button>`;
   }
 
   private getVisibleMarkers(): StartupMarker[] {
@@ -258,7 +324,10 @@ export class StartupMapContainer implements AppMap {
   }
 
   private renderMarkers(): void {
-    if (!this.map) return;
+    if (!this.map) {
+      this.renderStaticFallback();
+      return;
+    }
     this.markers.forEach((marker) => marker.remove());
     this.markers = [];
     for (const marker of this.clusterMarkers(this.getVisibleMarkers())) {
@@ -270,7 +339,6 @@ export class StartupMapContainer implements AppMap {
       el.title = marker.title;
       if (isCluster) {
         el.dataset.count = String(marker.markers.length);
-        el.textContent = String(marker.markers.length);
       }
       el.addEventListener('click', (event) => {
         event.stopPropagation();
@@ -284,6 +352,46 @@ export class StartupMapContainer implements AppMap {
         .setLngLat([marker.lon, marker.lat])
         .addTo(this.map));
     }
+  }
+
+  private renderStaticFallback(): void {
+    const old = this.container.querySelector('.startup-map-static-fallback');
+    old?.remove();
+    const fallback = document.createElement('div');
+    fallback.className = `startup-map-static-fallback ${this.globeMode ? 'is-globe' : 'is-flat'}`;
+    fallback.innerHTML = `
+      <div class="startup-map-static-world" aria-hidden="true">
+        <svg viewBox="0 0 1000 500" preserveAspectRatio="none">
+          <path class="startup-map-land" d="M145 130c38-28 92-32 131-13 35 17 50 50 83 56 38 7 78-21 116-9 29 9 39 42 22 69-22 34-81 29-105 61-20 27 4 63-21 83-28 23-82-10-120-37-48-35-97-56-111-105-10-36-25-78 5-105Z"/>
+          <path class="startup-map-land" d="M469 103c31-18 86-18 125-3 40 16 63 44 110 47 59 3 98-29 143-11 41 17 52 59 28 91-26 34-88 33-122 63-32 28-24 77-67 91-42 14-75-25-113-45-40-21-96-20-124-55-27-34 8-75 2-113-4-27-10-49 18-65Z"/>
+          <path class="startup-map-land" d="M690 301c36-14 82 7 98 38 18 35-9 79-44 97-33 17-77 8-95-22-20-34 3-97 41-113Z"/>
+          <path class="startup-map-land" d="M794 209c31-17 79-12 111 8 27 17 39 47 23 72-19 31-66 31-99 22-35-10-78-33-74-62 2-16 18-28 39-40Z"/>
+          <path class="startup-map-border" d="M244 115c-18 45-9 78 25 104 29 22 56 47 63 94M363 170c-27 31-31 65-12 102M489 158c54 15 107 13 161-5M599 100c-10 51 1 93 35 126M704 147c-28 47-26 93 6 140M557 322c31-31 68-42 111-32M809 218c-8 31-1 59 22 84"/>
+          <path class="startup-map-border startup-map-border-soft" d="M110 190h790M140 290h720M210 106c23 108 20 205-9 290M430 102c18 105 16 199-5 282M660 102c-12 115-3 210 29 287M840 132c-22 63-21 120 4 171"/>
+        </svg>
+      </div>
+      <div class="startup-map-static-grid"></div>
+      <div class="startup-map-static-mode">${this.globeMode ? '3D globe fallback' : '2D startup map fallback'}</div>
+    `;
+    for (const marker of this.getVisibleMarkers()) {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = `startup-map-static-dot startup-map-static-dot-${marker.kind}`;
+      dot.style.setProperty('--marker-color', MARKER_COLORS[marker.kind]);
+      if (this.globeMode) {
+        const x = 50 + (marker.lon / 180) * 23;
+        const y = 50 - (marker.lat / 90) * 34;
+        if (Math.hypot(x - 50, y - 50) > 39) continue;
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+      } else {
+        dot.style.left = `${((marker.lon + 180) / 360) * 100}%`;
+        dot.style.top = `${((90 - marker.lat) / 180) * 100}%`;
+      }
+      dot.title = `${marker.title} — ${marker.subtitle}`;
+      fallback.appendChild(dot);
+    }
+    this.container.prepend(fallback);
   }
 
   private clusterMarkers(markers: StartupMarker[]): StartupMarkerRenderItem[] {
@@ -483,6 +591,8 @@ export class StartupMapContainer implements AppMap {
   public setLayers(layers: MapLayers): void {
     this.state.layers = { ...layers };
     this.renderMarkers();
+    const theme = getMapTheme(getMapProvider());
+    this.renderLegend(isLightMapTheme(theme));
   }
   public onStateChanged(callback: (state: MapContainerState) => void): void { this.onStateChange = callback; }
   public onTimeRangeChanged(callback: (range: TimeRange) => void): void { this.onTimeRangeChange = callback; }
@@ -490,7 +600,13 @@ export class StartupMapContainer implements AppMap {
   public onMapContextMenu(callback: (payload: MapContextMenuPayload) => void): void { this.onContextMenu = callback; }
   public isDeckGLActive(): boolean { return false; }
   public isGlobeMode(): boolean { return this.globeMode; }
-  public destroy(): void { this.markers.forEach((marker) => marker.remove()); this.map?.remove(); this.map = null; }
+  public destroy(): void {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    this.markers.forEach((marker) => marker.remove());
+    this.map?.remove();
+    this.map = null;
+  }
   public render(): void { this.renderMarkers(); }
   public resize(): void { this.map?.resize(); }
   public setIsResizing(_resizing: boolean): void {}
@@ -498,16 +614,21 @@ export class StartupMapContainer implements AppMap {
     if (!this.map) return;
     const provider = getMapProvider();
     this.map.setStyle(getStyleForProvider(provider, getMapTheme(provider)) || FALLBACK_DARK_STYLE);
-    this.map.once('styledata', () => this.renderMarkers());
+    this.map.once('styledata', () => {
+      void this.renderCountryBoundaries();
+      this.renderMarkers();
+    });
   }
   public switchToGlobe(): void {
     this.globeMode = true;
     this.applyGlobeMode();
+    if (!this.map) this.renderStaticFallback();
     this.emitState();
   }
   public switchToFlat(): void {
     this.globeMode = false;
     this.applyGlobeMode();
+    if (!this.map) this.renderStaticFallback();
     this.emitState();
   }
   public initEscalationGetters(): void {}
@@ -522,9 +643,10 @@ export class StartupMapContainer implements AppMap {
   public setOnLayerChange(callback: (layer: keyof MapLayers, enabled: boolean, source: 'user' | 'programmatic') => void): void { this.onLayerChange = callback; }
   public setTechEvents(events: StartupMapData['techEvent'][]): void { this.techEvents = events; this.renderMarkers(); }
   public flashLocation(lat: number, lon: number, durationMs = 1600): void {
+    if (!this.map) return;
     const el = document.createElement('div');
     el.className = 'startup-map-flash';
-    const marker = new maplibregl.Marker({ element: el }).setLngLat([lon, lat]).addTo(this.map!);
+    const marker = new maplibregl.Marker({ element: el }).setLngLat([lon, lat]).addTo(this.map);
     window.setTimeout(() => marker.remove(), durationMs);
   }
   public triggerDatacenterClick(id: string): void {

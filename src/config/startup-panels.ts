@@ -30,19 +30,23 @@ export const LAYER_TO_SOURCE: Partial<Record<keyof MapLayers, DataSourceId[]>> =
 export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: string[]; variants?: string[] }> = {
   core: {
     labelKey: 'header.panelCatCore',
-    panelKeys: ['map', 'live-news', 'insights', 'top-vc-signals'],
+    panelKeys: ['map', 'insights', 'top-vc-signals'],
   },
-  startupDealflow: {
-    labelKey: 'header.panelCatStartupsVc',
-    panelKeys: ['startups', 'funding', 'regionalStartups', 'unicorns', 'accelerators', 'vcblogs', 'producthunt', 'ipo'],
+  fundingRadar: {
+    labelKey: 'header.panelCatFundingRadar',
+    panelKeys: ['startups', 'producthunt', 'ipo', 'unicorns', 'accelerators'],
   },
-  techAi: {
-    labelKey: 'header.panelCatTechAi',
+  aiObservatory: {
+    labelKey: 'header.panelCatAiObservatory',
     panelKeys: ['ai', 'tech', 'cloud', 'hardware', 'events', 'tech-readiness'],
   },
-  markets: {
+  investmentDecision: {
     labelKey: 'header.panelCatMarkets',
-    panelKeys: ['markets', 'finance', 'macro-signals', 'fintech', 'layoffs'],
+    panelKeys: ['markets', 'macro-signals', 'finance', 'fintech', 'layoffs'],
+  },
+  optionalResearch: {
+    labelKey: 'header.panelCatStartupsVc',
+    panelKeys: ['live-news', 'vcblogs', 'regionalStartups'],
   },
   securityPolicy: {
     labelKey: 'header.panelCatSecurityPolicy',
