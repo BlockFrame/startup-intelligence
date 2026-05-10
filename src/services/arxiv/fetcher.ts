@@ -73,25 +73,6 @@ function buildArxivIdListApiUrl(ids: string[]): string {
   return toApiUrl(`${API_BASE}?${params.toString()}`);
 }
 
-function buildArxivUpstreamUrl(template: ArxivQueryTemplate, dateWindow: ArxivDateWindow, sortBy: ArxivSortBy, maxResults = 40): string {
-  const params = new URLSearchParams({
-    search_query: buildSearchQuery(template, dateWindow),
-    start: '0',
-    max_results: String(maxResults),
-    sortBy: sortByParam(sortBy),
-    sortOrder: 'descending',
-  });
-  return `https://export.arxiv.org/api/query?${params.toString()}`;
-}
-
-function buildArxivIdListUpstreamUrl(ids: string[]): string {
-  const params = new URLSearchParams({
-    id_list: ids.join(','),
-    start: '0',
-    max_results: String(ids.length),
-  });
-  return `https://export.arxiv.org/api/query?${params.toString()}`;
-}
 
 export function parseArxivAtomFeed(xml: string): ArxivPaperRecord[] {
   const parsed = parser.parse(xml) as { feed?: { entry?: unknown } };
@@ -285,15 +266,14 @@ async function fetchArxivRecordsByIds(ids: string[]): Promise<ArxivPaperRecord[]
   const cleanIds = Array.from(new Set(ids.filter(Boolean))).slice(0, 50);
   if (cleanIds.length === 0) return [];
   const apiUrl = buildArxivIdListApiUrl(cleanIds);
-  const upstreamUrl = buildArxivIdListUpstreamUrl(cleanIds);
   try {
-    const response = await fetch(apiUrl, { signal: AbortSignal.timeout(4_000) });
-    const text = response.ok ? await response.text() : '';
+    const response = await fetch(apiUrl, { signal: AbortSignal.timeout(15_000) });
+    if (!response.ok) return [];
+    const text = await response.text();
     if (text && !/^\s*(import|export)\s/m.test(text)) return parseArxivAtomFeed(text);
-    const upstream = await fetch(upstreamUrl, { signal: AbortSignal.timeout(4_000) });
-    if (!upstream.ok) return [];
-    return parseArxivAtomFeed(await upstream.text());
-  } catch {
+    return [];
+  } catch (error) {
+    console.error('[ArXiv] Failed to fetch metadata for IDs:', error);
     return [];
   }
 }
@@ -302,17 +282,12 @@ export async function fetchArxivDashboardData(options: { dateWindow: ArxivDateWi
   const trending = await fetchTrendingPaperRecords(options.maxResults ?? 50);
   const trendingMetadata = await fetchArxivRecordsByIds(trending.records.map((record) => record.id));
   const requestUrls = (templates as ArxivQueryTemplate[]).map((template) => buildArxivApiUrl(template, options.dateWindow, options.sortBy, options.maxResults ?? 40));
-  const upstreamUrls = (templates as ArxivQueryTemplate[]).map((template) => buildArxivUpstreamUrl(template, options.dateWindow, options.sortBy, options.maxResults ?? 40));
-  const feedResults = await Promise.allSettled(requestUrls.map(async (url, index) => {
-    const response = await fetch(url, { signal: AbortSignal.timeout(4_000) });
+  const feedResults = await Promise.allSettled(requestUrls.map(async (url) => {
+    const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
     if (!response.ok) throw new Error(`arXiv request failed: ${response.status}`);
     const text = await response.text();
     if (/^\s*(import|export)\s/m.test(text)) {
-      const upstream = upstreamUrls[index];
-      if (!upstream) throw new Error('arXiv upstream unavailable');
-      const upstreamResponse = await fetch(upstream, { signal: AbortSignal.timeout(4_000) });
-      if (!upstreamResponse.ok) throw new Error(`arXiv upstream failed: ${upstreamResponse.status}`);
-      return upstreamResponse.text();
+      throw new Error('arXiv proxy returned invalid content (likely a server error)');
     }
     return text;
   }));
