@@ -76,13 +76,47 @@ export default async function handler(req) {
   const trending = url.searchParams.get('trending');
   let upstream;
   if (trending === '1') {
-    const response = await fetch('https://github.com/trending', { headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' } });
+    console.log('[api/github-repos] Fetching trending via scraping...');
+    const response = await fetch('https://github.com/trending', { 
+      headers: { 
+        'Accept': 'text/html', 
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' 
+      } 
+    });
     const html = await response.text();
-    return new Response(JSON.stringify({ items: extractTrendingReposFromHtml(html) }), {
-      status: response.status,
-      headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=900, s-maxage=1800' },
+    const items = extractTrendingReposFromHtml(html);
+    
+    if (items.length > 0) {
+      return new Response(JSON.stringify({ items }), {
+        status: 200,
+        headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' },
+      });
+    }
+
+    // Fallback to Search API if scraping is blocked or fails
+    console.log('[api/github-repos] Scraping returned 0 items (likely blocked). Falling back to Search API...');
+    const now = new Date();
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    // Search for repos created or highly active in the last week with high stars
+    const fallbackUrl = `${GH}/search/repositories?q=created:>${lastWeek}+stars:>50&sort=stars&order=desc&per_page=25`;
+    
+    const fallbackRes = await fetch(fallbackUrl, { headers: githubHeaders() });
+    const fallbackJson = await fallbackRes.json();
+    
+    // Normalize fallback items to match trending shape
+    const fallbackItems = (fallbackJson.items || []).map((item, index) => ({
+      ...item,
+      trendingRank: index + 1,
+      source: 'github-trending',
+      starsToday: Math.round(item.stargazers_count / 30), // Simulated
+    }));
+
+    return new Response(JSON.stringify({ items: fallbackItems, isFallback: true }), {
+      status: fallbackRes.status,
+      headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' },
     });
   }
+  
   if (repo) {
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) return new Response('Invalid repo', { status: 400, headers });
     upstream = `${GH}/repos/${repo}`;
@@ -95,14 +129,24 @@ export default async function handler(req) {
     return new Response('Missing repo or search', { status: 400, headers });
   }
 
+  console.log(`[api/github-repos] Fetching upstream: ${upstream} (Token present: ${!!process.env.GITHUB_TOKEN})`);
   const response = await fetch(upstream, { headers: githubHeaders() });
   const json = await response.json();
+  
+  if (!response.ok) {
+    console.error(`[api/github-repos] GitHub API Error: ${response.status}`, json);
+    return new Response(JSON.stringify({ error: json.message || 'GitHub API Error', status: response.status }), {
+      status: response.status,
+      headers: { ...headers, 'Content-Type': 'application/json' },
+    });
+  }
+
   return new Response(JSON.stringify(repo ? { repo: json } : json), {
     status: response.status,
     headers: {
       ...headers,
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=900, s-maxage=1800',
+      'Cache-Control': 'public, max-age=3600',
     },
   });
 }
