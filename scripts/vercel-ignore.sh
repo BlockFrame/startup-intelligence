@@ -2,6 +2,12 @@
 # Vercel Ignored Build Step: exit 0 = skip, exit 1 = build
 # Only build when web-relevant files change. Skip desktop, docs, scripts, CI, etc.
 
+# Always build develop branch
+if [ "$VERCEL_GIT_COMMIT_REF" = "develop" ]; then
+  echo "Building develop branch unconditionally."
+  exit 1
+fi
+
 # On main: skip if ONLY scripts/, docs/, .github/, or non-web files changed
 if [ "$VERCEL_GIT_COMMIT_REF" = "main" ] && [ -n "$VERCEL_GIT_PREVIOUS_SHA" ]; then
   git cat-file -e "$VERCEL_GIT_PREVIOUS_SHA" 2>/dev/null && {
