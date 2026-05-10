@@ -85,7 +85,8 @@ export default async function handler(req) {
           headers: { 
             'Accept': 'text/html', 
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' 
-          } 
+          },
+          signal: AbortSignal.timeout(8000)
         });
         const html = await response.text();
         items = extractTrendingReposFromHtml(html);
@@ -107,7 +108,10 @@ export default async function handler(req) {
       // Search for repos created or highly active in the last week with high stars
       const fallbackUrl = `${GH}/search/repositories?q=created:>${lastWeek}+stars:>50&sort=stars&order=desc&per_page=25`;
       
-      const fallbackRes = await fetch(fallbackUrl, { headers: githubHeaders() });
+      const fallbackRes = await fetch(fallbackUrl, { 
+        headers: githubHeaders(),
+        signal: AbortSignal.timeout(8000)
+      });
       
       if (!fallbackRes.ok) {
         const errText = await fallbackRes.text();
@@ -147,7 +151,10 @@ export default async function handler(req) {
     }
 
     console.log(`[api/github-repos] Fetching upstream: ${upstream} (Token present: ${!!process.env.GITHUB_TOKEN})`);
-    const response = await fetch(upstream, { headers: githubHeaders() });
+    const response = await fetch(upstream, { 
+      headers: githubHeaders(),
+      signal: AbortSignal.timeout(8000)
+    });
     
     if (!response.ok) {
       const errText = await response.text();
