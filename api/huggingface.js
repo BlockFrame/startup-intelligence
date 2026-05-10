@@ -44,6 +44,8 @@ function pathFor(type, id, search, limit) {
   return '';
 }
 
+const timeoutPromise = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('TimeoutError')), ms));
+
 export default async function handler(req) {
   const headers = getPublicCorsHeaders('GET, OPTIONS');
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
@@ -60,15 +62,12 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ items: [] }), { status: 200, headers: { ...headers, 'Content-Type': 'application/json' } });
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
-
   try {
     if (type === 'papers' && source === 'trending' && !id && !search) {
-      const response = await fetch(`${HF_SITE}/papers/trending`, { 
-        headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' },
-        signal: controller.signal
-      });
+      const response = await Promise.race([
+        fetch(`${HF_SITE}/papers/trending`, { headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' } }),
+        timeoutPromise(8000)
+      ]);
       const html = await response.text();
       const items = extractTrendingPapersFromHtml(html).slice(0, limit).map((item) => ({ ...item, entityType: 'papers', source: 'trending' }));
       return new Response(JSON.stringify({ items }), {
@@ -77,10 +76,10 @@ export default async function handler(req) {
       });
     }
     const upstream = pathFor(type, id, search, limit);
-    const response = await fetch(upstream, { 
-      headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' },
-      signal: controller.signal
-    });
+    const response = await Promise.race([
+      fetch(upstream, { headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' } }),
+      timeoutPromise(8000)
+    ]);
     const json = await response.json();
     const items = Array.isArray(json) ? json.map((item) => ({ ...item, entityType: type })) : [{ ...json, entityType: type }];
     return new Response(JSON.stringify({ items }), {
@@ -93,7 +92,5 @@ export default async function handler(req) {
       status: 200,
       headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300, s-maxage=600' },
     });
-  } finally {
-    clearTimeout(timeoutId);
   }
 }

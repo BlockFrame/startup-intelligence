@@ -53,6 +53,8 @@ function extractAlphaXivItems(html, limit) {
   }));
 }
 
+const timeoutPromise = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('TimeoutError')), ms));
+
 export default async function handler(req) {
   const headers = getPublicCorsHeaders('GET, OPTIONS');
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
@@ -61,17 +63,16 @@ export default async function handler(req) {
   const url = new URL(req.url);
   const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 30), 1), 50);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
-
   try {
-    const response = await fetch(ALPHAXIV_URL, {
-      headers: {
-        Accept: 'text/html,application/xhtml+xml',
-        'User-Agent': 'StartupIntelligence/1.0 (alphaxiv trending papers)',
-      },
-      signal: controller.signal,
-    });
+    const response = await Promise.race([
+      fetch(ALPHAXIV_URL, {
+        headers: {
+          Accept: 'text/html,application/xhtml+xml',
+          'User-Agent': 'StartupIntelligence/1.0 (alphaxiv trending papers)',
+        }
+      }),
+      timeoutPromise(8000)
+    ]);
     const html = await response.text();
     const items = response.ok ? extractAlphaXivItems(html, limit) : [];
     return new Response(JSON.stringify({ items, fetchedAt: new Date().toISOString() }), {
@@ -83,7 +84,5 @@ export default async function handler(req) {
       status: 200,
       headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300, s-maxage=600' },
     });
-  } finally {
-    clearTimeout(timeoutId);
   }
 }

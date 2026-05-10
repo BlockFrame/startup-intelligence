@@ -1,6 +1,7 @@
 import { getPublicCorsHeaders } from './_cors.js';
 
 const ALLOWED_SORT_BY = new Set(['relevance', 'lastUpdatedDate', 'submittedDate']);
+const timeoutPromise = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('TimeoutError')), ms));
 
 export default async function handler(req) {
   const headers = getPublicCorsHeaders('GET, OPTIONS');
@@ -8,9 +9,6 @@ export default async function handler(req) {
   if (req.method !== 'GET') {
     return new Response('Method not allowed', { status: 405, headers });
   }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
 
   try {
     const inputUrl = new URL(req.url);
@@ -33,13 +31,15 @@ export default async function handler(req) {
 
     console.log(`[api/arxiv] Fetching: ${upstream.toString()}`);
     
-    const response = await fetch(upstream, {
-      headers: {
-        Accept: 'application/atom+xml, application/xml, text/xml',
-        'User-Agent': 'StartupIntelligence/1.0 (arXiv dashboard; contact: local-dev)',
-      },
-      signal: controller.signal
-    });
+    const response = await Promise.race([
+      fetch(upstream, {
+        headers: {
+          Accept: 'application/atom+xml, application/xml, text/xml',
+          'User-Agent': 'StartupIntelligence/1.0 (arXiv dashboard; contact: local-dev)',
+        }
+      }),
+      timeoutPromise(8000)
+    ]);
 
     if (!response.ok) {
       const err = await response.text();
@@ -59,10 +59,8 @@ export default async function handler(req) {
   } catch (error) {
     console.error('[api/arxiv] Proxy error:', error.message);
     return new Response(JSON.stringify({ error: error.message }), { 
-      status: error.name === 'AbortError' || error.name === 'TimeoutError' ? 504 : 500, 
+      status: error.name === 'AbortError' || error.message === 'TimeoutError' ? 504 : 500, 
       headers: { ...headers, 'Content-Type': 'application/json' } 
     });
-  } finally {
-    clearTimeout(timeoutId);
   }
 }

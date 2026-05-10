@@ -341,7 +341,7 @@ export class ArxivPapersDashboard {
                   </tr>`).join('')}
               </tbody>
             </table>
-            ${filtered.length === 0 ? '<div class="arxiv-empty">No matching papers yet. Refresh arXiv or loosen filters.</div>' : ''}
+            ${filtered.length === 0 ? (this.error ? `<div class="arxiv-empty arxiv-empty-error">⚠️ ${escapeHtml(this.error)}</div>` : '<div class="arxiv-empty">No matching papers yet. Refresh arXiv or loosen filters.</div>') : ''}
           </div>
         </main>
       </div>`;

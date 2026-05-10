@@ -69,6 +69,7 @@ export async function fetchGithubRepoDashboardData(clusterId = 'all', mode: 'all
 
   const liveRepos = payloads.flatMap((payload, index) => {
     if (!payload) return [];
+    if ('error' in payload && payload.error) lastError = String(payload.error);
     const lane = requests[index]?.lane ?? 'established';
     const repos = payload.repo ? [payload.repo] : payload.items || [];
     return repos.map((repo) => ({ repo, lane, isFallback: false }));

@@ -260,7 +260,7 @@ export class GithubReposDashboard {
             <td>${escapeHtml(repo.language)}</td>
             <td class="github-score-cell score-${scoreBand(repo.finalScore)}"><span class="github-score-badge"><b>${repo.finalScore}</b><small>Score</small></span><small>Rel ${repo.relevanceScore} · Act ${Math.round(repo.activityScore)}</small></td>
           </tr>`).join('')}
-        </tbody></table>${filtered.length === 0 ? '<div class="github-empty">No matching repositories yet. Refresh GitHub or loosen filters.</div>' : ''}</div>
+        </tbody></table>${filtered.length === 0 ? (this.error ? `<div class="github-empty github-empty-error">⚠️ ${escapeHtml(this.error)}</div>` : '<div class="github-empty">No matching repositories yet. Refresh GitHub or loosen filters.</div>') : ''}</div>
       </main>
     </div>`;
   }
@@ -306,6 +306,13 @@ export class GithubReposDashboard {
         this.bind();
         if (this.filtered().length === 0) void this.refresh();
       });
+    });
+    this.container.querySelector<HTMLButtonElement>('#githubRefreshBtnRetry')?.addEventListener('click', () => {
+      if (this.activeRepoTab === 'trending') {
+        void this.refreshTrending();
+      } else {
+        void this.refresh();
+      }
     });
   }
 }
