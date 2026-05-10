@@ -9,6 +9,9 @@ export default async function handler(req) {
     return new Response('Method not allowed', { status: 405, headers });
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   try {
     const inputUrl = new URL(req.url);
     const upstream = new URL('https://export.arxiv.org/api/query');
@@ -35,8 +38,7 @@ export default async function handler(req) {
         Accept: 'application/atom+xml, application/xml, text/xml',
         'User-Agent': 'StartupIntelligence/1.0 (arXiv dashboard; contact: local-dev)',
       },
-      // Edge functions have a 30s limit usually, but we want to be responsive
-      signal: AbortSignal.timeout(8000)
+      signal: controller.signal
     });
 
     if (!response.ok) {
@@ -57,8 +59,10 @@ export default async function handler(req) {
   } catch (error) {
     console.error('[api/arxiv] Proxy error:', error.message);
     return new Response(JSON.stringify({ error: error.message }), { 
-      status: error.name === 'TimeoutError' ? 504 : 500, 
+      status: error.name === 'AbortError' || error.name === 'TimeoutError' ? 504 : 500, 
       headers: { ...headers, 'Content-Type': 'application/json' } 
     });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

@@ -61,13 +61,16 @@ export default async function handler(req) {
   const url = new URL(req.url);
   const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 30), 1), 50);
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   try {
     const response = await fetch(ALPHAXIV_URL, {
       headers: {
         Accept: 'text/html,application/xhtml+xml',
         'User-Agent': 'StartupIntelligence/1.0 (alphaxiv trending papers)',
       },
-      signal: AbortSignal.timeout(8000),
+      signal: controller.signal,
     });
     const html = await response.text();
     const items = response.ok ? extractAlphaXivItems(html, limit) : [];
@@ -80,5 +83,7 @@ export default async function handler(req) {
       status: 200,
       headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300, s-maxage=600' },
     });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
