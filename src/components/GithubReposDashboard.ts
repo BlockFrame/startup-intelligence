@@ -308,11 +308,7 @@ export class GithubReposDashboard {
       });
     });
     this.container.querySelector<HTMLButtonElement>('#githubRefreshBtnRetry')?.addEventListener('click', () => {
-      if (this.activeRepoTab === 'trending') {
-        void this.refreshTrending();
-      } else {
-        void this.refresh();
-      }
+      void this.refresh();
     });
   }
 }
