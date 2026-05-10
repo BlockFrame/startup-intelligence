@@ -11,7 +11,18 @@ const STORAGE_VERSION = 'v6-github-trending';
 
 async function fetchJson<T>(path: string): Promise<T | null> {
   const response = await fetch(toApiUrl(path));
-  if (!response.ok) return null;
+  if (!response.ok) {
+    try {
+      const errJson = await response.json();
+      if (errJson && typeof errJson === 'object') {
+        const msg = (errJson as any).error || (errJson as any).message;
+        if (msg) throw new Error(msg);
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message !== 'Unexpected token < in JSON at position 0') throw e;
+    }
+    return null;
+  }
   return response.json() as Promise<T>;
 }
 
@@ -24,11 +35,7 @@ async function fetchWithConcurrency<T>(paths: string[], concurrency = 3): Promis
       next += 1;
       const path = paths[index];
       if (!path) continue;
-      try {
-        results[index] = await fetchJson<T>(path);
-      } catch {
-        results[index] = null;
-      }
+      results[index] = await fetchJson<T>(path);
     }
   });
   await Promise.all(workers);
@@ -51,7 +58,15 @@ export async function fetchGithubRepoDashboardData(clusterId = 'all', mode: 'all
     ...(mode === 'all' ? searchPaths.map((path) => ({ path, lane: 'established' as const })) : []),
     ...(mode === 'all' ? topicPaths.map((path) => ({ path, lane: 'emerging' as const })) : []),
   ];
-  const payloads = await fetchWithConcurrency<{ items?: GithubRawRepo[]; repo?: GithubRawRepo }>(requests.map((request) => request.path), 2);
+  let lastError: string | null = null;
+  const payloads = await fetchWithConcurrency<{ items?: GithubRawRepo[]; repo?: GithubRawRepo }>(
+    requests.map((request) => request.path), 
+    2
+  ).catch(e => {
+    if (e instanceof Error) lastError = e.message;
+    return [];
+  });
+
   const liveRepos = payloads.flatMap((payload, index) => {
     if (!payload) return [];
     const lane = requests[index]?.lane ?? 'established';
@@ -61,6 +76,7 @@ export async function fetchGithubRepoDashboardData(clusterId = 'all', mode: 'all
   const fallbackRepos = mode !== 'trending' ? (curatedFallback as GithubRawRepo[]).map((repo) => ({ repo, lane: 'curated' as const, isFallback: true })) : [];
   const rawRepos = [...liveRepos, ...fallbackRepos];
   if (rawRepos.length === 0) {
+    if (lastError) throw new Error(`GitHub Error: ${lastError}`);
     throw new Error('GitHub rate limit or access block. Add GITHUB_TOKEN to the dev environment, then restart the server.');
   }
   const minStars = sourceConfig.discovery.minStars;
