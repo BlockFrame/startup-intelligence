@@ -15,7 +15,7 @@ if [ "$VERCEL_GIT_COMMIT_REF" = "main" ] && [ -n "$VERCEL_GIT_PREVIOUS_SHA" ]; t
 fi
 
 # Skip preview deploys that aren't tied to a pull request
-[ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0
+# [ -z "$VERCEL_GIT_PULL_REQUEST_ID" ] && exit 0
 
 # Resolve comparison base: prefer VERCEL_GIT_PREVIOUS_SHA, fall back to merge-base with main
 # (empty/invalid PREVIOUS_SHA caused false "build" on PRs that only touch scripts/)
