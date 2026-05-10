@@ -7,7 +7,6 @@ const DESKTOP_ORIGIN_PATTERNS = [
 
 const BROWSER_ORIGIN_PATTERNS = [
   /^https:\/\/(.*\.)?startupintelligence\.app$/,
-  /^https:\/\/.*\.vercel\.app$/,
   ...(process.env.NODE_ENV === 'production' ? [] : [
     /^https?:\/\/localhost(:\d+)?$/,
     /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
@@ -19,7 +18,17 @@ function isDesktopOrigin(origin) {
 }
 
 function isTrustedBrowserOrigin(origin) {
-  return Boolean(origin) && BROWSER_ORIGIN_PATTERNS.some(p => p.test(origin));
+  if (!origin) return false;
+  
+  // Securing custom origins via Environment Variable (so it's not hardcoded in repo)
+  const customOrigin = process.env.ALLOWED_ORIGIN;
+  if (customOrigin && origin === customOrigin) return true;
+
+  // Support Vercel's automatically injected deployment URL
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl && origin === `https://${vercelUrl}`) return true;
+
+  return BROWSER_ORIGIN_PATTERNS.some(p => p.test(origin));
 }
 
 function extractOriginFromReferer(referer) {
