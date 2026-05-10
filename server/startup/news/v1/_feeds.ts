@@ -416,7 +416,7 @@ export const VARIANT_FEEDS: Record<string, Record<string, ServerFeed[]>> = {
   },
 };
 
-VARIANT_FEEDS.startup = VARIANT_FEEDS.tech;
+VARIANT_FEEDS.startup = VARIANT_FEEDS.tech!;
 
 export const INTEL_SOURCES: ServerFeed[] = [
   { name: 'Defense One', url: 'https://www.defenseone.com/rss/all/' },

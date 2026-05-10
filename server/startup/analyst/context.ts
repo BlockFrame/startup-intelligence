@@ -251,17 +251,17 @@ function buildPredictionMarkets(data: unknown): string {
 function buildStartupEcosystems(): string {
   return STARTUP_ECOSYSTEMS
     .slice()
-    .sort((a, b) => b.unicorns - a.unicorns)
+    .sort((a, b) => (b.unicorns || 0) - (a.unicorns || 0))
     .slice(0, 8)
-    .map((eco) => `- ${eco.name}: ${eco.unicorns} unicorns, ${eco.notableStartups.slice(0, 4).join(', ')}`)
+    .map((eco) => `- ${eco.name}: ${eco.unicorns || 0} unicorns, ${(eco.notableStartups || []).slice(0, 4).join(', ')}`)
     .join('\n');
 }
 
 function buildAiCompanyMap(): string {
   return TECH_COMPANIES
-    .filter((company) => ['unicorn', 'public', 'faang'].includes(company.type))
+    .filter((company) => company.officeType === 'headquarters')
     .slice(0, 12)
-    .map((company) => `- ${company.company} (${company.city}, ${company.country})${company.marketCap ? ` ${company.marketCap}` : ''}`)
+    .map((company) => `- ${company.name} (${company.city}, ${company.country})${company.valuation ? ` $${(company.valuation / 1e9).toFixed(1)}B` : ''}`)
     .join('\n');
 }
 

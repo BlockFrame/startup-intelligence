@@ -66,7 +66,6 @@ export const STARTUP_RPC_CACHE_TIER: Record<string, CacheTier> = {
   '/api/intelligence/v1/list-telegram-feed': 'fast',
   '/api/intelligence/v1/get-company-enrichment': 'slow',
   '/api/intelligence/v1/list-company-signals': 'slow',
-  '/api/intelligence/v1/list-market-implications': 'slow',
   '/api/intelligence/v1/get-social-velocity': 'fast',
   '/api/intelligence/v1/get-gdelt-topic-timeline': 'medium',
   '/api/intelligence/v1/list-cross-source-signals': 'medium',
