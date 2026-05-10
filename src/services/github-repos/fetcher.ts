@@ -75,8 +75,10 @@ export async function fetchGithubRepoDashboardData(clusterId = 'all', mode: 'all
   });
   const fallbackRepos = mode !== 'trending' ? (curatedFallback as GithubRawRepo[]).map((repo) => ({ repo, lane: 'curated' as const, isFallback: true })) : [];
   const rawRepos = [...liveRepos, ...fallbackRepos];
+  if (liveRepos.length === 0 && lastError) {
+    throw new Error(`GitHub Error: ${lastError}`);
+  }
   if (rawRepos.length === 0) {
-    if (lastError) throw new Error(`GitHub Error: ${lastError}`);
     throw new Error('GitHub rate limit or access block. Add GITHUB_TOKEN to the dev environment, then restart the server.');
   }
   const minStars = sourceConfig.discovery.minStars;

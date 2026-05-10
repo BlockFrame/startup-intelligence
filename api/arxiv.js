@@ -36,7 +36,7 @@ export default async function handler(req) {
         'User-Agent': 'StartupIntelligence/1.0 (arXiv dashboard; contact: local-dev)',
       },
       // Edge functions have a 30s limit usually, but we want to be responsive
-      signal: AbortSignal.timeout(12_000)
+      signal: AbortSignal.timeout(8000)
     });
 
     if (!response.ok) {

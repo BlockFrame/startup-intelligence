@@ -59,21 +59,35 @@ export default async function handler(req) {
   if (type === 'collections') {
     return new Response(JSON.stringify({ items: [] }), { status: 200, headers: { ...headers, 'Content-Type': 'application/json' } });
   }
-  if (type === 'papers' && source === 'trending' && !id && !search) {
-    const response = await fetch(`${HF_SITE}/papers/trending`, { headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' } });
-    const html = await response.text();
-    const items = extractTrendingPapersFromHtml(html).slice(0, limit).map((item) => ({ ...item, entityType: 'papers', source: 'trending' }));
+  try {
+    if (type === 'papers' && source === 'trending' && !id && !search) {
+      const response = await fetch(`${HF_SITE}/papers/trending`, { 
+        headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' },
+        signal: AbortSignal.timeout(8000)
+      });
+      const html = await response.text();
+      const items = extractTrendingPapersFromHtml(html).slice(0, limit).map((item) => ({ ...item, entityType: 'papers', source: 'trending' }));
+      return new Response(JSON.stringify({ items }), {
+        status: response.status,
+        headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=900, s-maxage=1800' },
+      });
+    }
+    const upstream = pathFor(type, id, search, limit);
+    const response = await fetch(upstream, { 
+      headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' },
+      signal: AbortSignal.timeout(8000)
+    });
+    const json = await response.json();
+    const items = Array.isArray(json) ? json.map((item) => ({ ...item, entityType: type })) : [{ ...json, entityType: type }];
     return new Response(JSON.stringify({ items }), {
       status: response.status,
       headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=900, s-maxage=1800' },
     });
+  } catch (error) {
+    console.error(`[api/huggingface] Error fetching ${type}:`, error);
+    return new Response(JSON.stringify({ items: [], error: error instanceof Error ? error.message : String(error) }), {
+      status: 200,
+      headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300, s-maxage=600' },
+    });
   }
-  const upstream = pathFor(type, id, search, limit);
-  const response = await fetch(upstream, { headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' } });
-  const json = await response.json();
-  const items = Array.isArray(json) ? json.map((item) => ({ ...item, entityType: type })) : [{ ...json, entityType: type }];
-  return new Response(JSON.stringify({ items }), {
-    status: response.status,
-    headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=900, s-maxage=1800' },
-  });
 }

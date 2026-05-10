@@ -67,7 +67,7 @@ export default async function handler(req) {
         Accept: 'text/html,application/xhtml+xml',
         'User-Agent': 'StartupIntelligence/1.0 (alphaxiv trending papers)',
       },
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(8000),
     });
     const html = await response.text();
     const items = response.ok ? extractAlphaXivItems(html, limit) : [];
