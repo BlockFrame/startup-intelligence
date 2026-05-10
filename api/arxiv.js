@@ -31,13 +31,16 @@ export default async function handler(req) {
 
     console.log(`[api/arxiv] Fetching: ${upstream.toString()}`);
     
+    const fetchPromise = fetch(upstream, {
+      headers: {
+        Accept: 'application/atom+xml, application/xml, text/xml',
+        'User-Agent': 'StartupIntelligence/1.0 (arXiv dashboard; contact: local-dev)',
+      }
+    });
+    fetchPromise.catch(() => {});
+    
     const response = await Promise.race([
-      fetch(upstream, {
-        headers: {
-          Accept: 'application/atom+xml, application/xml, text/xml',
-          'User-Agent': 'StartupIntelligence/1.0 (arXiv dashboard; contact: local-dev)',
-        }
-      }),
+      fetchPromise,
       timeoutPromise(8000)
     ]);
 
@@ -58,8 +61,8 @@ export default async function handler(req) {
     });
   } catch (error) {
     console.error('[api/arxiv] Proxy error:', error.message);
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: error.name === 'AbortError' || error.message === 'TimeoutError' ? 504 : 500, 
+    return new Response(JSON.stringify({ error: error.message || 'TimeoutError' }), { 
+      status: 200, 
       headers: { ...headers, 'Content-Type': 'application/json' } 
     });
   }

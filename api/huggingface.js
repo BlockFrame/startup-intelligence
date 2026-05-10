@@ -64,10 +64,14 @@ export default async function handler(req) {
 
   try {
     if (type === 'papers' && source === 'trending' && !id && !search) {
+      const fetchPromise = fetch(`${HF_SITE}/papers/trending`, { headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' } });
+      fetchPromise.catch(() => {});
+      
       const response = await Promise.race([
-        fetch(`${HF_SITE}/papers/trending`, { headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' } }),
+        fetchPromise,
         timeoutPromise(8000)
       ]);
+      
       const html = await response.text();
       const items = extractTrendingPapersFromHtml(html).slice(0, limit).map((item) => ({ ...item, entityType: 'papers', source: 'trending' }));
       return new Response(JSON.stringify({ items }), {
@@ -75,11 +79,16 @@ export default async function handler(req) {
         headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=900, s-maxage=1800' },
       });
     }
+    
     const upstream = pathFor(type, id, search, limit);
+    const fetchPromise = fetch(upstream, { headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' } });
+    fetchPromise.catch(() => {});
+    
     const response = await Promise.race([
-      fetch(upstream, { headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' } }),
+      fetchPromise,
       timeoutPromise(8000)
     ]);
+    
     const json = await response.json();
     const items = Array.isArray(json) ? json.map((item) => ({ ...item, entityType: type })) : [{ ...json, entityType: type }];
     return new Response(JSON.stringify({ items }), {
@@ -88,7 +97,7 @@ export default async function handler(req) {
     });
   } catch (error) {
     console.error(`[api/huggingface] Error fetching ${type}:`, error);
-    return new Response(JSON.stringify({ items: [], error: error instanceof Error ? error.message : String(error) }), {
+    return new Response(JSON.stringify({ items: [], error: error.message || 'TimeoutError' }), {
       status: 200,
       headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300, s-maxage=600' },
     });

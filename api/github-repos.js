@@ -25,30 +25,40 @@ export default async function handler(req) {
     
     if (isTrending) {
       const fallbackUrl = `${url.origin || 'https://startupintelligence.app'}/api/bootstrap?keys=curatedGithub`;
-      const fallbackRes = await Promise.race([
-        fetch(fallbackUrl, { headers: { 'User-Agent': 'StartupIntelligence/1.0' } }),
-        timeoutPromise(8000)
-      ]);
-      
-      if (!fallbackRes.ok) {
-        return new Response(JSON.stringify({ error: 'Failed to fetch fallback trending data' }), {
-          status: fallbackRes.status,
+      try {
+        const fetchPromise = fetch(fallbackUrl, { headers: { 'User-Agent': 'StartupIntelligence/1.0' } });
+        fetchPromise.catch(() => {}); // Prevent unhandled rejection
+        
+        const fallbackRes = await Promise.race([
+          fetchPromise,
+          timeoutPromise(8000)
+        ]);
+        
+        if (!fallbackRes.ok) {
+          return new Response(JSON.stringify({ items: [], error: 'Failed to fetch fallback trending data' }), {
+            status: 200,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const fallbackJson = await fallbackRes.json();
+        const fallbackItems = (fallbackJson.items || []).map((item, index) => ({
+          ...item,
+          trendingRank: index + 1,
+          source: 'github-trending',
+          starsToday: Math.round(item.stargazers_count / 30),
+        }));
+
+        return new Response(JSON.stringify({ items: fallbackItems, isFallback: true }), {
+          status: 200,
+          headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' },
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ items: [], error: err.message || 'TimeoutError' }), {
+          status: 200,
           headers: { ...headers, 'Content-Type': 'application/json' },
         });
       }
-
-      const fallbackJson = await fallbackRes.json();
-      const fallbackItems = (fallbackJson.items || []).map((item, index) => ({
-        ...item,
-        trendingRank: index + 1,
-        source: 'github-trending',
-        starsToday: Math.round(item.stargazers_count / 30),
-      }));
-
-      return new Response(JSON.stringify({ items: fallbackItems, isFallback: true }), {
-        status: fallbackRes.status,
-        headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' },
-      });
     }
     
     if (repo) {
@@ -63,15 +73,18 @@ export default async function handler(req) {
       return new Response(JSON.stringify({ error: 'Missing repo or search' }), { status: 400, headers });
     }
 
+    const fetchPromise = fetch(upstream, { headers: githubHeaders() });
+    fetchPromise.catch(() => {}); // Prevent unhandled rejection
+    
     const response = await Promise.race([
-      fetch(upstream, { headers: githubHeaders() }),
+      fetchPromise,
       timeoutPromise(8000)
     ]);
     
     if (!response.ok) {
       const errText = await response.text();
       return new Response(JSON.stringify({ error: 'GitHub API Error', details: errText, status: response.status }), {
-        status: response.status,
+        status: response.status, // We can return real status here because it didn't timeout
         headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
@@ -86,8 +99,8 @@ export default async function handler(req) {
       },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error', status: 500 }), {
-      status: 500,
+    return new Response(JSON.stringify({ error: error.message || 'TimeoutError' }), {
+      status: 200,
       headers: { ...headers, 'Content-Type': 'application/json' },
     });
   }
