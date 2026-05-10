@@ -72,9 +72,9 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
         );
       }
 
-      // Desktop builds: inject build-time variant into the inline script so data-variant is set
-      // before CSS loads. Web builds always use 'full' — runtime hostname detection handles variants.
-      if (activeVariant !== 'full') {
+      // Inject build-time startup variant into the inline script so data-variant is set
+      // before CSS loads.
+      if (activeVariant !== 'startup') {
         result = result.replace(
           /if\(v\)document\.documentElement\.dataset\.variant=v;/,
           `v='${activeVariant}';document.documentElement.dataset.variant=v;`
@@ -95,9 +95,9 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
           );
       }
 
-      // Desktop builds: replace favicon paths with variant-specific subdirectory.
-      // Web builds use 'full' favicons in HTML; runtime JS swaps them per hostname.
-      if (activeVariant !== 'full') {
+      // Replace favicon paths with variant-specific subdirectory when a non-startup
+      // build is explicitly requested.
+      if (activeVariant !== 'startup') {
         result = result
           .replace(/\/favico\/favicon/g, `/favico/${activeVariant}/favicon`)
           .replace(/\/favico\/apple-touch-icon/g, `/favico/${activeVariant}/apple-touch-icon`)
@@ -585,7 +585,20 @@ function githubReposDevPlugin(): Plugin {
           const url = new URL(req.url, 'http://localhost');
           const repo = url.searchParams.get('repo');
           const search = url.searchParams.get('search');
+          const trending = url.searchParams.get('trending');
           let upstream = '';
+          if (trending === '1') {
+            const response = await fetch('https://github.com/trending', {
+              headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' },
+              signal: AbortSignal.timeout(10_000),
+            });
+            const html = await response.text();
+            res.statusCode = response.status;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'public, max-age=300');
+            res.end(JSON.stringify({ items: extractGithubTrendingRepos(html) }));
+            return;
+          }
           if (repo) {
             if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) {
               res.statusCode = 400;
@@ -628,6 +641,43 @@ function githubReposDevPlugin(): Plugin {
   };
 }
 
+function parseGithubCount(value: string): number {
+  const number = Number(String(value || '').replace(/,/g, '').trim());
+  return Number.isFinite(number) ? number : 0;
+}
+
+function extractGithubTrendingRepos(html: string): unknown[] {
+  return Array.from(String(html || '').matchAll(/<article class="Box-row">([\s\S]*?)<\/article>/g)).map((match, index) => {
+    const block = match[1] || '';
+    const repoMatch = block.match(/href="\/([\w.-]+\/[\w.-]+)"[\s\S]*?class="Link"/);
+    if (!repoMatch?.[1]) return null;
+    const fullName = repoMatch[1];
+    if (fullName.startsWith('sponsors/')) return null;
+    const now = new Date().toISOString();
+    const starMatches = Array.from(block.matchAll(/<a href="\/[\w.-]+\/[\w.-]+\/stargazers"[\s\S]*?<\/svg>\s*([\d,]+)/g));
+    return {
+      full_name: fullName,
+      owner: { login: fullName.split('/')[0] },
+      name: fullName.split('/').pop() || fullName,
+      description: decodeHtml((block.match(/<p class="[^"]*color-fg-muted[^"]*"[^>]*>([\s\S]*?)<\/p>/)?.[1] || '').replace(/<[^>]+>/g, '')),
+      topics: [],
+      html_url: `https://github.com/${fullName}`,
+      stargazers_count: parseGithubCount(String(starMatches[0]?.[1] || '0')),
+      forks_count: parseGithubCount(String(block.match(/<a href="\/[\w.-]+\/[\w.-]+\/forks"[\s\S]*?<\/svg>\s*([\d,]+)/)?.[1] || '0')),
+      watchers_count: parseGithubCount(String(starMatches[0]?.[1] || '0')),
+      language: decodeHtml(block.match(/itemprop="programmingLanguage">([^<]+)</)?.[1] || 'Unknown'),
+      created_at: now,
+      updated_at: now,
+      pushed_at: now,
+      homepage: '',
+      license: null,
+      trendingRank: index + 1,
+      starsToday: parseGithubCount(String(block.match(/([\d,]+)\s+stars today/)?.[1] || '0')),
+      source: 'github-trending',
+    };
+  }).filter(Boolean);
+}
+
 function huggingFaceDevPlugin(): Plugin {
   return {
     name: 'huggingface-dev',
@@ -639,6 +689,7 @@ function huggingFaceDevPlugin(): Plugin {
           const type = url.searchParams.get('type') || 'models';
           const id = url.searchParams.get('id');
           const search = url.searchParams.get('search');
+          const source = url.searchParams.get('source');
           const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 20), 1), 50);
           if (!['models', 'datasets', 'spaces', 'papers', 'collections'].includes(type)) {
             res.statusCode = 400;
@@ -646,17 +697,38 @@ function huggingFaceDevPlugin(): Plugin {
             res.end(JSON.stringify({ error: 'Invalid type' }));
             return;
           }
-          if (type === 'papers' || type === 'collections') {
+          if (type === 'collections') {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ items: [] }));
             return;
           }
+          if (type === 'papers' && source === 'trending' && !id && !search) {
+            const response = await fetch('https://huggingface.co/papers/trending', {
+              headers: { Accept: 'text/html,application/xhtml+xml', 'User-Agent': 'StartupIntelligence/1.0' },
+              signal: AbortSignal.timeout(10_000),
+            });
+            const html = await response.text();
+            const items = extractHuggingFaceTrendingPapers(html).slice(0, limit).map((item) => ({ ...item, entityType: 'papers', source: 'trending' }));
+            res.statusCode = response.status;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'public, max-age=300');
+            res.end(JSON.stringify({ items }));
+            return;
+          }
           const encodedId = id ? encodeURIComponent(id).replace(/%2F/g, '/') : '';
-          const params = new URLSearchParams({ limit: String(limit), full: 'true' });
-          if (search) params.set('search', search);
-          const upstream = id
-            ? `https://huggingface.co/api/${type}/${encodedId}`
-            : `https://huggingface.co/api/${type}?${params}`;
+          const upstream = (() => {
+            if (type === 'papers') {
+              if (id) return `https://huggingface.co/api/papers/${encodedId}`;
+              const params = new URLSearchParams({ limit: String(limit) });
+              if (search) params.set('q', search);
+              return search ? `https://huggingface.co/api/papers?${params}` : `https://huggingface.co/api/daily_papers?${params}`;
+            }
+            const params = new URLSearchParams({ limit: String(limit), full: 'true' });
+            if (search) params.set('search', search);
+            return id
+              ? `https://huggingface.co/api/${type}/${encodedId}`
+              : `https://huggingface.co/api/${type}?${params}`;
+          })();
           const response = await fetch(upstream, { headers: { Accept: 'application/json', 'User-Agent': 'StartupIntelligence/1.0' } });
           const json = await response.json();
           const items = Array.isArray(json) ? json.map((item) => ({ ...item, entityType: type })) : [{ ...json, entityType: type }];
@@ -674,6 +746,90 @@ function huggingFaceDevPlugin(): Plugin {
   };
 }
 
+function decodeHtmlAttribute(value: string): string {
+  return String(value || '')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+function extractHuggingFaceTrendingPapers(html: string): unknown[] {
+  const match = String(html || '').match(/data-target="DailyPapers"\s+data-props="([^"]+)"/);
+  if (!match) return [];
+  try {
+    const props = JSON.parse(decodeHtmlAttribute(match[1] || ''));
+    return Array.isArray(props.dailyPapers) ? props.dailyPapers : [];
+  } catch {
+    return [];
+  }
+}
+
+function decodeHtml(value: string): string {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractAlphaXivItems(html: string, limit: number): Array<{ id: string; title: string; rank: number; source: string; url: string }> {
+  const ids = new Map<string, { id: string; title: string }>();
+  for (const match of html.matchAll(/href=["']\/(?:abs\/)?(\d{4}\.\d{4,6})(?:v\d+)?["'][^>]*>([\s\S]{0,240}?)<\/a>/g)) {
+    const id = match[1];
+    if (!id || ids.has(id)) continue;
+    const title = decodeHtml(String(match[2] || '').replace(/<[^>]+>/g, ''));
+    ids.set(id, { id, title });
+    if (ids.size >= limit) break;
+  }
+  if (ids.size < limit) {
+    for (const match of html.matchAll(/\b(\d{4}\.\d{4,6})(?:v\d+)?\b/g)) {
+      const id = match[1];
+      if (!id || ids.has(id)) continue;
+      ids.set(id, { id, title: id });
+      if (ids.size >= limit) break;
+    }
+  }
+  return Array.from(ids.values()).slice(0, limit).map((item, index) => ({
+    ...item,
+    rank: index + 1,
+    source: 'alphaxiv',
+    url: `https://www.alphaxiv.org/abs/${item.id}`,
+  }));
+}
+
+function alphaXivDevPlugin(): Plugin {
+  return {
+    name: 'alphaxiv-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith('/api/alphaxiv')) return next();
+        const url = new URL(req.url, 'http://localhost');
+        const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 30), 1), 50);
+        try {
+          const response = await fetch('https://www.alphaxiv.org/', {
+            headers: { Accept: 'text/html,application/xhtml+xml', 'User-Agent': 'StartupIntelligence/1.0 (alphaxiv trending papers)' },
+            signal: AbortSignal.timeout(10_000),
+          });
+          const html = await response.text();
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'public, max-age=300');
+          res.end(JSON.stringify({ items: response.ok ? extractAlphaXivItems(html, limit) : [], fetchedAt: new Date().toISOString() }));
+        } catch (error: any) {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ items: [], error: error?.message || 'AlphaXiv request failed', fetchedAt: new Date().toISOString() }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Inject environment variables from .env files into process.env.
@@ -683,8 +839,8 @@ export default defineConfig(({ mode }) => {
 
   const isE2E = process.env.VITE_E2E === '1';
   const isDesktopBuild = process.env.VITE_DESKTOP_RUNTIME === '1';
-  const activeVariant = process.env.VITE_VARIANT || 'full';
-  const activeMeta = VARIANT_META[activeVariant] || VARIANT_META.full;
+  const activeVariant = process.env.VITE_VARIANT || 'startup';
+  const activeMeta = VARIANT_META[activeVariant] || VARIANT_META.startup;
   const startupOnly = activeVariant === 'startup';
 
   return {
@@ -699,6 +855,7 @@ export default defineConfig(({ mode }) => {
       gpsjamDevPlugin(),
       githubReposDevPlugin(),
       huggingFaceDevPlugin(),
+      alphaXivDevPlugin(),
       sebufApiPlugin({ startupOnly }),
       brotliPrecompressPlugin(),
       VitePWA({

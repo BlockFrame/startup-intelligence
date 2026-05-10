@@ -68,6 +68,9 @@ describe('arXiv enrichment', () => {
     assert(enriched.mentionsCost);
     assert(enriched.mentionsMultiSession);
     assert(enriched.mentionsToolUse);
-    assert(enriched.finalScore > 0);
+    assert(enriched.discussionScore > 0);
+    assert(enriched.investorScore > 0);
+    assert(enriched.socialSignals.includes('benchmark / leaderboard'));
+    assert(enriched.finalScore >= 50);
   });
 });

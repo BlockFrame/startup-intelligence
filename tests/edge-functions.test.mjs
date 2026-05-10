@@ -73,6 +73,7 @@ describe('Edge Function no node: built-ins', () => {
 describe('Legacy api/*.js endpoint allowlist', () => {
   const ALLOWED_LEGACY_ENDPOINTS = new Set([
     'arxiv.js',
+    'alphaxiv.js',
     'bootstrap.js',
     'cache-purge.js',
     'contact.js',

@@ -20,6 +20,9 @@ export interface GithubRawRepo {
   pushed_at: string;
   homepage: string | null;
   license?: { spdx_id?: string; name?: string } | null;
+  trendingRank?: number;
+  starsToday?: number;
+  source?: string;
 }
 
 export interface GithubRepoRecord {
@@ -43,6 +46,9 @@ export interface GithubRepoRecord {
   discoveryLane: GithubDiscoveryLane;
   ageDays: number;
   updatedDays: number;
+  trendingRank?: number;
+  starsToday?: number;
+  source?: string;
 }
 
 export interface GithubEnrichedRepo extends GithubRepoRecord {

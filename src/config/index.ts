@@ -1,8 +1,4 @@
-// Configuration exports
-// For variant-specific builds, set VITE_VARIANT environment variable
-// VITE_VARIANT=tech → tech.startupintelligence.app (tech-focused)
-// VITE_VARIANT=full → startupintelligence.app (geopolitical)
-// VITE_VARIANT=finance → finance.startupintelligence.app (markets/trading)
+// Configuration exports for the Startup Intelligence product surface.
 
 export { SITE_VARIANT } from './variant';
 

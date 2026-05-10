@@ -396,15 +396,6 @@ canvas,
   filter: grayscale(0%) drop-shadow(0 0 4px var(--green));
 }
 
-.variant-option[data-variant="tech"].active {
-  color: var(--semantic-info);
-  background: rgba(74, 158, 255, 0.1);
-}
-
-.variant-option[data-variant="tech"].active .variant-icon {
-  filter: grayscale(0%) drop-shadow(0 0 4px var(--semantic-info));
-}
-
 .variant-divider {
   width: 1px;
   height: 12px;
@@ -20396,6 +20387,47 @@ html[data-variant="startup"] .variant-option.active {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 24px rgba(0, 214, 170, 0.12);
 }
 
+html[data-variant="startup"] .variant-switcher {
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+}
+
+html[data-variant="startup"] .variant-divider {
+  display: none;
+}
+
+html[data-variant="startup"] .startup-product-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 126px;
+  min-width: 126px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  line-height: 32px;
+  white-space: nowrap;
+}
+
+html[data-variant="startup"] .startup-product-tab .variant-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: none;
+  opacity: 1;
+  overflow: visible;
+  text-align: center;
+  line-height: 1;
+  width: 100%;
+}
+
+html[data-variant="startup"] .startup-product-tab.active,
+html[data-variant="startup"] .startup-product-tab:hover {
+  transform: none;
+}
+
 html[data-variant="startup"] .arxiv-dashboard-view {
   flex: 1 1 auto;
   min-height: 0;
@@ -20425,6 +20457,23 @@ html[data-variant="startup"] .hf-dashboard-view {
   gap: 18px;
   max-width: 1720px;
   margin: 0 auto;
+  position: relative;
+}
+
+.arxiv-dashboard-shell.radar-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.arxiv-dashboard-shell.radar-collapsed .arxiv-sidebar {
+  display: none;
+}
+
+.github-dashboard-shell.radar-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.github-dashboard-shell.radar-collapsed .github-sidebar {
+  display: none;
 }
 
 .github-dashboard-shell,
@@ -20438,10 +20487,12 @@ html[data-variant="startup"] .hf-dashboard-view {
 
 .arxiv-sidebar,
 .arxiv-hero,
+.arxiv-discussed-card,
 .arxiv-trend-card,
 .arxiv-table-wrap,
 .github-sidebar,
 .github-hero,
+.github-priority-card,
 .github-trend-card,
 .github-table-wrap,
 .hf-sidebar,
@@ -20481,6 +20532,70 @@ html[data-variant="startup"] .hf-dashboard-view {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(182, 255, 232, 0.92);
+}
+
+.arxiv-sidebar-top,
+.github-sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.arxiv-radar-close,
+.arxiv-radar-toggle,
+.github-radar-close,
+.github-radar-toggle {
+  border: 1px solid rgba(0, 214, 170, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 214, 170, 0.12);
+  color: rgba(232, 255, 248, 0.95);
+  cursor: pointer;
+}
+
+.arxiv-radar-close,
+.github-radar-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.arxiv-radar-toggle,
+.github-radar-toggle {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  align-self: flex-start;
+  min-width: 126px;
+  padding: 8px 11px;
+  white-space: nowrap;
+}
+
+.arxiv-radar-toggle span,
+.github-radar-toggle span {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.arxiv-radar-toggle small,
+.github-radar-toggle small {
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.arxiv-sidebar-copy,
+.github-sidebar-copy {
+  margin: -2px 0 2px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .arxiv-sidebar label,
@@ -20617,6 +20732,267 @@ html[data-variant="startup"] .hf-dashboard-view {
   gap: 18px;
 }
 
+.arxiv-discussed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.github-priority {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arxiv-section-heading,
+.github-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.arxiv-section-heading span,
+.github-section-heading span {
+  color: rgba(232, 255, 248, 0.96);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.arxiv-section-heading small {
+  max-width: 680px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.arxiv-score-help,
+.github-score-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-dim) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.arxiv-score-help b,
+.github-score-help b {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(182, 255, 232, 0.22);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(32, 211, 155, 0.12);
+  font-size: 12px;
+}
+
+.arxiv-score-help em,
+.github-score-help em {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  display: none;
+  width: min(360px, calc(100vw - 48px));
+  padding: 12px;
+  border: 1px solid rgba(182, 255, 232, 0.22);
+  border-radius: 8px;
+  background: #111719;
+  color: var(--text-secondary);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.45;
+  z-index: 20;
+}
+
+.arxiv-score-help:hover em,
+.arxiv-score-help:focus-within em,
+.arxiv-score-help:focus em,
+.github-score-help:hover em,
+.github-score-help:focus-within em,
+.github-score-help:focus em {
+  display: block;
+}
+
+.arxiv-discussed-grid,
+.github-priority-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.arxiv-priority-group,
+.github-priority-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arxiv-priority-group h2,
+.github-priority-group h2 {
+  margin: 0;
+  color: rgba(182, 255, 232, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.arxiv-discussed-card,
+.github-priority-card {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+}
+
+.github-source-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(182, 255, 232, 0.16);
+  border-radius: 8px;
+  background: rgba(3, 8, 11, 0.46);
+}
+
+.github-source-tabs button {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 12px;
+}
+
+.github-source-tabs button.active {
+  border-color: rgba(0, 214, 170, 0.32);
+  background: rgba(0, 214, 170, 0.14);
+  color: var(--text);
+}
+
+.arxiv-discussed-score,
+.github-priority-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(0, 214, 170, 0.38);
+  border-radius: 8px;
+  background: rgba(0, 214, 170, 0.12);
+}
+
+.arxiv-discussed-score.score-low,
+.github-priority-score.score-low {
+  border-color: rgba(255, 90, 90, 0.5);
+  background: rgba(255, 90, 90, 0.12);
+}
+
+.arxiv-discussed-score.score-mid,
+.github-priority-score.score-mid {
+  border-color: rgba(245, 190, 70, 0.52);
+  background: rgba(245, 190, 70, 0.12);
+}
+
+.arxiv-discussed-score.score-high,
+.github-priority-score.score-high {
+  border-color: rgba(32, 211, 155, 0.58);
+  background: rgba(32, 211, 155, 0.14);
+}
+
+.arxiv-discussed-score b,
+.github-priority-score b {
+  color: rgba(182, 255, 232, 0.98);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.arxiv-discussed-score.score-low b,
+.github-priority-score.score-low b,
+.arxiv-score-cell.score-low b {
+  color: #ff7b7b;
+}
+
+.arxiv-discussed-score.score-mid b,
+.github-priority-score.score-mid b,
+.arxiv-score-cell.score-mid b {
+  color: #f5c451;
+}
+
+.arxiv-discussed-score.score-high b,
+.github-priority-score.score-high b,
+.arxiv-score-cell.score-high b {
+  color: #42e6ae;
+}
+
+.arxiv-discussed-score span,
+.github-priority-score span {
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.arxiv-discussed-card h3,
+.github-priority-card h3 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.arxiv-priority-link,
+.github-repo-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.arxiv-priority-link:hover,
+.arxiv-priority-link:focus-visible,
+.github-repo-link:hover,
+.github-repo-link:focus-visible {
+  color: #42e6ae;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.arxiv-discussed-card p,
+.github-priority-card p {
+  margin: 0 0 10px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.arxiv-discussed-meta,
+.github-priority-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.arxiv-discussed-meta span,
+.arxiv-discussed-meta a,
+.github-priority-meta span,
+.github-priority-meta a {
+  border: 1px solid rgba(182, 255, 232, 0.14);
+  border-radius: 6px;
+  color: rgba(232, 255, 248, 0.82);
+  font-size: 10px;
+  padding: 4px 7px;
+  text-decoration: none;
+}
+
 .arxiv-trend-card,
 .github-trend-card,
 .hf-trend-card {
@@ -20733,6 +21109,16 @@ html[data-variant="startup"] .hf-dashboard-view {
   white-space: nowrap;
 }
 
+.arxiv-table td span small {
+  display: inline;
+  margin-left: 5px;
+  padding-left: 5px;
+  border-left: 1px solid rgba(182, 255, 232, 0.16);
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
 .arxiv-table td b,
 .github-table td b,
 .hf-table td b {
@@ -20747,6 +21133,90 @@ html[data-variant="startup"] .hf-dashboard-view {
   display: inline-flex;
   margin-right: 8px;
   color: rgba(182, 255, 232, 0.95);
+}
+
+.arxiv-table .arxiv-paper-link {
+  display: block;
+  margin: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.github-table .github-table-link {
+  display: block;
+  margin: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.arxiv-table .arxiv-paper-link:hover strong,
+.arxiv-table .arxiv-paper-link:focus-visible strong,
+.github-table .github-table-link:hover strong,
+.github-table .github-table-link:focus-visible strong {
+  color: #42e6ae;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.arxiv-score-cell,
+.github-score-cell {
+  min-width: 92px;
+}
+
+.arxiv-score-badge,
+.github-score-badge {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 7px !important;
+  padding: 5px 8px !important;
+  border: 1px solid rgba(182, 255, 232, 0.16);
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+
+.arxiv-score-cell.score-low .arxiv-score-badge,
+.github-score-cell.score-low .github-score-badge {
+  border-color: rgba(255, 90, 90, 0.5);
+  background: rgba(255, 90, 90, 0.12);
+}
+
+.arxiv-score-cell.score-low .arxiv-score-badge b,
+.github-score-cell.score-low .github-score-badge b {
+  color: #ff7b7b;
+}
+
+.arxiv-score-cell.score-mid .arxiv-score-badge,
+.github-score-cell.score-mid .github-score-badge {
+  border-color: rgba(245, 190, 70, 0.52);
+  background: rgba(245, 190, 70, 0.12);
+}
+
+.arxiv-score-cell.score-mid .arxiv-score-badge b,
+.github-score-cell.score-mid .github-score-badge b {
+  color: #f5c451;
+}
+
+.arxiv-score-cell.score-high .arxiv-score-badge,
+.github-score-cell.score-high .github-score-badge {
+  border-color: rgba(32, 211, 155, 0.58);
+  background: rgba(32, 211, 155, 0.14);
+}
+
+.arxiv-score-cell.score-high .arxiv-score-badge b,
+.github-score-cell.score-high .github-score-badge b {
+  color: #42e6ae;
+}
+
+.arxiv-score-badge small,
+.github-score-badge small {
+  display: inline;
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .arxiv-empty,
@@ -25003,8 +25473,12 @@ html[data-variant="startup"] .hf-sidebar select {
 }
 
 html[data-variant="startup"] .arxiv-refresh,
+html[data-variant="startup"] .arxiv-radar-close,
+html[data-variant="startup"] .arxiv-radar-toggle,
 html[data-variant="startup"] .arxiv-saved-views button,
 html[data-variant="startup"] .github-refresh,
+html[data-variant="startup"] .github-radar-close,
+html[data-variant="startup"] .github-radar-toggle,
 html[data-variant="startup"] .github-saved-views button,
 html[data-variant="startup"] .hf-refresh,
 html[data-variant="startup"] .hf-saved-views button,
@@ -25016,8 +25490,12 @@ html[data-variant="startup"] .hf-entity-tabs button {
 }
 
 html[data-variant="startup"] .arxiv-refresh:hover,
+html[data-variant="startup"] .arxiv-radar-close:hover,
+html[data-variant="startup"] .arxiv-radar-toggle:hover,
 html[data-variant="startup"] .arxiv-saved-views button:hover,
 html[data-variant="startup"] .github-refresh:hover,
+html[data-variant="startup"] .github-radar-close:hover,
+html[data-variant="startup"] .github-radar-toggle:hover,
 html[data-variant="startup"] .github-saved-views button:hover,
 html[data-variant="startup"] .hf-refresh:hover,
 html[data-variant="startup"] .hf-saved-views button:hover,
@@ -25055,6 +25533,30 @@ html[data-variant="startup"] .arxiv-table a,
 html[data-variant="startup"] .github-table a,
 html[data-variant="startup"] .hf-table a {
   color: var(--accent);
+}
+
+html[data-variant="startup"] .arxiv-score-cell.score-low .arxiv-score-badge b {
+  color: #ff7b7b;
+}
+
+html[data-variant="startup"] .arxiv-score-cell.score-mid .arxiv-score-badge b {
+  color: #f5c451;
+}
+
+html[data-variant="startup"] .arxiv-score-cell.score-high .arxiv-score-badge b {
+  color: #42e6ae;
+}
+
+html[data-variant="startup"] .github-score-cell.score-low .github-score-badge b {
+  color: #ff7b7b;
+}
+
+html[data-variant="startup"] .github-score-cell.score-mid .github-score-badge b {
+  color: #f5c451;
+}
+
+html[data-variant="startup"] .github-score-cell.score-high .github-score-badge b {
+  color: #42e6ae;
 }
 
 html[data-variant="startup"] .site-footer {

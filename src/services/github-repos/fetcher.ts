@@ -7,7 +7,7 @@ import { dedupeGithubRepos, enrichGithubRepo, normalizeGithubRepo } from './enri
 const RAW_STORAGE_KEY = 'startup-github-repos-raw';
 const RECORD_STORAGE_KEY = 'startup-github-repos-records';
 const STORAGE_VERSION_KEY = 'startup-github-repos-version';
-const STORAGE_VERSION = 'v5-cluster-discovery';
+const STORAGE_VERSION = 'v6-github-trending';
 
 async function fetchJson<T>(path: string): Promise<T | null> {
   const response = await fetch(toApiUrl(path));
@@ -35,7 +35,7 @@ async function fetchWithConcurrency<T>(paths: string[], concurrency = 3): Promis
   return results;
 }
 
-export async function fetchGithubRepoDashboardData(clusterId = 'all'): Promise<GithubRepoDashboardState> {
+export async function fetchGithubRepoDashboardData(clusterId = 'all', mode: 'all' | 'master' | 'trending' = 'all'): Promise<GithubRepoDashboardState> {
   const clusters = sourceConfig.clusters as Record<string, { seedRepositories?: string[]; queries?: string[] }> | undefined;
   const cluster = clusterId === 'all' ? undefined : clusters?.[clusterId];
   const seedNames = Array.from(new Set([...(sourceConfig.seedRepositories || []), ...(cluster?.seedRepositories || [])]));
@@ -45,10 +45,11 @@ export async function fetchGithubRepoDashboardData(clusterId = 'all'): Promise<G
   const emergingPaths = [...(sourceConfig.emergingQueries || []), ...(cluster?.queries || [])].map((q) => `/api/github-repos?search=${encodeURIComponent(q)}&sort=updated&order=desc&per_page=16`);
   const topicPaths = sourceConfig.topics.map((topic) => `/api/github-repos?search=${encodeURIComponent(`topic:${topic}`)}&sort=stars&order=desc&per_page=16`);
   const requests: Array<{ path: string; lane: GithubDiscoveryLane }> = [
-    ...seedPaths.map((path) => ({ path, lane: 'curated' as const })),
-    ...emergingPaths.map((path) => ({ path, lane: 'emerging' as const })),
-    ...searchPaths.map((path) => ({ path, lane: 'established' as const })),
-    ...topicPaths.map((path) => ({ path, lane: 'emerging' as const })),
+    ...(mode !== 'master' ? [{ path: '/api/github-repos?trending=1', lane: 'emerging' as const }] : []),
+    ...(mode !== 'trending' ? seedPaths.map((path) => ({ path, lane: 'curated' as const })) : []),
+    ...(mode === 'all' ? emergingPaths.map((path) => ({ path, lane: 'emerging' as const })) : []),
+    ...(mode === 'all' ? searchPaths.map((path) => ({ path, lane: 'established' as const })) : []),
+    ...(mode === 'all' ? topicPaths.map((path) => ({ path, lane: 'emerging' as const })) : []),
   ];
   const payloads = await fetchWithConcurrency<{ items?: GithubRawRepo[]; repo?: GithubRawRepo }>(requests.map((request) => request.path), 2);
   const liveRepos = payloads.flatMap((payload, index) => {
@@ -57,7 +58,7 @@ export async function fetchGithubRepoDashboardData(clusterId = 'all'): Promise<G
     const repos = payload.repo ? [payload.repo] : payload.items || [];
     return repos.map((repo) => ({ repo, lane, isFallback: false }));
   });
-  const fallbackRepos = (curatedFallback as GithubRawRepo[]).map((repo) => ({ repo, lane: 'curated' as const, isFallback: true }));
+  const fallbackRepos = mode !== 'trending' ? (curatedFallback as GithubRawRepo[]).map((repo) => ({ repo, lane: 'curated' as const, isFallback: true })) : [];
   const rawRepos = [...liveRepos, ...fallbackRepos];
   if (rawRepos.length === 0) {
     throw new Error('GitHub rate limit or access block. Add GITHUB_TOKEN to the dev environment, then restart the server.');

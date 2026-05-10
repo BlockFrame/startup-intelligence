@@ -11,7 +11,7 @@ export interface VariantMeta {
   features: string[];
 }
 
-export const VARIANT_META: { full: VariantMeta; [k: string]: VariantMeta } = {
+export const VARIANT_META: { startup: VariantMeta; [k: string]: VariantMeta } = {
   full: {
     title: 'Startup Intelligence - Real-Time Global Intelligence Dashboard',
     description: 'Real-time global intelligence dashboard with live news, markets, military tracking, infrastructure monitoring, and geopolitical data. OSINT in one view.',

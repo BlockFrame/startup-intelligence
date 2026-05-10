@@ -12,11 +12,13 @@ export default async function handler(req) {
   const inputUrl = new URL(req.url);
   const upstream = new URL('https://export.arxiv.org/api/query');
   const searchQuery = inputUrl.searchParams.get('search_query');
-  if (!searchQuery || searchQuery.length > 1200) {
-    return new Response('Missing or invalid search_query', { status: 400, headers });
+  const idList = inputUrl.searchParams.get('id_list');
+  if ((!searchQuery || searchQuery.length > 1200) && (!idList || idList.length > 1200)) {
+    return new Response('Missing or invalid search_query/id_list', { status: 400, headers });
   }
 
-  upstream.searchParams.set('search_query', searchQuery);
+  if (searchQuery) upstream.searchParams.set('search_query', searchQuery);
+  if (idList) upstream.searchParams.set('id_list', idList);
   upstream.searchParams.set('start', inputUrl.searchParams.get('start') || '0');
   upstream.searchParams.set('max_results', inputUrl.searchParams.get('max_results') || '40');
 

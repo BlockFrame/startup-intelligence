@@ -43,6 +43,7 @@ import { PanelGateReason, getPanelGateReason, hasPremiumAccess } from '@/service
 import type { Panel } from '@/components/Panel';
 
 const IS_STARTUP_BUILD = import.meta.env.VITE_VARIANT === 'startup';
+const STARTUP_MVP_TABS = new Set(['vc-startup', 'arxiv', 'github-repos']);
 
 /** Panels that require premium access on web. Auth-based gating applies to these. */
 const WEB_PREMIUM_PANELS = new Set([
@@ -251,88 +252,19 @@ export class PanelLayoutManager implements AppModule {
           <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <div class="variant-switcher">${(() => {
-        const local = this.ctx.isDesktopApp || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const inIframe = window.self !== window.top;
-        const vHref = (v: string, prod: string) => local || SITE_VARIANT === v ? '#' : prod;
-        const vTarget = (v: string) => !local && SITE_VARIANT !== v && inIframe ? 'target="_blank" rel="noopener"' : '';
-        if (SITE_VARIANT === 'startup') {
-          return `
-            <button class="variant-option startup-product-tab active" data-startup-tab="vc-startup" title="VC Startup dashboard">
-              <span class="variant-icon">VC</span>
+          <div class="variant-switcher">
+            <button class="variant-option startup-product-tab active" data-startup-tab="vc-startup" title="Startup dashboard">
               <span class="variant-label">VC Startup</span>
             </button>
             <span class="variant-divider"></span>
             <button class="variant-option startup-product-tab" data-startup-tab="arxiv" title="arXiv papers dashboard">
-              <span class="variant-icon">AI</span>
               <span class="variant-label">arXiv Papers</span>
             </button>
             <span class="variant-divider"></span>
             <button class="variant-option startup-product-tab" data-startup-tab="github-repos" title="GitHub repositories dashboard">
-              <span class="variant-icon">GH</span>
-              <span class="variant-label">GitHub Repos</span>
+              <span class="variant-label">GitHub Repo</span>
             </button>
-            <span class="variant-divider"></span>
-            <button class="variant-option startup-product-tab" data-startup-tab="huggingface" title="Hugging Face Hub dashboard">
-              <span class="variant-icon">HF</span>
-              <span class="variant-label">Hugging Face</span>
-            </button>`;
-        }
-        return `
-            <a href="${vHref('full', 'https://startupintelligence.app')}"
-               class="variant-option ${SITE_VARIANT === 'full' ? 'active' : ''}"
-               data-variant="full"
-               ${vTarget('full')}
-               title="${t('header.world')}${SITE_VARIANT === 'full' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">🌍</span>
-              <span class="variant-label">${t('header.world')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('tech', 'https://tech.startupintelligence.app')}"
-               class="variant-option ${SITE_VARIANT === 'tech' ? 'active' : ''}"
-               data-variant="tech"
-               ${vTarget('tech')}
-               title="${t('header.tech')}${SITE_VARIANT === 'tech' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">💻</span>
-              <span class="variant-label">${t('header.tech')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('startup', 'https://startupintelligence.app')}"
-               class="variant-option ${SITE_VARIANT === 'startup' ? 'active' : ''}"
-               data-variant="startup"
-               ${vTarget('startup')}
-               title="Startup Intelligence${SITE_VARIANT === 'startup' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">VC</span>
-              <span class="variant-label">Startup</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('finance', 'https://finance.startupintelligence.app')}"
-               class="variant-option ${SITE_VARIANT === 'finance' ? 'active' : ''}"
-               data-variant="finance"
-               ${vTarget('finance')}
-               title="${t('header.finance')}${SITE_VARIANT === 'finance' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">📈</span>
-              <span class="variant-label">${t('header.finance')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('commodity', 'https://commodity.startupintelligence.app')}"
-               class="variant-option ${SITE_VARIANT === 'commodity' ? 'active' : ''}"
-               data-variant="commodity"
-               ${vTarget('commodity')}
-               title="${t('header.commodity')}${SITE_VARIANT === 'commodity' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">⛏️</span>
-              <span class="variant-label">${t('header.commodity')}</span>
-            </a>
-            <span class="variant-divider"></span>
-            <a href="${vHref('happy', 'https://happy.startupintelligence.app')}"
-               class="variant-option ${SITE_VARIANT === 'happy' ? 'active' : ''}"
-               data-variant="happy"
-               ${vTarget('happy')}
-               title="Good News${SITE_VARIANT === 'happy' ? ` ${t('common.currentVariant')}` : ''}">
-              <span class="variant-icon">☀️</span>
-              <span class="variant-label">Good News</span>
-            </a>`;
-      })()}</div>
+          </div>
           <span class="logo">${SITE_VARIANT === 'startup' ? 'Startup Intelligence' : 'Startup Intelligence'}</span><span class="logo-mobile">Startup Intelligence</span><span class="version">v${__APP_VERSION__}</span>${BETA_MODE ? '<span class="beta-badge">BETA</span>' : ''}
           ${legacyHeaderLinks}
           <button class="mobile-settings-btn" id="mobileSettingsBtn" title="${t('header.settings')}">
@@ -370,26 +302,16 @@ export class PanelLayoutManager implements AppModule {
         </div>
         <div class="mobile-menu-divider"></div>
         ${(() => {
-        const variants = SITE_VARIANT === 'startup'
-          ? [
-            { key: 'vc-startup', icon: 'VC', label: 'VC Startup' },
-            { key: 'arxiv', icon: 'AI', label: 'arXiv Papers' },
-            { key: 'github-repos', icon: 'GH', label: 'GitHub Repos' },
-            { key: 'huggingface', icon: 'HF', label: 'Hugging Face' },
-          ]
-          : [
-            { key: 'full', icon: '🌍', label: t('header.world') },
-            { key: 'tech', icon: '💻', label: t('header.tech') },
-            { key: 'startup', icon: 'VC', label: 'Startup' },
-            { key: 'finance', icon: '📈', label: t('header.finance') },
-            { key: 'commodity', icon: '⛏️', label: t('header.commodity') },
-            { key: 'happy', icon: '☀️', label: 'Good News' },
-          ];
+        const variants = [
+          { key: 'vc-startup', icon: '', label: 'VC Startup' },
+          { key: 'arxiv', icon: '', label: 'arXiv Papers' },
+          { key: 'github-repos', icon: '', label: 'GitHub Repo' },
+        ];
         return variants.map(v =>
-          `<button class="mobile-menu-item ${SITE_VARIANT === 'startup' ? 'mobile-menu-startup-tab' : 'mobile-menu-variant'} ${v.key === (SITE_VARIANT === 'startup' ? 'vc-startup' : SITE_VARIANT) ? 'active' : ''}" ${SITE_VARIANT === 'startup' ? `data-startup-tab="${v.key}"` : `data-variant="${v.key}"`}>
+          `<button class="mobile-menu-item mobile-menu-startup-tab ${v.key === 'vc-startup' ? 'active' : ''}" data-startup-tab="${v.key}">
             <span class="mobile-menu-item-icon">${v.icon}</span>
             <span class="mobile-menu-item-label">${v.label}</span>
-            ${v.key === (SITE_VARIANT === 'startup' ? 'vc-startup' : SITE_VARIANT) ? '<span class="mobile-menu-check">✓</span>' : ''}
+            ${v.key === 'vc-startup' ? '<span class="mobile-menu-check">✓</span>' : ''}
           </button>`
         ).join('');
       })()}
@@ -509,6 +431,7 @@ export class PanelLayoutManager implements AppModule {
     if (!arxivEl || !githubEl || !mainEl) return;
 
     const setTab = (tab: string): void => {
+      if (!STARTUP_MVP_TABS.has(tab)) tab = 'vc-startup';
       const showArxiv = tab === 'arxiv';
       const showGithub = tab === 'github-repos';
       const showHuggingFace = tab === 'huggingface';
@@ -552,7 +475,8 @@ export class PanelLayoutManager implements AppModule {
         this.ctx.container.querySelector<HTMLElement>('#mobileMenuOverlay')?.classList.remove('open');
       });
     });
-    setTab(localStorage.getItem('startup-active-dashboard-tab') || 'vc-startup');
+    const storedTab = localStorage.getItem('startup-active-dashboard-tab') || 'vc-startup';
+    setTab(STARTUP_MVP_TABS.has(storedTab) ? storedTab : 'vc-startup');
   }
 
   private setupMobileMapToggle(): void {
@@ -874,7 +798,7 @@ export class PanelLayoutManager implements AppModule {
 
     void this.loadExtensionPanels();
 
-    const variantOrder = (VARIANT_DEFAULTS[SITE_VARIANT] ?? VARIANT_DEFAULTS['full'] ?? []).filter(k => k !== 'map');
+    const variantOrder = (VARIANT_DEFAULTS[SITE_VARIANT] ?? VARIANT_DEFAULTS.startup ?? []).filter(k => k !== 'map');
     const activePanelSet = new Set(Object.keys(this.ctx.panelSettings));
     const crossVariantKeys = Object.keys(this.ctx.panelSettings)
       .filter(k => !variantOrder.includes(k) && k !== 'map')

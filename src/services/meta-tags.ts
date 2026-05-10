@@ -11,10 +11,10 @@ interface StoryMeta {
   type: 'ciianalysis' | 'crisisalert' | 'dailybrief' | 'marketfocus';
 }
 
-const variantMeta = VARIANT_META[SITE_VARIANT] ?? VARIANT_META.full;
+const variantMeta = VARIANT_META[SITE_VARIANT] ?? VARIANT_META.startup;
 const BASE_URL = variantMeta.url.replace(/\/$/, '');
 const API_ORIGIN = getCanonicalApiOrigin();
-const DEFAULT_IMAGE = `${BASE_URL}/favico/${SITE_VARIANT === 'full' ? '' : SITE_VARIANT + '/'}og-image.png`;
+const DEFAULT_IMAGE = `${BASE_URL}/favico/${SITE_VARIANT}/og-image.png`;
 
 export function updateMetaTagsForStory(meta: StoryMeta): void {
   const { countryCode, countryName, ciiScore, ciiLevel, trend, type } = meta;

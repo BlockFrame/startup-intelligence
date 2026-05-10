@@ -44,6 +44,7 @@ export interface ArxivRawFeedSnapshot {
   fetchedAt: string;
   requestUrls: string[];
   feeds: string[];
+  trendingSources?: string[];
 }
 
 export interface ArxivPaperRecord {
@@ -57,6 +58,11 @@ export interface ArxivPaperRecord {
   updated: string;
   pdfUrl: string;
   absUrl: string;
+  sourceSignals?: string[];
+  sourceRank?: number;
+  sourceDiscussionScore?: number;
+  sourceGithubStars?: number;
+  sourceGithubRepo?: string;
 }
 
 export interface ArxivEnrichedPaper extends ArxivPaperRecord {
@@ -67,6 +73,9 @@ export interface ArxivEnrichedPaper extends ArxivPaperRecord {
   keywordScore: number;
   semanticScore: number;
   implementationScore: number;
+  discussionScore: number;
+  investorScore: number;
+  socialSignals: string[];
   finalScore: number;
   hasCode: boolean;
   hasDataset: boolean;

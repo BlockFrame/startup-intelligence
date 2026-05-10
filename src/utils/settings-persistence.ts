@@ -48,7 +48,7 @@ export function exportSettings(): void {
   const exportData: ExportedSettings = {
     version: 1,
     timestamp: new Date().toISOString(),
-    variant: localStorage.getItem('startup-intelligence-variant') || 'full',
+    variant: localStorage.getItem('startup-intelligence-variant') || 'startup',
     data,
   };
 
