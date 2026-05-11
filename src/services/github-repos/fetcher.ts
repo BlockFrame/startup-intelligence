@@ -35,7 +35,12 @@ async function fetchWithConcurrency<T>(paths: string[], concurrency = 3): Promis
       next += 1;
       const path = paths[index];
       if (!path) continue;
-      results[index] = await fetchJson<T>(path);
+      try {
+        results[index] = await fetchJson<T>(path);
+      } catch (e) {
+        if (e instanceof Error) console.error(`[GitHub Fetcher] Failed path ${path}:`, e.message);
+        results[index] = { error: e instanceof Error ? e.message : 'Unknown error' } as any;
+      }
     }
   });
   await Promise.all(workers);
