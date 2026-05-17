@@ -241,7 +241,6 @@
     "layoffs": "Suivi des licenciements",
     "monitors": "Mes moniteurs",
     "satelliteFires": "Incendies",
-    "macroSignals": "Radar de marché",
     "etfFlows": "Suivi ETF BTC",
     "stablecoins": "Stablecoins",
     "deduction": "Déduire la situation",
@@ -1413,23 +1412,6 @@
         "change": "Variation"
       },
       "rateLimited": "Données ETF temporairement indisponibles (limite de requêtes) — nouvelle tentative en cours"
-    },
-    "macroSignals": {
-      "overall": "Global",
-      "verdict": {
-        "buy": "ACHAT",
-        "cash": "CASH"
-      },
-      "bullish": "{{count}}/{{total}} haussier",
-      "signals": {
-        "liquidity": "Liquidité",
-        "flow": "Flux",
-        "regime": "Régime",
-        "btcTrend": "Tendance BTC",
-        "hashRate": "Hash Rate",
-        "fearGreed": "Peur &amp; Avidité",
-        "momentum": "Momentum"
-      }
     },
     "runtimeConfig": {
       "getApiKey": "Obtenir une clé API"

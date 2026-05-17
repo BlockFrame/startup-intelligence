@@ -243,7 +243,6 @@
     "layoffs": "Theo dõi Sa thải",
     "monitors": "Bộ theo dõi",
     "satelliteFires": "Cháy rừng",
-    "macroSignals": "Radar Thị trường",
     "etfFlows": "Theo dõi BTC ETF",
     "stablecoins": "Stablecoin",
     "deduction": "Suy luận tình huống",
@@ -1610,23 +1609,6 @@
         "estFlow": "Dòng tiền ƯT",
         "volume": "Khối lượng",
         "change": "Thay đổi"
-      }
-    },
-    "macroSignals": {
-      "overall": "Tổng thể",
-      "verdict": {
-        "buy": "MUA",
-        "cash": "GIỮ TIỀN"
-      },
-      "bullish": "{{count}}/{{total}} tích cực",
-      "signals": {
-        "liquidity": "Thanh khoản",
-        "flow": "Dòng tiền",
-        "regime": "Chế độ",
-        "btcTrend": "Xu hướng BTC",
-        "hashRate": "Hash Rate",
-        "momentum": "Momentum",
-        "fearGreed": "Sợ hãi & Tham lam"
       }
     },
     "panel": {

@@ -242,7 +242,6 @@
     "layoffs": "متتبع التسريحات",
     "monitors": "مراقباتي",
     "satelliteFires": "الحرائق",
-    "macroSignals": "رادار السوق",
     "etfFlows": "متتبع BTC ETF",
     "stablecoins": "العملات المستقرة",
     "deduction": "استنتاج الوضع",
@@ -1499,23 +1498,6 @@
         "change": "التغيّر"
       },
       "rateLimited": "بيانات ETF غير متاحة مؤقتاً (تقييد معدل الطلبات) — ستتم إعادة المحاولة قريباً"
-    },
-    "macroSignals": {
-      "overall": "الإجمالي",
-      "verdict": {
-        "buy": "شراء",
-        "cash": "نقد"
-      },
-      "bullish": "{{count}}/{{total}} صعودي",
-      "signals": {
-        "liquidity": "السيولة",
-        "flow": "التدفق",
-        "regime": "النظام",
-        "btcTrend": "اتجاه BTC",
-        "hashRate": "Hash Rate",
-        "fearGreed": "الخوف &amp; الجشع",
-        "momentum": "Momentum"
-      }
     },
     "panel": {
       "showMethodologyInfo": "Show methodology info",

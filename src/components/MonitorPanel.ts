@@ -19,7 +19,7 @@ export class MonitorPanel extends Panel {
   private onMonitorsChange?: (monitors: Monitor[]) => void;
 
   constructor(initialMonitors: Monitor[] = []) {
-    super({ id: 'monitors', title: t('panels.monitors'), infoTooltip: t('components.monitors.infoTooltip') });
+    super({ id: 'monitors', title: t('panels.monitors'), infoTooltip: t('components.panelTooltips.monitors') });
     this.monitors = initialMonitors;
     this.renderInput();
   }

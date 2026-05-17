@@ -38,7 +38,6 @@ export const STARTUP_RPC_CACHE_TIER: Record<string, CacheTier> = {
   '/api/economic/v1/get-eu-yield-curve': 'daily',
   '/api/market/v1/list-etf-flows': 'slow',
   '/api/research/v1/list-hackernews-items': 'slow',
-  '/api/economic/v1/get-macro-signals': 'medium',
   '/api/economic/v1/get-national-debt': 'daily',
   '/api/news/v1/list-feed-digest': 'slow',
   '/api/news/v1/summarize-article-cache': 'slow',

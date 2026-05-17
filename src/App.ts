@@ -27,7 +27,6 @@ import type { ServiceStatusPanel } from '@/components/ServiceStatusPanel';
 import type { StablecoinPanel } from '@/components/StablecoinPanel';
 import type { EnergyCrisisPanel } from '@/components/EnergyCrisisPanel';
 import type { ETFFlowsPanel } from '@/components/ETFFlowsPanel';
-import type { MacroSignalsPanel } from '@/components/MacroSignalsPanel';
 import type { FearGreedPanel } from '@/components/FearGreedPanel';
 import type { StrategicRiskPanel } from '@/components/StrategicRiskPanel';
 import type { FuelPricesPanel } from '@/components/FuelPricesPanel';
@@ -47,7 +46,7 @@ import { trackEvent, trackDeeplinkOpened, initAuthAnalytics } from '@/services/a
 import { preloadCountryGeometry } from '@/services/country-geometry';
 import { initI18n, t } from '@/services/i18n';
 
-import { computeDefaultDisabledSources, getLocaleBoostedSources, getTotalFeedCount, FEEDS, INTEL_SOURCES } from '@/config/feeds';
+import { computeDefaultDisabledSources, getLocaleBoostedSources, getTotalFeedCount, FEEDS } from '@/config/feeds';
 import { describeFreshness } from '@/services/persistent-cache';
 import { DesktopUpdater } from '@/app/desktop-updater';
 import type * as NonStartupRuntime from '@/app/non-startup-runtime';
@@ -249,10 +248,6 @@ export class App {
     const shouldPrimeAny = (ids: string[]): boolean => forceAll || this.isAnyPanelNearViewport(ids);
 
     if (SITE_VARIANT === 'startup') {
-      if (shouldPrime('macro-signals')) {
-        const panel = this.state.panels['macro-signals'] as MacroSignalsPanel | undefined;
-        if (panel) primeTask('macro-signals', () => panel.fetchData());
-      }
       if (shouldPrime('markets')) {
         primeTask('markets', () => this.dataLoader.loadMarkets());
       }
@@ -266,10 +261,6 @@ export class App {
     if (shouldPrime('service-status')) {
       const panel = this.state.panels['service-status'] as ServiceStatusPanel | undefined;
       if (panel) primeTask('service-status', () => panel.fetchStatus());
-    }
-    if (shouldPrime('macro-signals')) {
-      const panel = this.state.panels['macro-signals'] as MacroSignalsPanel | undefined;
-      if (panel) primeTask('macro-signals', () => panel.fetchData());
     }
     if (shouldPrime('fear-greed')) {
       const panel = this.state.panels['fear-greed'] as FearGreedPanel | undefined;
@@ -532,7 +523,7 @@ export class App {
         localStorage.setItem(UNIFIED_MIGRATION_KEY, 'done');
       }
 
-      const STARTUP_PANEL_FOCUS_KEY = 'startupintelligence-startup-panel-focus-v1';
+      const STARTUP_PANEL_FOCUS_KEY = 'startupintelligence-startup-panel-focus-all-enabled-v1';
       if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_PANEL_FOCUS_KEY)) {
         const startupKeys = new Set(VARIANT_DEFAULTS.startup ?? []);
         for (const key of startupKeys) {
@@ -544,9 +535,9 @@ export class App {
             enabled: panelSettings[key]?.enabled ?? config.enabled,
           };
         }
-        for (const key of ['markets', 'macro-signals']) {
-          if (panelSettings[key]) panelSettings[key] = { ...panelSettings[key]!, enabled: false };
-        }
+        Object.keys(panelSettings).forEach(key => {
+          if (panelSettings[key]) panelSettings[key] = { ...panelSettings[key]!, enabled: true };
+        });
         try {
           const rawOrder = localStorage.getItem(PANEL_ORDER_KEY);
           const order = rawOrder ? JSON.parse(rawOrder) : [];
@@ -1183,7 +1174,6 @@ export class App {
     const allSourceNames = (() => {
       const s = new Set<string>();
       Object.values(FEEDS).forEach(feeds => feeds?.forEach(f => s.add(f.name)));
-      INTEL_SOURCES.forEach(f => s.add(f.name));
       return Array.from(s).sort((a, b) => a.localeCompare(b));
     })();
     const currentlyEnabled = allSourceNames.filter(n => !disabledSources.has(n));
@@ -1287,12 +1277,6 @@ export class App {
         REFRESH_INTERVALS.markets,
         () => this.isPanelNearViewport('markets'),
       );
-      this.refreshScheduler.scheduleRefresh(
-        'macro-signals',
-        () => (this.state.panels['macro-signals'] as MacroSignalsPanel).fetchData(),
-        REFRESH_INTERVALS.macroSignals,
-        () => this.isPanelNearViewport('macro-signals'),
-      );
       return;
     }
 
@@ -1389,12 +1373,6 @@ export class App {
       () => (this.state.panels['etf-flows'] as ETFFlowsPanel).fetchData(),
       REFRESH_INTERVALS.etfFlows,
       () => this.isPanelNearViewport('etf-flows')
-    );
-    this.refreshScheduler.scheduleRefresh(
-      'macro-signals',
-      () => (this.state.panels['macro-signals'] as MacroSignalsPanel).fetchData(),
-      REFRESH_INTERVALS.macroSignals,
-      () => this.isPanelNearViewport('macro-signals')
     );
     this.refreshScheduler.scheduleRefresh(
       'defense-patents',

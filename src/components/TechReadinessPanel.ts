@@ -29,7 +29,7 @@ export class TechReadinessPanel extends Panel {
       id: 'tech-readiness',
       title: t('panels.techReadiness'),
       showCount: true,
-      infoTooltip: t('components.techReadiness.infoTooltip'),
+      infoTooltip: t('components.panelTooltips.techReadiness'),
     });
   }
 

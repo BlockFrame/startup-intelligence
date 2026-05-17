@@ -238,7 +238,6 @@ const baseSources = () => ({
       { id: 's1', type: 'COERCIVE', theater: 'Middle East', severity: 'HIGH', severityScore: 75 },
     ],
   },
-  'economic:macro-signals:v1': { verdict: 'NEUTRAL' },
   'energy:mix:v1:_all': {
     IR: { imported: 0.1 },
     SA: { imported: 0.05 },

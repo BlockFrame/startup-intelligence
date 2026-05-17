@@ -1,6 +1,6 @@
 # Startup Intelligence Cleanup Map
 
-Last updated: 2026-05-01
+Last updated: 2026-05-16
 
 This map tracks the cleanup from the original broad global-monitoring surface to the target Startup Intelligence product. It is intentionally conservative: items marked as delete candidates should be removed only after imports, tests, and startup build prove they are unreachable.
 
@@ -56,10 +56,19 @@ This map tracks the cleanup from the original broad global-monitoring surface to
 - Hard brand sterilization is complete for active repo text, file paths, env examples, headers, CORS rules, metadata, deploy settings, docs, and generated contract paths. The old brand string no longer appears in the workspace outside Git history and third-party dependency caches.
 - Environment/settings cleanup is complete for the active example env: removed deleted-domain keys for aviation, conflict, wildfire/disaster, generic outage, and supply-chain-only feeds; retained only startup/AI-stack/market/research, auth/billing, MCP/OAuth, Telegram, relay, notification, LLM, cache, and map settings.
 - Generated and proto contract directories are renamed from the old brand path to `startup_intelligence`, and all active imports now target `src/generated/{client,server}/startup_intelligence` plus `proto/startup_intelligence`.
+- GitHub Repo radar split is complete for the current MVP iteration: `Master repos` and `Trending repos` are separate in-page tabs, master repositories use curated/startup GenAI sources, and trending repositories fetch directly from GitHub Trending through `/api/github-repos?trending=1`.
 
 ### Still Open
 
-No active cleanup blockers remain for the Startup Intelligence app surface.
+No active World Monitor cleanup blockers remain for the Startup Intelligence app surface.
+
+Current open work is now product/MVP hardening rather than legacy cleanup:
+
+- GitHub Repo page QA: verify `Master repos` and `Trending repos`, filters, score labels, search, repo links, and visual density.
+- VC Startup tab cleanup: remove duplicate/low-value cards and keep only investor-useful blocks such as funding, AI Observatory, market comps, readiness, and startup map.
+- Data freshness: normalize source publication dates, prevent stale articles from appearing as fresh, and show clear stale-source fallbacks.
+- Bundle bloat MVP: keep Clerk, MapLibre, HLS/live-channel, and ML worker as intentional/lazy product capabilities, but continue gating or lazy-loading non-core paths.
+- Release hardening: run arXiv, GitHub, MCP, chat, startup build, and browser smoke checks before MVP deploy.
 
 ### Closed Decisions
 

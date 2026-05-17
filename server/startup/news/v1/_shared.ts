@@ -40,14 +40,34 @@ export function buildArticlePrompts(
 ): { systemPrompt: string; userPrompt: string } {
   const headlineText = uniqueHeadlines.map((h, i) => `${i + 1}. ${h}`).join('\n');
   const intelSection = opts.geoContext ? `\n\n${opts.geoContext}` : '';
-  const isTechVariant = opts.variant === 'tech';
+  const isTechVariant = opts.variant === 'tech' || opts.variant === 'startup';
   const dateContext = `Current date: ${new Date().toISOString().split('T')[0]}.${isTechVariant ? '' : ' Provide geopolitical context appropriate for the current date.'}`;
   const langInstruction = opts.lang && opts.lang !== 'en' ? `\nIMPORTANT: Output the summary in ${opts.lang.toUpperCase()} language.` : '';
 
   let systemPrompt: string;
   let userPrompt: string;
 
-  if (opts.mode === 'brief') {
+  if (opts.mode === 'vc_thesis') {
+    systemPrompt = `${dateContext}
+
+You are a venture capital research analyst preparing a concise partner-meeting thesis memo.
+Use only the supplied headlines and context. Do not invent companies, metrics, funding rounds, market sizes, or dates.
+
+Output in English with exactly four labeled lines:
+Thesis: one investable theme, category shift, or explicit Weak signal.
+Why now: the platform, technology, buyer behavior, regulation, distribution, or capital-market shift implied by the headlines.
+Evidence: 2-3 concrete headline references compressed into one sentence.
+Investor action: one practical next step for a VC, such as map comps, track founders, diligence category pull, monitor funding, or ignore.
+
+Best-practice rules:
+- Prefer non-obvious pattern recognition over generic summary.
+- Separate durable thesis from one-off opinion or thought-leadership content.
+- If the evidence is thin, fragmented, stale, or mostly essay/opinion, write "Weak signal" in the Thesis line and explain why.
+- Never merge unrelated facts into a fake narrative.
+- Keep under 120 words.
+- No markdown bullets, no preamble, no meta-commentary.`;
+    userPrompt = `Headlines for VC thesis review:\n${headlineText}${intelSection}`;
+  } else if (opts.mode === 'brief') {
     if (isTechVariant) {
       systemPrompt = `${dateContext}
 

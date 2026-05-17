@@ -21,7 +21,6 @@ import {
 } from '@/config/panels';
 import {
   FEEDS,
-  INTEL_SOURCES,
 } from '@/config/feeds';
 import { IDLE_PAUSE_MS, STORAGE_KEYS } from '@/config/variants/base';
 import { SITE_VARIANT } from '@/config/variant';
@@ -1315,7 +1314,11 @@ export class EventHandlerManager implements AppModule {
     };
 
     const savedHeight = localStorage.getItem('map-height');
-    if (savedHeight) {
+    if (isStartup) {
+      const savedSpan = Number.parseInt(localStorage.getItem('startup-map-row-span') || '2', 10);
+      mapSection.classList.remove('span-1', 'span-2', 'span-3', 'span-4');
+      mapSection.classList.add(`span-${Math.max(1, Math.min(4, savedSpan))}`);
+    } else if (savedHeight) {
       const numeric = Number.parseInt(savedHeight, 10);
       if (Number.isFinite(numeric)) {
         const clamped = Math.max(getMinHeight(), Math.min(numeric, getMaxHeight()));
@@ -1332,17 +1335,30 @@ export class EventHandlerManager implements AppModule {
         localStorage.removeItem('map-height');
       }
     }
-    const savedWidth = isStartup ? localStorage.getItem('startup-map-width') : null;
-    if (savedWidth) {
-      mapSection.style.width = savedWidth;
-      mapSection.style.alignSelf = 'flex-start';
+    if (isStartup) {
+      mapSection.style.removeProperty('width');
+      mapSection.style.removeProperty('align-self');
+      localStorage.removeItem('startup-map-width');
     }
 
     let isResizing = false;
     let startY = 0;
     let startHeight = 0;
+    let startRowSpan = 1;
 
     const getTarget = () => (window.innerWidth >= 1600 && !isStartup ? mapContainer : mapSection);
+    const getMapRowSpan = () => {
+      if (mapSection.classList.contains('span-4')) return 4;
+      if (mapSection.classList.contains('span-3')) return 3;
+      if (mapSection.classList.contains('span-2')) return 2;
+      return 1;
+    };
+    const setMapRowSpan = (span: number) => {
+      const next = Math.max(1, Math.min(4, span));
+      mapSection.classList.remove('span-1', 'span-2', 'span-3', 'span-4');
+      mapSection.classList.add(`span-${next}`);
+      return next;
+    };
 
     this.boundMapEndResizeHandler = () => {
       if (!isResizing) return;
@@ -1351,9 +1367,10 @@ export class EventHandlerManager implements AppModule {
       this.ctx.map?.resize();
       mapSection.classList.remove('resizing');
       document.body.style.cursor = '';
-      localStorage.setItem('map-height', getTarget().style.height);
-      if (isStartup && mapSection.style.width) {
-        localStorage.setItem('startup-map-width', mapSection.style.width);
+      if (isStartup) {
+        localStorage.setItem('startup-map-row-span', String(getMapRowSpan()));
+      } else {
+        localStorage.setItem('map-height', getTarget().style.height);
       }
     };
     const endResize = this.boundMapEndResizeHandler;
@@ -1363,15 +1380,23 @@ export class EventHandlerManager implements AppModule {
       startY = e.clientY;
       const target = getTarget();
       startHeight = target.offsetHeight;
+      startRowSpan = getMapRowSpan();
       this.ctx.map?.setIsResizing(true);
       mapSection.classList.add('resizing');
       document.body.style.cursor = 'ns-resize';
       e.preventDefault();
+      e.stopPropagation();
     };
 
     resizeHandle.addEventListener('mousedown', beginResize);
 
     resizeHandle.addEventListener('dblclick', () => {
+      if (isStartup) {
+        setMapRowSpan(1);
+        localStorage.setItem('startup-map-row-span', '1');
+        this.ctx.map?.resize();
+        return;
+      }
       const isWide = window.innerWidth >= 1600;
       const target = isWide ? mapContainer : mapSection;
 
@@ -1403,6 +1428,13 @@ export class EventHandlerManager implements AppModule {
 
     this.boundMapResizeMoveHandler = (e: MouseEvent) => {
       if (!isResizing) return;
+      if (isStartup) {
+        const deltaY = e.clientY - startY;
+        const spanDelta = deltaY > 0 ? Math.floor(deltaY / 180) : Math.ceil(deltaY / 180);
+        setMapRowSpan(startRowSpan + spanDelta);
+        this.ctx.map?.resize();
+        return;
+      }
       const isWide = window.innerWidth >= 1600 && !isStartup;
       const target = isWide ? mapContainer : mapSection;
 
@@ -1426,16 +1458,40 @@ export class EventHandlerManager implements AppModule {
 
   setupMapWidthResize(): void {
     const mainContent = document.querySelector<HTMLElement>('.main-content');
+    const mapSection = document.getElementById('mapSection');
     const widthHandle = document.getElementById('mapWidthResizeHandle');
     if (!mainContent || !widthHandle) return;
+    const isStartup = SITE_VARIANT === 'startup';
 
-    const saved = localStorage.getItem('map-col-width');
-    if (saved) mainContent.style.setProperty('--map-col-width', saved);
+    if (isStartup && mapSection) {
+      mapSection.appendChild(widthHandle);
+      widthHandle.classList.add('startup-map-width-resize-handle');
+      const savedStartupColSpan = Number.parseInt(localStorage.getItem('startup-map-col-span') || '2', 10);
+      mapSection.classList.remove('col-span-1', 'col-span-2', 'col-span-3');
+      mapSection.classList.add(`col-span-${Math.max(1, Math.min(3, savedStartupColSpan))}`);
+    } else {
+      const saved = localStorage.getItem('map-col-width');
+      if (saved) mainContent.style.setProperty('--map-col-width', saved);
+    }
 
     let isResizing = false;
     let startX = 0;
     let startTotalWidth = 0;
     let startColPx = 0;
+    let startColSpan = 3;
+    const getMapColSpan = () => {
+      if (!mapSection) return 3;
+      if (mapSection.classList.contains('col-span-1')) return 1;
+      if (mapSection.classList.contains('col-span-2')) return 2;
+      return 3;
+    };
+    const setMapColSpan = (span: number) => {
+      if (!mapSection) return 3;
+      const next = Math.max(1, Math.min(3, span));
+      mapSection.classList.remove('col-span-1', 'col-span-2', 'col-span-3');
+      mapSection.classList.add(`col-span-${next}`);
+      return next;
+    };
 
     this.boundMapWidthEndResizeHandler = () => {
       if (!isResizing) return;
@@ -1444,27 +1500,43 @@ export class EventHandlerManager implements AppModule {
       this.ctx.map?.resize();
       document.body.classList.remove('map-width-resizing');
       widthHandle.classList.remove('resizing');
-      const current = mainContent.style.getPropertyValue('--map-col-width');
-      if (current) localStorage.setItem('map-col-width', current);
+      mapSection?.classList.remove('width-resizing');
+      if (isStartup && mapSection) {
+        localStorage.setItem('startup-map-col-span', String(getMapColSpan()));
+      } else {
+        const current = mainContent.style.getPropertyValue('--map-col-width');
+        if (current) localStorage.setItem('map-col-width', current);
+      }
     };
 
     widthHandle.addEventListener('mousedown', (e) => {
       isResizing = true;
       startX = e.clientX;
-      startTotalWidth = mainContent.offsetWidth;
-      const raw = mainContent.style.getPropertyValue('--map-col-width') || '60%';
-      startColPx = startTotalWidth * (parseFloat(raw) / 100);
+      startTotalWidth = isStartup && mapSection ? mainContent.clientWidth : mainContent.offsetWidth;
+      if (isStartup && mapSection) {
+        startColSpan = getMapColSpan();
+        mapSection.classList.add('width-resizing');
+      } else {
+        const raw = mainContent.style.getPropertyValue('--map-col-width') || '60%';
+        startColPx = startTotalWidth * (parseFloat(raw) / 100);
+      }
       this.ctx.map?.setIsResizing(true);
       document.body.classList.add('map-width-resizing');
       widthHandle.classList.add('resizing');
       e.preventDefault();
+      e.stopPropagation();
     });
 
     this.boundMapWidthResizeMoveHandler = (e: MouseEvent) => {
       if (!isResizing) return;
       const delta = e.clientX - startX;
-      const newPct = Math.max(25, Math.min(75, ((startColPx + delta) / startTotalWidth) * 100));
-      mainContent.style.setProperty('--map-col-width', `${newPct.toFixed(1)}%`);
+      if (isStartup && mapSection) {
+        const spanDelta = delta > 0 ? Math.floor(delta / 220) : Math.ceil(delta / 220);
+        setMapColSpan(startColSpan + spanDelta);
+      } else {
+        const newPct = Math.max(25, Math.min(75, ((startColPx + delta) / startTotalWidth) * 100));
+        mainContent.style.setProperty('--map-col-width', `${newPct.toFixed(1)}%`);
+      }
       this.ctx.map?.resize();
     };
 
@@ -1559,7 +1631,6 @@ export class EventHandlerManager implements AppModule {
     Object.values(FEEDS).forEach(feeds => {
       if (feeds) feeds.forEach(f => sources.add(f.name));
     });
-    INTEL_SOURCES.forEach(f => sources.add(f.name));
     return Array.from(sources).sort((a, b) => a.localeCompare(b));
   }
 

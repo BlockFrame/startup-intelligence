@@ -321,7 +321,6 @@
     "layoffs": "Layoffs Tracker",
     "monitors": "Investment Monitors",
     "satelliteFires": "Fires",
-    "macroSignals": "BTC Regime",
     "etfFlows": "BTC ETF Tracker",
     "stablecoins": "Stablecoins",
     "deduction": "Deduct Situation",
@@ -848,6 +847,30 @@
     }
   },
   "components": {
+    "panelTooltips": {
+      "tech": "<strong>Tech News</strong><br>General technology updates from mainstream and niche tech publishers.",
+      "finance": "<strong>Finance</strong><br>Market-driven news, macroeconomic updates, and financial publisher headlines.",
+      "layoffs": "<strong>Layoffs</strong><br>Tracking tech workforce reductions, restructuring, and related industry impact.",
+      "ai": "<strong>AI</strong><br>Dedicated artificial intelligence models, lab updates, and company news.",
+      "startups": "<strong>Startups</strong><br>General early-stage company updates and funding announcements.",
+      "cloud": "<strong>Cloud</strong><br>Cloud computing, infrastructure, DevOps, and enterprise software news.",
+      "hardware": "<strong>Hardware</strong><br>Semiconductors, chip manufacturing, devices, and deep-tech hardware.",
+      "fintech": "<strong>Fintech</strong><br>Financial technology, payments, neo-banks, and digital asset infrastructure.",
+      "vcblogs": "<strong>VC Blogs</strong><br>Insights, essays, and theses directly from Venture Capitalists and funds.",
+      "regionalStartups": "<strong>Ecosystem Radar</strong><br>Focuses on non-US markets (Europe, Asia, LATAM) tracking global innovation outside the Valley.",
+      "unicorns": "<strong>Unicorns</strong><br>Tracking companies valued at $1B+ and decacorns.",
+      "accelerators": "<strong>Accelerators</strong><br>News from YC, Techstars, and other major accelerator batches.",
+      "producthunt": "<strong>Product Hunt</strong><br>Trending product launches and software releases.",
+      "security": "<strong>Security</strong><br>Cybersecurity, threat intelligence, and vulnerability reports.",
+      "policy": "<strong>Policy</strong><br>Tech regulation, antitrust, and government policy impacting the industry.",
+      "ipo": "<strong>IPO</strong><br>Initial Public Offerings, public market debuts, and late-stage pre-IPO news.",
+      "topVCSignals": "<strong>Highest-Conviction Signals</strong><br>Filters purely for events with a high VC importance score across all loaded feeds.",
+      "monitors": "<strong>Keyword Monitors</strong><br>Track specific startup, funding, AI, company, and market-thesis keywords across all sources.",
+      "liveNews": "<strong>Live News</strong><br>24/7 video streams from global news channels.",
+      "techEvents": "<strong>Tech Events</strong><br>Chronological view of tech conferences, product releases, and earnings calls.",
+      "techReadiness": "<strong>Tech Readiness</strong><br>TRL evaluation of emerging technologies from early research to deployment.",
+      "insights": "<strong>Insights</strong><br>AI-generated analysis of top signals and their ecosystem impact."
+    },
     "webcams": {
       "expand": "Expand",
       "paused": "Webcams paused",
@@ -1941,24 +1964,6 @@
       },
       "infoTooltip": "<strong>BTC ETF Tracker</strong> Tracks daily estimated fund flows for US spot Bitcoin ETFs:<ul><li>Inflow/outflow direction and magnitude</li><li>Volume and price change per fund</li><li>Net aggregate flow across all tracked ETFs</li></ul>"
     },
-    "macroSignals": {
-      "overall": "Overall",
-      "verdict": {
-        "buy": "BUY",
-        "cash": "CASH"
-      },
-      "bullish": "{{count}}/{{total}} bullish",
-      "signals": {
-        "liquidity": "Liquidity",
-        "flow": "Flow",
-        "regime": "Regime",
-        "btcTrend": "BTC Trend",
-        "hashRate": "Hash Rate",
-        "momentum": "Momentum",
-        "fearGreed": "Fear & Greed"
-      },
-      "infoTooltip": "<strong>BTC Regime</strong> Composite signal dashboard for Bitcoin positioning and risk appetite:<ul><li><strong>Liquidity</strong>: Net Fed liquidity proxy</li><li><strong>Flow</strong>: BTC vs QQQ 5-day returns</li><li><strong>Regime</strong>: QQQ vs XLP rotation (risk-on/off)</li><li><strong>BTC Trend</strong>: Price vs SMA50/200, Mayer Multiple</li><li><strong>Hash Rate</strong>: 30-day network hash change</li><li><strong>Fear & Greed</strong>: Market sentiment index</li></ul>This panel is for regime and positioning, not broad macro data."
-    },
     "forecast": {
       "infoTooltip": "<strong>AI Forecasts</strong> AI-generated probability estimates for geopolitical and economic events:<ul><li>Cross-domain coverage: conflict, markets, supply chain, cyber, political</li><li>Each forecast shows estimated probability, confidence level, and time horizon</li><li>Calibrated against prediction market baselines where available</li></ul>Forecasts update as new intelligence signals arrive. Filter by domain using the tabs above."
     },
@@ -2174,7 +2179,7 @@
       "fx": "FX",
       "warmup": "Building baselines. Volume and OI history populates over the next hour.",
       "unavailable": "Positioning data unavailable",
-      "footer": "5min \u00b7 Hyperliquid perps \u00b7 24/7"
+      "footer": "5min · Hyperliquid perps · 24/7"
     },
     "goldIntelligence": {
       "infoTooltip": "<strong>Gold Intelligence</strong> Gold spot price, gold/silver ratio, gold vs platinum premium, cross-currency XAU prices (EUR, GBP, JPY, CNY, INR, CHF), and CFTC managed money positioning. Sources: Yahoo Finance, CFTC COT."

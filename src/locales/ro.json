@@ -243,7 +243,6 @@
     "layoffs": "Tracker concedieri",
     "monitors": "Monitoarele mele",
     "satelliteFires": "Incendii",
-    "macroSignals": "Radar de piață",
     "etfFlows": "BTC ETF Tracker",
     "stablecoins": "Monede stabile",
     "deduction": "Deducție Situație",
@@ -1610,23 +1609,6 @@
         "estFlow": "EST. Flux",
         "volume": "Volumul",
         "change": "Schimbați"
-      }
-    },
-    "macroSignals": {
-      "overall": "În general",
-      "verdict": {
-        "buy": "CUMPĂRĂ",
-        "cash": "CASH"
-      },
-      "bullish": "{{count}}/{{total}} optimist",
-      "signals": {
-        "liquidity": "Lichiditate",
-        "flow": "Flux",
-        "regime": "Regimul",
-        "btcTrend": "Trend BTC",
-        "hashRate": "Rata de hash",
-        "momentum": "Momentum",
-        "fearGreed": "Frica și Lăcomia"
       }
     },
     "panel": {

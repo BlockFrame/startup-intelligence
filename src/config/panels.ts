@@ -17,7 +17,7 @@ export const VARIANT_DEFAULTS: Record<string, string[]> = {
 export const VARIANT_PANEL_OVERRIDES: Partial<Record<string, Partial<Record<string, Partial<PanelConfig>>>>> = {
   startup: {
     map: { name: 'Startup Intelligence Map' },
-    'live-news': { name: 'Dealflow Headlines' },
+    'live-news': { name: 'Live News' },
     insights: { name: 'AI Investor Brief' },
   },
 };
@@ -59,7 +59,7 @@ export const LAYER_TO_SOURCE: Partial<Record<keyof MapLayers, DataSourceId[]>> =
 export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: string[]; variants?: string[] }> = {
   core: {
     labelKey: 'header.panelCatCore',
-    panelKeys: ['map', 'insights', 'top-vc-signals', 'startups', 'producthunt', 'ai', 'markets', 'macro-signals'],
+    panelKeys: ['map', 'insights', 'top-vc-signals', 'startups', 'producthunt', 'ai', 'markets'],
   },
   fundingRadar: {
     labelKey: 'header.panelCatFundingRadar',
@@ -71,7 +71,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   markets: {
     labelKey: 'header.panelCatMarkets',
-    panelKeys: ['markets', 'macro-signals', 'finance', 'fintech', 'layoffs'],
+    panelKeys: ['markets', 'finance', 'fintech', 'layoffs'],
   },
   workspace: {
     labelKey: 'header.panelCatWorkspace',

@@ -243,7 +243,6 @@
     "layoffs": "裁员追踪",
     "monitors": "我的监控",
     "satelliteFires": "火灾",
-    "macroSignals": "市场雷达",
     "etfFlows": "BTC ETF追踪",
     "stablecoins": "稳定币",
     "deduction": "推断局势",
@@ -1611,23 +1610,6 @@
         "estFlow": "预估流量",
         "volume": "成交量",
         "change": "涨跌幅"
-      }
-    },
-    "macroSignals": {
-      "overall": "综合",
-      "verdict": {
-        "buy": "买入",
-        "cash": "持币"
-      },
-      "bullish": "{{count}}/{{total}} 看涨",
-      "signals": {
-        "liquidity": "流动性",
-        "flow": "资金流",
-        "regime": "市场环境",
-        "btcTrend": "BTC趋势",
-        "hashRate": "Hash Rate",
-        "momentum": "Momentum",
-        "fearGreed": "恐惧 &amp; 贪婪"
       }
     },
     "panel": {

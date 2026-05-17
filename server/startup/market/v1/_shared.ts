@@ -258,7 +258,6 @@ export async function fetchFinnhubQuote(
 //   2. Create fetchFMPQuote() here returning same shape as fetchYahooQuote()
 //   3. fetchYahooQuote() tries Yahoo first → on 429/failure, tries FMP if key exists
 //   4. economic/_shared.ts fetchJSON() same fallback for Yahoo chart URLs
-//   5. get-macro-signals.ts needs chart data (1y range) — use /stable/historical-price-eod/light
 // ========================================================================
 
 function parseYahooChartResponse(data: YahooChartResponse): { price: number; change: number; sparkline: number[] } | null {

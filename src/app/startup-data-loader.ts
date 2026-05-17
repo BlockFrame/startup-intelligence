@@ -104,11 +104,23 @@ export class DataLoaderManager implements AppModule {
       });
     }
 
-    this.ctx.allNews = collected;
-    this.callPanel('top-vc-signals', 'updateSignals', collected);
-    this.callPanel('insights', 'updateInsights', this.buildStartupSignalClusters(collected));
+    this.ctx.allNews = this.mergeNewsItems(collected, Object.values(this.ctx.newsByCategory).flat());
+    this.callPanel('top-vc-signals', 'updateSignals', this.ctx.allNews);
+    this.callPanel('insights', 'updateInsights', this.buildStartupSignalClusters(this.ctx.allNews));
     this.ctx.initialLoadComplete = true;
     this.updateMonitorResults();
+  }
+
+  private mergeNewsItems(...groups: NewsItem[][]): NewsItem[] {
+    const seen = new Set<string>();
+    const merged: NewsItem[] = [];
+    for (const item of groups.flat()) {
+      const key = item.link || item.title;
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      merged.push(item);
+    }
+    return merged;
   }
 
   private buildStartupSignalClusters(items: NewsItem[]): ClusteredEvent[] {

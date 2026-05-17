@@ -243,7 +243,6 @@
     "layoffs": "Tracciamento licenziamenti",
     "monitors": "Investment Monitors",
     "satelliteFires": "Incendi",
-    "macroSignals": "Radar di mercato",
     "etfFlows": "Tracciamento ETF BTC",
     "stablecoins": "Stablecoin",
     "deduction": "Dedurre situazione",
@@ -735,6 +734,30 @@
     }
   },
   "components": {
+    "panelTooltips": {
+      "tech": "<strong>Notizie Tech</strong><br>Aggiornamenti generali su tecnologia da editori principali e di nicchia.",
+      "finance": "<strong>Finanza</strong><br>Notizie di mercato, aggiornamenti macroeconomici e titoli da editori finanziari.",
+      "layoffs": "<strong>Licenziamenti</strong><br>Tracciamento riduzioni del personale tech, ristrutturazioni e impatto sul settore.",
+      "ai": "<strong>IA</strong><br>Modelli di intelligenza artificiale, aggiornamenti dei laboratori e notizie aziendali dedicate.",
+      "startups": "<strong>Startup</strong><br>Aggiornamenti generali su aziende in fase iniziale e annunci di finanziamento.",
+      "cloud": "<strong>Cloud</strong><br>Notizie su cloud computing, infrastrutture, DevOps e software aziendale.",
+      "hardware": "<strong>Hardware</strong><br>Semiconduttori, produzione di chip, dispositivi e hardware deep-tech.",
+      "fintech": "<strong>Fintech</strong><br>Tecnologia finanziaria, pagamenti, neo-banche e infrastrutture di asset digitali.",
+      "vcblogs": "<strong>Blog VC</strong><br>Approfondimenti, saggi e tesi direttamente da Venture Capitalist e fondi.",
+      "regionalStartups": "<strong>Radar Ecosistema</strong><br>Si concentra sui mercati non statunitensi (Europa, Asia, LATAM) tracciando l'innovazione globale al di fuori della Valley.",
+      "unicorns": "<strong>Unicorni</strong><br>Tracciamento aziende valutate oltre 1 miliardo di dollari e decacorni.",
+      "accelerators": "<strong>Acceleratori</strong><br>Notizie da YC, Techstars e altri batch di acceleratori importanti.",
+      "producthunt": "<strong>Product Hunt</strong><br>Lanci di prodotti in tendenza e rilasci di software.",
+      "security": "<strong>Sicurezza</strong><br>Sicurezza informatica, intelligence sulle minacce e report sulle vulnerabilità.",
+      "policy": "<strong>Politica</strong><br>Regolamentazione tech, antitrust e politiche governative che impattano il settore.",
+      "ipo": "<strong>IPO</strong><br>Offerte Pubbliche Iniziali, debutti sul mercato pubblico e notizie pre-IPO in fase avanzata.",
+      "topVCSignals": "<strong>Segnali ad Alta Convinzione</strong><br>Filtra puramente gli eventi con un alto punteggio di importanza VC tra tutti i feed caricati.",
+      "monitors": "<strong>Monitor Parole Chiave</strong><br>Traccia parole chiave specifiche per startup, finanziamenti, IA, aziende e tesi di mercato su tutte le fonti.",
+      "liveNews": "<strong>Live News</strong><br>Stream video 24/7 dai canali di notizie globali.",
+      "techEvents": "<strong>Eventi Tech</strong><br>Vista cronologica di conferenze tech, lanci di prodotti e chiamate sugli utili.",
+      "techReadiness": "<strong>Prontezza Tecnologica</strong><br>Valutazione TRL delle tecnologie emergenti, dalla ricerca iniziale al deployment.",
+      "insights": "<strong>Approfondimenti</strong><br>Analisi generata dall'IA dei segnali principali e del loro impatto sull'ecosistema."
+    },
     "monitor": {
       "placeholder": "Company, tesi, settore o segnale",
       "add": "+ Aggiungi monitor",
@@ -1614,23 +1637,6 @@
         "estFlow": "Flusso stimato",
         "volume": "Volume",
         "change": "Variazione"
-      }
-    },
-    "macroSignals": {
-      "overall": "Complessivo",
-      "verdict": {
-        "buy": "BUY",
-        "cash": "CASH"
-      },
-      "bullish": "{{count}}/{{total}} rialzisti",
-      "signals": {
-        "liquidity": "Liquidità",
-        "flow": "Flusso",
-        "regime": "Regime",
-        "btcTrend": "BTC Trend",
-        "hashRate": "Hash Rate",
-        "fearGreed": "Fear &amp; Greed",
-        "momentum": "Momentum"
       }
     },
     "export": {

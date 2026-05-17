@@ -2,7 +2,7 @@ import type { AppContext, AppModule } from '@/app/app-context';
 import { normalizeExclusiveChoropleths } from '@/components/resilience-choropleth-utils';
 import { replayPendingCalls, clearAllPendingCalls } from '@/app/pending-panel-data';
 import { getAlertsNearLocation } from '@/services/geo-convergence';
-import type { ClusteredEvent } from '@/types';
+import type { ClusteredEvent, NewsItem } from '@/types';
 import type { RelatedAsset } from '@/types';
 import type { TheaterPostureSummary } from '@/services/military-surge';
 import { LiveNewsPanel, getDefaultLiveChannels, loadChannelsFromStorage } from '@/components/LiveNewsPanel';
@@ -11,7 +11,6 @@ import { debounce, saveToStorage, loadFromStorage } from '@/utils';
 import { escapeHtml } from '@/utils/sanitize';
 import {
   FEEDS,
-  INTEL_SOURCES,
 } from '@/config/feeds';
 import {
   STORAGE_KEYS,
@@ -272,7 +271,7 @@ export class PanelLayoutManager implements AppModule {
           </button>
           <div class="status-indicator">
             <span class="status-dot"></span>
-            <span>${t('header.live')}</span>
+            <span>${t('header.live')} &middot; OpenRouter</span>
           </div>
           <div class="region-selector">
             <select id="regionSelect" class="region-select">
@@ -284,6 +283,14 @@ export class PanelLayoutManager implements AppModule {
           </button>
         </div>
         <div class="header-right">
+          ${SITE_VARIANT === 'startup' ? `
+            <div class="vc-news-filter" id="vcNewsFilter" aria-label="News freshness filter">
+              <span class="vc-news-filter-label">News freshness</span>
+              ${(['1h', '8h', '24h', '48h', '7d', 'all'] as const).map((range) =>
+                `<button type="button" class="vc-news-filter-btn ${range === (this.ctx.initialUrlState?.timeRange ?? this.ctx.currentTimeRange) ? 'active' : ''}" data-range="${range}">${range === 'all' ? 'All' : range}</button>`
+              ).join('')}
+            </div>
+          ` : ''}
           <button class="search-btn" id="searchBtn"><kbd>⌘K</kbd> ${t('header.search')}</button>
           ${this.ctx.isDesktopApp ? '' : `<button class="copy-link-btn" id="copyLinkBtn">${t('header.copyLink')}</button>`}
           ${this.ctx.isDesktopApp ? '' : `<button class="fullscreen-btn" id="fullscreenBtn" title="${t('header.fullscreen')}">⛶</button>`}
@@ -381,15 +388,6 @@ export class PanelLayoutManager implements AppModule {
           <div class="map-bottom-grid" id="mapBottomGrid"></div>
         </div>
         <div class="map-width-resize-handle" id="mapWidthResizeHandle"></div>
-        ${SITE_VARIANT === 'startup' ? `
-          <div class="vc-news-filter" id="vcNewsFilter" aria-label="News freshness filter">
-            <span class="vc-news-filter-label">News freshness</span>
-            ${(['1h', '8h', '24h', '48h', '7d', 'all'] as const).map((range) =>
-              `<button type="button" class="vc-news-filter-btn ${range === (this.ctx.initialUrlState?.timeRange ?? this.ctx.currentTimeRange) ? 'active' : ''}" data-range="${range}">${range === 'all' ? 'All' : range}</button>`
-            ).join('')}
-            <span class="vc-news-filter-hint">Filters news cards only</span>
-          </div>
-        ` : ''}
         <div class="panels-grid" id="panelsGrid"></div>
         <button class="search-mobile-fab" id="searchMobileFab" aria-label="Search">\u{1F50D}</button>
       </div>
@@ -428,6 +426,7 @@ export class PanelLayoutManager implements AppModule {
     const huggingFaceEl = document.getElementById('huggingFaceDashboardView');
     const mainEl = this.ctx.container.querySelector<HTMLElement>('.main-content');
     const footerEl = this.ctx.container.querySelector<HTMLElement>('.site-footer');
+    const newsFilterEl = this.ctx.container.querySelector<HTMLElement>('#vcNewsFilter');
     if (!arxivEl || !githubEl || !mainEl) return;
 
     const setTab = (tab: string): void => {
@@ -440,6 +439,7 @@ export class PanelLayoutManager implements AppModule {
       githubEl.classList.toggle('hidden', !showGithub);
       huggingFaceEl?.classList.toggle('hidden', !showHuggingFace);
       footerEl?.classList.toggle('hidden', showArxiv || showGithub || showHuggingFace);
+      newsFilterEl?.classList.toggle('hidden', showArxiv || showGithub || showHuggingFace);
       this.ctx.container.querySelectorAll<HTMLElement>('[data-startup-tab]').forEach((el) => {
         const active = el.dataset.startupTab === tab;
         el.classList.toggle('active', active);
@@ -579,6 +579,8 @@ export class PanelLayoutManager implements AppModule {
       if (key === 'map') {
         const mapSection = document.getElementById('mapSection');
         if (mapSection) {
+          const mapTitle = mapSection.querySelector<HTMLElement>('.panel-title');
+          if (mapTitle && config.name) mapTitle.textContent = config.name;
           mapSection.classList.toggle('hidden', !config.enabled);
           const mainContent = document.querySelector('.main-content');
           if (mainContent) {
@@ -589,6 +591,8 @@ export class PanelLayoutManager implements AppModule {
         return;
       }
       const panel = this.ctx.panels[key];
+      const title = panel?.getElement().querySelector<HTMLElement>('.panel-title');
+      if (title && config.name) title.textContent = config.name;
       panel?.toggle(config.enabled);
     });
   }
@@ -621,6 +625,22 @@ export class PanelLayoutManager implements AppModule {
 
   private static readonly NEWS_PANEL_TOOLTIPS: Record<string, string> = {
     centralbanks: t('components.centralBankWatch.infoTooltip'),
+    tech: t('components.panelTooltips.tech'),
+    finance: t('components.panelTooltips.finance'),
+    layoffs: t('components.panelTooltips.layoffs'),
+    ai: t('components.panelTooltips.ai'),
+    startups: t('components.panelTooltips.startups'),
+    cloud: t('components.panelTooltips.cloud'),
+    hardware: t('components.panelTooltips.hardware'),
+    fintech: t('components.panelTooltips.fintech'),
+    vcblogs: t('components.panelTooltips.vcblogs'),
+    regionalStartups: t('components.panelTooltips.regionalStartups'),
+    unicorns: t('components.panelTooltips.unicorns'),
+    accelerators: t('components.panelTooltips.accelerators'),
+    producthunt: t('components.panelTooltips.producthunt'),
+    security: t('components.panelTooltips.security'),
+    policy: t('components.panelTooltips.policy'),
+    ipo: t('components.panelTooltips.ipo'),
   };
 
   private createNewsPanel(key: string, labelKey: string): NewsPanel | null {
@@ -697,7 +717,12 @@ export class PanelLayoutManager implements AppModule {
     this.createNewsPanel('tech', 'panels.tech');
     this.createNewsPanel('finance', 'panels.finance');
     this.lazyPanel('markets', () => import('@/components/MarketPanel').then(m => new m.MarketPanel()));
-    this.lazyPanel('top-vc-signals', () => import('@/components/TopVCSignalsPanel').then(m => new m.TopVCSignalsPanel()));
+    this.lazyPanel('top-vc-signals', () => import('@/components/TopVCSignalsPanel').then(m => new m.TopVCSignalsPanel()), (panel) => {
+      const newsPool = this.getStartupNewsPool();
+      if (newsPool.length > 0) {
+        (panel as unknown as { updateSignals(items: NewsItem[]): void }).updateSignals(newsPool);
+      }
+    });
     this.lazyPanel('monitors', () => import('@/components/MonitorPanel').then(m => new m.MonitorPanel(this.ctx.monitors)), (monitorPanel) => {
       monitorPanel.onChanged((monitors) => {
         this.ctx.monitors = monitors;
@@ -736,9 +761,65 @@ export class PanelLayoutManager implements AppModule {
       }),
     );
 
-    this.lazyPanel('macro-signals', () => import('@/components/MacroSignalsPanel').then(m => new m.MacroSignalsPanel()));
+    this.lazyPanel('insights', () => import('@/components/InsightsPanel').then(m => new m.InsightsPanel()), (panel) => {
+      const newsPool = this.getStartupNewsPool();
+      if (newsPool.length > 0) {
+        void (panel as unknown as { updateInsights(clusters: ClusteredEvent[]): Promise<void> }).updateInsights(
+          this.buildStartupSignalClustersFromNews(newsPool),
+        );
+      }
+    });
+  }
 
-    this.lazyPanel('insights', () => import('@/components/InsightsPanel').then(m => new m.InsightsPanel()));
+  private getStartupNewsPool(): NewsItem[] {
+    const seen = new Set<string>();
+    const merged: NewsItem[] = [];
+    for (const item of [...this.ctx.allNews, ...Object.values(this.ctx.newsByCategory).flat()]) {
+      const key = item.link || item.title;
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      merged.push(item);
+    }
+    return merged;
+  }
+
+  private buildStartupSignalClustersFromNews(items: NewsItem[]): ClusteredEvent[] {
+    const seen = new Set<string>();
+    return items
+      .filter((item) => (item.startupSignal?.score ?? item.importanceScore ?? 0) > 0)
+      .sort((a, b) => {
+        const aScore = a.startupSignal?.score ?? a.importanceScore ?? 0;
+        const bScore = b.startupSignal?.score ?? b.importanceScore ?? 0;
+        return bScore - aScore || b.pubDate.getTime() - a.pubDate.getTime();
+      })
+      .filter((item) => {
+        const key = item.link || item.title;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 24)
+      .map((item, index) => ({
+        id: `startup-signal-${index}-${encodeURIComponent((item.link || item.title).slice(0, 48))}`,
+        primaryTitle: item.title,
+        primarySource: item.source,
+        primaryLink: item.link,
+        sourceCount: Math.max(1, item.corroborationCount ?? 1),
+        topSources: [{ name: item.source, tier: 2, url: item.link }],
+        allItems: [item],
+        firstSeen: item.pubDate,
+        lastUpdated: item.pubDate,
+        isAlert: (item.startupSignal?.score ?? item.importanceScore ?? 0) >= 82,
+        velocity: item.startupSignal
+          ? {
+            sourcesPerHour: Math.max(1, Math.round((item.startupSignal.score ?? 0) / 25)),
+            level: item.startupSignal.score >= 80 ? 'spike' : item.startupSignal.score >= 62 ? 'elevated' : 'normal',
+            trend: 'rising',
+            sentiment: 'neutral',
+            sentimentScore: 0,
+          }
+          : undefined,
+      }));
   }
 
   private createDefaultVariantPanels(): void {
@@ -763,6 +844,7 @@ export class PanelLayoutManager implements AppModule {
 
   private async createPanels(): Promise<void> {
     const panelsGrid = document.getElementById('panelsGrid')!;
+    const mapSection = document.getElementById('mapSection') as HTMLElement | null;
     this.sanitizeStartupPanelSettings();
 
     const mapContainer = document.getElementById('mapContainer') as HTMLElement;
@@ -798,13 +880,33 @@ export class PanelLayoutManager implements AppModule {
 
     void this.loadExtensionPanels();
 
-    const variantOrder = (VARIANT_DEFAULTS[SITE_VARIANT] ?? VARIANT_DEFAULTS.startup ?? []).filter(k => k !== 'map');
+    if (SITE_VARIANT === 'startup' && mapSection) {
+      if (localStorage.getItem('startup-map-card-layout-version') !== '2') {
+        localStorage.removeItem('startup-map-width');
+        localStorage.removeItem('map-height');
+        localStorage.setItem('startup-map-col-span', '2');
+        localStorage.setItem('startup-map-row-span', '2');
+        localStorage.setItem('startup-map-card-layout-version', '2');
+      }
+      mapSection.classList.add('panel', 'startup-map-card');
+      const savedMapColSpan = Number.parseInt(localStorage.getItem('startup-map-col-span') || '2', 10);
+      const savedMapRowSpan = Number.parseInt(localStorage.getItem('startup-map-row-span') || '2', 10);
+      mapSection.classList.remove('col-span-1', 'col-span-2', 'col-span-3', 'span-1', 'span-2', 'span-3', 'span-4');
+      mapSection.classList.add(`col-span-${Math.max(1, Math.min(3, savedMapColSpan))}`);
+      mapSection.classList.add(`span-${Math.max(1, Math.min(4, savedMapRowSpan))}`);
+      mapSection.dataset.panel = 'map';
+      this.makeDraggable(mapSection, 'map');
+    }
+
+    const variantOrder = SITE_VARIANT === 'startup'
+      ? (VARIANT_DEFAULTS[SITE_VARIANT] ?? VARIANT_DEFAULTS.startup ?? [])
+      : (VARIANT_DEFAULTS[SITE_VARIANT] ?? VARIANT_DEFAULTS.startup ?? []).filter(k => k !== 'map');
     const activePanelSet = new Set(Object.keys(this.ctx.panelSettings));
     const crossVariantKeys = Object.keys(this.ctx.panelSettings)
-      .filter(k => !variantOrder.includes(k) && k !== 'map')
+      .filter(k => !variantOrder.includes(k) && (SITE_VARIANT === 'startup' || k !== 'map'))
       .filter(k => SITE_VARIANT !== 'startup' || this.isAllowedStartupPanelKey(k));
     const defaultOrder = [...variantOrder.filter(k => activePanelSet.has(k)), ...crossVariantKeys];
-    const activePanelKeys = Object.keys(this.ctx.panelSettings).filter(k => k !== 'map');
+    const activePanelKeys = Object.keys(this.ctx.panelSettings).filter(k => SITE_VARIANT === 'startup' || k !== 'map');
     const bottomSet = this.getSavedBottomSet();
     const savedOrder = this.getSavedPanelOrder();
     this.bottomSetMemory = bottomSet;
@@ -875,6 +977,10 @@ export class PanelLayoutManager implements AppModule {
       : [];
 
     sidebarOrder.forEach((key: string) => {
+      if (key === 'map' && SITE_VARIANT === 'startup' && mapSection) {
+        this.insertByOrder(panelsGrid, mapSection, key);
+        return;
+      }
       const panel = this.ctx.panels[key];
       if (panel && !panel.getElement().parentElement) {
         const el = panel.getElement();
@@ -1318,14 +1424,23 @@ export class PanelLayoutManager implements AppModule {
   }
 
   private insertByOrder(grid: HTMLElement, el: HTMLElement, key: string): void {
+    const appendToGrid = () => {
+      const addBlock = grid.querySelector('.add-panel-block');
+      if (addBlock) {
+        grid.insertBefore(el, addBlock);
+      } else {
+        grid.appendChild(el);
+      }
+    };
+
     const idx = this.resolvedPanelOrder.indexOf(key);
-    if (idx === -1) { grid.appendChild(el); return; }
+    if (idx === -1) { appendToGrid(); return; }
     for (let i = idx + 1; i < this.resolvedPanelOrder.length; i++) {
       const nextKey = this.resolvedPanelOrder[i]!;
       const nextEl = grid.querySelector(`[data-panel="${CSS.escape(nextKey)}"]`);
       if (nextEl) { grid.insertBefore(el, nextEl); return; }
     }
-    grid.appendChild(el);
+    appendToGrid();
   }
 
   private wasUltraWide = false;
@@ -1483,7 +1598,13 @@ export class PanelLayoutManager implements AppModule {
         target.classList?.contains('panel-resize-handle') ||
         target.closest?.('.panel-resize-handle') ||
         target.classList?.contains('panel-col-resize-handle') ||
-        target.closest?.('.panel-col-resize-handle')
+        target.closest?.('.panel-col-resize-handle') ||
+        target.classList?.contains('map-resize-handle') ||
+        target.closest?.('.map-resize-handle') ||
+        target.classList?.contains('map-width-resize-handle') ||
+        target.closest?.('.map-width-resize-handle') ||
+        target.classList?.contains('startup-map-width-resize-handle') ||
+        target.closest?.('.startup-map-width-resize-handle')
       ) return;
       if (target.closest('button, a, input, select, textarea')) return;
 
@@ -1531,30 +1652,6 @@ export class PanelLayoutManager implements AppModule {
       document.body.appendChild(indicator);
       return indicator;
     };
-    const swapElements = (a: HTMLElement, b: HTMLElement) => {
-      if (a === b) return;
-      const aParent = a.parentElement;
-      const bParent = b.parentElement;
-      if (!aParent || !bParent) return;
-
-      const aNext = a.nextSibling;
-      const bNext = b.nextSibling;
-
-      if (aParent === bParent) {
-        if (aNext === b) {
-          aParent.insertBefore(b, a);
-        } else if (bNext === a) {
-          aParent.insertBefore(a, b);
-        } else {
-          aParent.insertBefore(b, aNext);
-          aParent.insertBefore(a, bNext);
-        }
-      } else {
-        aParent.insertBefore(b, aNext);
-        bParent.insertBefore(a, bNext);
-      }
-    };
-
     const updateGhostPosition = (clientX: number, clientY: number) => {
       if (!ghostEl) return;
       ghostEl.style.left = (clientX - dragOffsetX) + 'px';
@@ -1575,16 +1672,22 @@ export class PanelLayoutManager implements AppModule {
       if (!target) return null;
 
       const targetGrid = (target.closest('.panels-grid') || target.closest('.map-bottom-grid')) as HTMLElement | null;
-      const targetPanel = target.closest('.panel') as HTMLElement | null;
+      const candidatePanel = target.closest('.panel') as HTMLElement | null;
+      const targetPanel = candidatePanel?.classList.contains('hidden') ? null : candidatePanel;
 
       if (!targetGrid && !targetPanel) return null;
 
       const currentTargetGrid = targetGrid || (targetPanel ? targetPanel.parentElement as HTMLElement : null);
       if (!currentTargetGrid || (currentTargetGrid !== grid && currentTargetGrid !== bottomGrid)) return null;
 
+      const insertBefore = targetPanel
+        ? clientY < targetPanel.getBoundingClientRect().top + targetPanel.getBoundingClientRect().height / 2
+        : false;
+
       return {
         grid: currentTargetGrid,
         panel: targetPanel && targetPanel !== el ? targetPanel : null,
+        insertBefore,
       };
     };
 
@@ -1601,7 +1704,7 @@ export class PanelLayoutManager implements AppModule {
         return;
       }
 
-      const { grid, panel } = dropPos;
+      const { grid, panel, insertBefore } = dropPos;
       if (!dropIndicator) return;
 
       // highlight hovered panel
@@ -1618,11 +1721,9 @@ export class PanelLayoutManager implements AppModule {
 
       if (panel) {
         const panelRect = panel.getBoundingClientRect();
-        const panelMid = panelRect.top + panelRect.height / 2;
-        const shouldInsertBefore = clientY < panelMid;
         width = panelRect.width;
         left = panelRect.left;
-        top = shouldInsertBefore ? panelRect.top - 4 : panelRect.bottom;
+        top = insertBefore ? panelRect.top - 4 : panelRect.bottom;
       } else {
         // dropping into empty grid: position at grid bottom
         const gridRect = grid.getBoundingClientRect();
@@ -1719,10 +1820,10 @@ export class PanelLayoutManager implements AppModule {
         const dropPos = findDropPosition(lastX, lastY);
         
         if (dropPos) {
-          const { grid, panel } = dropPos;
+          const { grid, panel, insertBefore } = dropPos;
 
           if (panel && panel !== el) {
-            swapElements(el, panel);
+            grid.insertBefore(el, insertBefore ? panel : panel.nextSibling);
           } else if (grid !== originalParent) {
             grid.appendChild(el);
           }
@@ -1802,7 +1903,6 @@ export class PanelLayoutManager implements AppModule {
     Object.values(FEEDS).forEach(feeds => {
       if (feeds) feeds.forEach(f => sources.add(f.name));
     });
-    INTEL_SOURCES.forEach(f => sources.add(f.name));
     return Array.from(sources).sort((a, b) => a.localeCompare(b));
   }
 }

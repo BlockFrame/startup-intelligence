@@ -243,7 +243,6 @@
     "layoffs": "Sledování propouštění",
     "monitors": "Moje monitory",
     "satelliteFires": "Požáry",
-    "macroSignals": "Tržní radar",
     "etfFlows": "Sledování BTC ETF",
     "stablecoins": "Stablecoiny",
     "deduction": "Dedukce situace",
@@ -1590,23 +1589,6 @@
         "estFlow": "Odhad toku",
         "volume": "Objem",
         "change": "Změna"
-      }
-    },
-    "macroSignals": {
-      "overall": "Celkově",
-      "verdict": {
-        "buy": "KOUPIT",
-        "cash": "HOTOVOST"
-      },
-      "bullish": "{{count}}/{{total}} býčí",
-      "signals": {
-        "liquidity": "Likvidita",
-        "flow": "Tok",
-        "regime": "Režim",
-        "btcTrend": "Trend BTC",
-        "hashRate": "Hash Rate",
-        "fearGreed": "Strach a chamtivost",
-        "momentum": "Momentum"
       }
     },
     "panel": {

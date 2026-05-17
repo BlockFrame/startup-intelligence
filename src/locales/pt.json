@@ -42,7 +42,6 @@
     "etfFlows": "Rastreador ETF BTC",
     "economic": "Indicadores Econômicos",
     "tradePolicy": "Política Comercial",
-    "macroSignals": "Radar de Mercado",
     "commodities": "Mercadorias",
     "monitors": "Meus monitores",
     "regulation": "Painel de regulamentação de IA",
@@ -1288,23 +1287,6 @@
         "change": "Variação"
       },
       "rateLimited": "Dados de ETF temporariamente indisponíveis (limite de taxa) — tentando novamente em breve"
-    },
-    "macroSignals": {
-      "overall": "Geral",
-      "verdict": {
-        "buy": "BUY",
-        "cash": "CASH"
-      },
-      "bullish": "{{count}}/{{total}} otimistas",
-      "signals": {
-        "liquidity": "Liquidez",
-        "flow": "Fluxo",
-        "regime": "Regime",
-        "btcTrend": "BTC Trend",
-        "hashRate": "Hash Rate",
-        "fearGreed": "Fear &amp; Greed",
-        "momentum": "Momentum"
-      }
     },
     "export": {
       "exportData": "Exportar Dados"

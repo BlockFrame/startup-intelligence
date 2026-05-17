@@ -243,7 +243,6 @@
     "layoffs": "Ανιχνευτής Απολύσεων",
     "monitors": "Οι Παρακολουθήσεις μου",
     "satelliteFires": "Πυρκαγιές",
-    "macroSignals": "Ραντάρ Αγορών",
     "etfFlows": "BTC ETF Tracker",
     "stablecoins": "Stablecoins",
     "deduction": "Εκτίμηση κατάστασης",
@@ -1610,23 +1609,6 @@
         "estFlow": "Εκτ. Ροή",
         "volume": "Όγκος",
         "change": "Μεταβολή"
-      }
-    },
-    "macroSignals": {
-      "overall": "Συνολικά",
-      "verdict": {
-        "buy": "ΑΓΟΡΑ",
-        "cash": "ΜΕΤΡΗΤΑ"
-      },
-      "bullish": "{{count}}/{{total}} ανοδικά",
-      "signals": {
-        "liquidity": "Ρευστότητα",
-        "flow": "Ροή",
-        "regime": "Καθεστώς",
-        "btcTrend": "Τάση BTC",
-        "hashRate": "Hash Rate",
-        "momentum": "Momentum",
-        "fearGreed": "Φόβος & Απληστία"
       }
     },
     "panel": {

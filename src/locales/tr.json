@@ -243,7 +243,6 @@
     "layoffs": "Isten Cikarma Takibi",
     "monitors": "Takiplerim",
     "satelliteFires": "Yanginlar",
-    "macroSignals": "Piyasa Radari",
     "etfFlows": "BTC ETF Takibi",
     "stablecoins": "Stablecoin'ler",
     "deduction": "Durum çıkarımı",
@@ -1610,23 +1609,6 @@
         "estFlow": "Tahmini Akis",
         "volume": "Hacim",
         "change": "Degisim"
-      }
-    },
-    "macroSignals": {
-      "overall": "Genel",
-      "verdict": {
-        "buy": "AL",
-        "cash": "NAKIT"
-      },
-      "bullish": "{{count}}/{{total}} yukselis yonlu",
-      "signals": {
-        "liquidity": "Likidite",
-        "flow": "Akis",
-        "regime": "Rejim",
-        "btcTrend": "BTC Egilimi",
-        "hashRate": "Hash Rate",
-        "momentum": "Momentum",
-        "fearGreed": "Korku &amp; Acgozluluk"
       }
     },
     "panel": {

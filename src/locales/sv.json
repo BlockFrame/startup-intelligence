@@ -42,7 +42,6 @@
     "etfFlows": "BTC ETF-spårare",
     "economic": "Ekonomiska indikatorer",
     "tradePolicy": "Handelspolitik",
-    "macroSignals": "Marknadsradar",
     "commodities": "Handelsvaror",
     "monitors": "Mina monitorer",
     "regulation": "AI-regleringspanel",
@@ -1288,23 +1287,6 @@
         "change": "Förändring"
       },
       "rateLimited": "ETF-data tillfälligt otillgänglig (hastighetsbegränsad) — försöker igen snart"
-    },
-    "macroSignals": {
-      "overall": "Totalt",
-      "verdict": {
-        "buy": "KÖP",
-        "cash": "KONTANT"
-      },
-      "bullish": "{{count}}/{{total}} hausse",
-      "signals": {
-        "liquidity": "Likviditet",
-        "flow": "Flöde",
-        "regime": "Regim",
-        "btcTrend": "BTC-trend",
-        "hashRate": "Hash Rate",
-        "fearGreed": "Rädsla &amp; Girighet",
-        "momentum": "Momentum"
-      }
     },
     "export": {
       "exportData": "Exportera data"

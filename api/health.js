@@ -106,7 +106,6 @@ const BOOTSTRAP_KEYS = {
 
 const STANDALONE_KEYS = {
   serviceStatuses:       'infra:service-statuses:v1',
-  macroSignals:          'economic:macro-signals:v1',
   bisPolicy:             'economic:bis:policy:v1',
   bisExchange:           'economic:bis:eer:v1',
   fxYoy:                 'economic:fx:yoy:v1',
@@ -230,7 +229,6 @@ const SEED_META = {
   // RPC/warm-ping keys — seed-meta written by relay loops or handlers
   // serviceStatuses: moved to ON_DEMAND — RPC-populated, no dedicated seed, goes stale when no users visit
   cableHealth:      { key: 'seed-meta:cable-health',              maxStaleMin: 90 }, // ais-relay warm-ping runs every 30min; 90min = 3× interval catches missed pings without false positives
-  macroSignals:     { key: 'seed-meta:economic:macro-signals',    maxStaleMin: 20 },
   bisPolicy:        { key: 'seed-meta:economic:bis',              maxStaleMin: 10080 }, // runSeed('economic','bis',...) writes seed-meta:economic:bis
   // seed-bis-extended.mjs writes per-dataset seed-meta keys ONLY when that
   // specific dataset published fresh entries — so a single-dataset BIS outage
@@ -387,7 +385,7 @@ const ON_DEMAND_KEYS = new Set([
   'bisPolicy', 'bisExchange', 'bisCredit',
   // bisDsr/bisPropertyResidential/bisPropertyCommercial have dedicated SEED_META
   // entries (seed-bis-extended.mjs), so they are not on-demand.
-  'macroSignals', 'shippingRates', 'chokepoints', 'minerals', 'giving',
+  'shippingRates', 'chokepoints', 'minerals', 'giving',
   'cyberThreatsRpc', 'militaryBases', 'temporalAnomalies', 'displacement',
   'corridorrisk', // intermediate key; data flows through transit-summaries:v1
   'serviceStatuses', // RPC-populated; seed-meta written on fresh fetch only, goes stale between visits

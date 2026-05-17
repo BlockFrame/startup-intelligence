@@ -218,7 +218,6 @@ describe('Frontend hydration (src/services/bootstrap.ts)', () => {
 describe('Panel hydration consumers', () => {
   const panels = [
     { name: 'ETFFlowsPanel', path: 'src/components/ETFFlowsPanel.ts', key: 'etfFlows' },
-    { name: 'MacroSignalsPanel', path: 'src/components/MacroSignalsPanel.ts', key: 'macroSignals' },
     { name: 'ServiceStatusPanel (via infrastructure)', path: 'src/services/infrastructure/index.ts', key: 'serviceStatuses' },
   ];
 
@@ -352,12 +351,6 @@ describe('Adaptive backoff adopters', () => {
     const src = readFileSync(join(root, 'src/components/ServiceStatusPanel.ts'), 'utf-8');
     assert.ok(src.includes('fetchStatus(): Promise<boolean>'), 'fetchStatus should return Promise<boolean> for adaptive backoff');
     assert.ok(src.includes('lastServicesJson'), 'Missing lastServicesJson for change detection');
-  });
-
-  it('MacroSignalsPanel.fetchData returns Promise<boolean>', () => {
-    const src = readFileSync(join(root, 'src/components/MacroSignalsPanel.ts'), 'utf-8');
-    assert.ok(src.includes('fetchData(): Promise<boolean>'), 'fetchData should return Promise<boolean> for adaptive backoff');
-    assert.ok(src.includes('lastTimestamp'), 'Missing lastTimestamp for change detection');
   });
 
   it('StrategicRiskPanel.refresh returns Promise<boolean>', () => {

@@ -1,3 +1,6 @@
+import enTranslation from '../locales/en.json';
+import itTranslation from '../locales/it.json';
+
 type TranslationValue = string | Record<string, unknown>;
 type TranslationDictionary = Record<string, TranslationValue>;
 
@@ -69,7 +72,6 @@ const dictionary = {
     monitors: 'Investment Monitors',
     events: 'Tech Events',
     topVcSignals: 'Highest-Conviction Signals',
-    macroSignals: 'Exit & Risk Window',
     techReadiness: 'Tech Readiness Index',
     serviceStatus: 'Service Status',
     chatAnalyst: 'Chat Analyst',
@@ -303,6 +305,33 @@ const dictionary = {
       upcomingWithin2Weeks: '{{count}} upcoming within 2 weeks',
       sampled: 'Showing a sampled list of {{count}} events.',
     },
+    panelTooltips: {
+      tech: '<strong>Tech News</strong><br>General technology updates from mainstream and niche tech publishers.',
+      finance: '<strong>Finance Context</strong><br>Market news, macroeconomic updates, and headlines from financial publishers.',
+      layoffs: '<strong>Layoffs Tracker</strong><br>Tracking tech workforce reductions, restructuring, and industry impact.',
+      ai: '<strong>AI & ML</strong><br>Artificial intelligence models, lab updates, and dedicated AI company news.',
+      startups: '<strong>Startups & VC</strong><br>General updates on early-stage companies, venture capital, and funding announcements.',
+      cloud: '<strong>Cloud & DevOps</strong><br>News on cloud computing, infrastructure, DevOps, and enterprise software.',
+      hardware: '<strong>Hardware & Chips</strong><br>Semiconductors, chip manufacturing, devices, and deep-tech hardware.',
+      fintech: '<strong>Fintech & Crypto</strong><br>Financial technology, payments, neo-banks, and digital asset infrastructure.',
+      vcblogs: '<strong>VC Essays & Thesis</strong><br>Deep dives, essays, and thesis directly from Venture Capitalists and funds.',
+      regionalStartups: '<strong>Ecosystem Radar</strong><br>Focuses on non-US markets (Europe, Asia, LATAM) tracking global innovation outside the Valley.',
+      unicorns: '<strong>Unicorn Tracker</strong><br>Tracking companies valued at over $1B+ and decacorns.',
+      accelerators: '<strong>Accelerators & Demo Days</strong><br>News from YC, Techstars, and other major accelerator batches.',
+      producthunt: '<strong>Product Hunt Radar</strong><br>Trending product launches, new tools, and software releases.',
+      security: '<strong>Cybersecurity</strong><br>Information security, threat intelligence, and vulnerability reports.',
+      policy: '<strong>Tech Policy</strong><br>Tech regulation, antitrust, and government policies impacting the industry.',
+      ipo: '<strong>IPO & M&A</strong><br>Initial Public Offerings, public market debuts, and late-stage pre-IPO news.',
+      topVCSignals: '<strong>Highest-Conviction Signals</strong><br>Purely filters events with a high VC importance score across all loaded feeds.',
+      monitors: '<strong>Keyword Monitors</strong><br>Track specific startup, funding, AI, company, and market-thesis keywords across all sources.',
+      liveNews: '<strong>Live News</strong><br>24/7 video streams from global news channels.',
+      techEvents: '<strong>Tech Events</strong><br>Chronological view of tech conferences, product releases, and earnings calls.',
+      techReadiness: '<strong>Tech Readiness</strong><br>TRL evaluation of emerging technologies from early research to deployment.',
+      insights: '<strong>Insights</strong><br>AI-generated analysis of top signals and their ecosystem impact.',
+    },
+    centralBankWatch: {
+      infoTooltip: '<strong>Central Bank Watch</strong> Latest statements, rate decisions, and communications from the Federal Reserve, ECB, Bank of England, and other major central banks worldwide.',
+    },
   },
   widgets: {
     confirmDelete: 'Remove this widget permanently?',
@@ -404,13 +433,37 @@ const dictionary = {
   },
 } satisfies TranslationDictionary;
 
+let currentLang = 'en';
+
 function lookup(path: string): string | null {
+  if (currentLang === 'it') {
+    let itCurrent: unknown = itTranslation;
+    for (const part of path.split('.')) {
+      if (!itCurrent || typeof itCurrent !== 'object' || !(part in itCurrent)) {
+        itCurrent = null;
+        break;
+      }
+      itCurrent = (itCurrent as Record<string, unknown>)[part];
+    }
+    if (typeof itCurrent === 'string') return itCurrent;
+  }
+
   let current: unknown = dictionary;
   for (const part of path.split('.')) {
-    if (!current || typeof current !== 'object' || !(part in current)) return null;
+    if (!current || typeof current !== 'object' || !(part in current)) {
+      current = null;
+      break;
+    }
     current = (current as Record<string, unknown>)[part];
   }
-  return typeof current === 'string' ? current : null;
+  if (typeof current === 'string') return current;
+
+  let enCurrent: unknown = enTranslation;
+  for (const part of path.split('.')) {
+    if (!enCurrent || typeof enCurrent !== 'object' || !(part in enCurrent)) return null;
+    enCurrent = (enCurrent as Record<string, unknown>)[part];
+  }
+  return typeof enCurrent === 'string' ? enCurrent : null;
 }
 
 function interpolate(template: string, options?: Record<string, unknown>): string {
@@ -422,7 +475,15 @@ function interpolate(template: string, options?: Record<string, unknown>): strin
 }
 
 export async function initI18n(): Promise<void> {
-  document.documentElement.setAttribute('lang', 'en');
+  try {
+    const saved = localStorage.getItem('i18nextLng');
+    if (saved && (saved.startsWith('it') || saved.startsWith('en'))) {
+      currentLang = saved.split('-')[0]!;
+    }
+  } catch {
+    /* ignore storage errors */
+  }
+  document.documentElement.setAttribute('lang', currentLang);
   document.documentElement.removeAttribute('dir');
 }
 
@@ -430,12 +491,20 @@ export function t(key: string, options?: Record<string, unknown>): string {
   return interpolate(lookup(key) ?? key, options);
 }
 
-export async function changeLanguage(_lng: string): Promise<void> {
-  await initI18n();
+export async function changeLanguage(lng: string): Promise<void> {
+  const base = lng.split('-')[0] || 'en';
+  currentLang = base === 'it' ? 'it' : 'en';
+  try {
+    localStorage.setItem('i18nextLng', currentLang);
+  } catch {
+    /* ignore storage errors */
+  }
+  document.documentElement.setAttribute('lang', currentLang);
+  window.location.reload();
 }
 
 export function getCurrentLanguage(): string {
-  return 'en';
+  return currentLang;
 }
 
 export function isRTL(): boolean {
@@ -443,9 +512,10 @@ export function isRTL(): boolean {
 }
 
 export function getLocale(): string {
-  return 'en-US';
+  return currentLang === 'it' ? 'it-IT' : 'en-US';
 }
 
 export const LANGUAGES = [
-  { code: 'en', label: 'English', flag: 'GB' },
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'it', label: 'Italiano', flag: '🇮🇹' },
 ];

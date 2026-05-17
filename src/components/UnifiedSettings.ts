@@ -1,5 +1,5 @@
 import '@/styles/settings-window.css';
-import { FEEDS, INTEL_SOURCES, SOURCE_REGION_MAP } from '@/config/feeds';
+import { FEEDS, SOURCE_REGION_MAP } from '@/config/feeds';
 import { PANEL_CATEGORY_MAP, ALL_PANELS, VARIANT_DEFAULTS, getEffectivePanelConfig, isPanelEntitled, FREE_MAX_PANELS } from '@/config/panels';
 import { isProUser } from '@/services/widget-store';
 import { SITE_VARIANT } from '@/config/variant';
@@ -507,8 +507,7 @@ export class UnifiedSettings {
       const lower = this.panelFilter.toLowerCase();
       entries = entries.filter(([key, panel]) =>
         key.toLowerCase().includes(lower) ||
-        panel.name.toLowerCase().includes(lower) ||
-        this.config.getLocalizedPanelName(key, panel.name).toLowerCase().includes(lower)
+        panel.name.toLowerCase().includes(lower)
       );
     }
 
@@ -536,7 +535,7 @@ export class UnifiedSettings {
       const entitled = isPanelEntitled(key, ALL_PANELS[key] ?? panel, pro);
       const locked = !entitled;
       const changed = !locked && savedSettings[key]?.enabled !== panel.enabled;
-      const displayName = this.config.getLocalizedPanelName(key, getEffectivePanelConfig(key, SITE_VARIANT).name ?? panel.name);
+      const displayName = panel.name || getEffectivePanelConfig(key, SITE_VARIANT).name || key;
       return `
         <div class="panel-toggle-item ${panel.enabled && !locked ? 'active' : ''}${changed ? ' changed' : ''}${locked ? ' pro-locked' : ''}" data-panel="${escapeHtml(key)}" aria-pressed="${panel.enabled && !locked}" ${locked ? 'data-pro-locked="1"' : ''}>
           <div class="panel-toggle-checkbox">${panel.enabled && !locked ? '\u2713' : ''}${locked ? '\uD83D\uDD12' : ''}</div>
@@ -624,12 +623,6 @@ export class UnifiedSettings {
     ];
 
     for (const [regionKey, regionDef] of Object.entries(SOURCE_REGION_MAP)) {
-      if (regionKey === 'intel') {
-        if (INTEL_SOURCES.length > 0) {
-          regions.push({ key: regionKey, label: t(regionDef.labelKey) });
-        }
-        continue;
-      }
       const hasFeeds = regionDef.feedKeys.some(fk => feedKeys.has(fk));
       if (hasFeeds) {
         regions.push({ key: regionKey, label: t(regionDef.labelKey) });
@@ -645,13 +638,9 @@ export class UnifiedSettings {
 
     for (const [regionKey, regionDef] of Object.entries(SOURCE_REGION_MAP)) {
       const sources: string[] = [];
-      if (regionKey === 'intel') {
-        INTEL_SOURCES.forEach(f => sources.push(f.name));
-      } else {
-        for (const fk of regionDef.feedKeys) {
-          if (feedKeys.has(fk)) {
-            FEEDS[fk]!.forEach(f => sources.push(f.name));
-          }
+      for (const fk of regionDef.feedKeys) {
+        if (feedKeys.has(fk)) {
+          FEEDS[fk]!.forEach(f => sources.push(f.name));
         }
       }
       if (sources.length > 0) {

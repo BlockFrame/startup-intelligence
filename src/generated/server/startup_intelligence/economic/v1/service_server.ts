@@ -68,81 +68,6 @@ export interface EnergyPrice {
   priceAt: number;
 }
 
-export interface GetMacroSignalsRequest {
-}
-
-export interface GetMacroSignalsResponse {
-  timestamp: string;
-  verdict: string;
-  bullishCount: number;
-  totalCount: number;
-  signals?: MacroSignals;
-  meta?: MacroMeta;
-  unavailable: boolean;
-}
-
-export interface MacroSignals {
-  liquidity?: LiquiditySignal;
-  flowStructure?: FlowStructureSignal;
-  macroRegime?: MacroRegimeSignal;
-  technicalTrend?: TechnicalTrendSignal;
-  hashRate?: HashRateSignal;
-  priceMomentum?: PriceMomentumSignal;
-  fearGreed?: FearGreedSignal;
-}
-
-export interface LiquiditySignal {
-  status: string;
-  value?: number;
-  sparkline: number[];
-}
-
-export interface FlowStructureSignal {
-  status: string;
-  btcReturn5?: number;
-  qqqReturn5?: number;
-}
-
-export interface MacroRegimeSignal {
-  status: string;
-  qqqRoc20?: number;
-  xlpRoc20?: number;
-}
-
-export interface TechnicalTrendSignal {
-  status: string;
-  btcPrice?: number;
-  sma50?: number;
-  sma200?: number;
-  vwap30d?: number;
-  mayerMultiple?: number;
-  sparkline: number[];
-}
-
-export interface HashRateSignal {
-  status: string;
-  change30d?: number;
-}
-
-export interface PriceMomentumSignal {
-  status: string;
-}
-
-export interface FearGreedSignal {
-  status: string;
-  value?: number;
-  history: FearGreedHistoryEntry[];
-}
-
-export interface FearGreedHistoryEntry {
-  value: number;
-  date: string;
-}
-
-export interface MacroMeta {
-  qqqSparkline: number[];
-}
-
 export interface GetEnergyCapacityRequest {
   energySources: string[];
   years: number;
@@ -739,7 +664,6 @@ export interface EconomicServiceHandler {
   getFredSeries(ctx: ServerContext, req: GetFredSeriesRequest): Promise<GetFredSeriesResponse>;
   listWorldBankIndicators(ctx: ServerContext, req: ListWorldBankIndicatorsRequest): Promise<ListWorldBankIndicatorsResponse>;
   getEnergyPrices(ctx: ServerContext, req: GetEnergyPricesRequest): Promise<GetEnergyPricesResponse>;
-  getMacroSignals(ctx: ServerContext, req: GetMacroSignalsRequest): Promise<GetMacroSignalsResponse>;
   getEnergyCapacity(ctx: ServerContext, req: GetEnergyCapacityRequest): Promise<GetEnergyCapacityResponse>;
   getBisPolicyRates(ctx: ServerContext, req: GetBisPolicyRatesRequest): Promise<GetBisPolicyRatesResponse>;
   getBisExchangeRates(ctx: ServerContext, req: GetBisExchangeRatesRequest): Promise<GetBisExchangeRatesResponse>;
@@ -895,43 +819,6 @@ export function createEconomicServiceRoutes(
 
           const result = await handler.getEnergyPrices(ctx, body);
           return new Response(JSON.stringify(result as GetEnergyPricesResponse), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
-        } catch (err: unknown) {
-          if (err instanceof ValidationError) {
-            return new Response(JSON.stringify({ violations: err.violations }), {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            });
-          }
-          if (options?.onError) {
-            return options.onError(err, req);
-          }
-          const message = err instanceof Error ? err.message : String(err);
-          return new Response(JSON.stringify({ message }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-      },
-    },
-    {
-      method: "GET",
-      path: "/api/economic/v1/get-macro-signals",
-      handler: async (req: Request): Promise<Response> => {
-        try {
-          const pathParams: Record<string, string> = {};
-          const body = {} as GetMacroSignalsRequest;
-
-          const ctx: ServerContext = {
-            request: req,
-            pathParams,
-            headers: Object.fromEntries(req.headers.entries()),
-          };
-
-          const result = await handler.getMacroSignals(ctx, body);
-          return new Response(JSON.stringify(result as GetMacroSignalsResponse), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
@@ -1856,4 +1743,3 @@ export function createEconomicServiceRoutes(
     },
   ];
 }
-

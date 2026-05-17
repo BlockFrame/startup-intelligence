@@ -241,7 +241,6 @@
     "layoffs": "Rastreador de despidos",
     "monitors": "Mis monitores",
     "satelliteFires": "Incendios",
-    "macroSignals": "Radar de mercado",
     "etfFlows": "Rastreador de ETF BTC",
     "stablecoins": "Monedas estables",
     "deduction": "Deducir situación",
@@ -1553,23 +1552,6 @@
         "estFlow": "Flujo est.",
         "volume": "Volumen",
         "change": "Cambio"
-      }
-    },
-    "macroSignals": {
-      "overall": "General",
-      "verdict": {
-        "buy": "COMPRAR",
-        "cash": "CASH"
-      },
-      "bullish": "{{count}}/{{total}} alcista",
-      "signals": {
-        "liquidity": "Liquidez",
-        "flow": "Flujo",
-        "regime": "Régimen",
-        "btcTrend": "Tendencia BTC",
-        "hashRate": "Hash Rate",
-        "fearGreed": "Miedo &amp; Codicia",
-        "momentum": "Momentum"
       }
     },
     "runtimeConfig": {

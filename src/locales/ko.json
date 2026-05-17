@@ -243,7 +243,6 @@
     "layoffs": "해고 추적",
     "monitors": "내 모니터",
     "satelliteFires": "화재",
-    "macroSignals": "시장 레이더",
     "etfFlows": "BTC ETF 추적",
     "stablecoins": "스테이블코인",
     "deduction": "상황 추론",
@@ -1610,23 +1609,6 @@
         "estFlow": "추정 흐름",
         "volume": "거래량",
         "change": "변동"
-      }
-    },
-    "macroSignals": {
-      "overall": "종합",
-      "verdict": {
-        "buy": "매수",
-        "cash": "현금"
-      },
-      "bullish": "{{count}}/{{total}} 강세",
-      "signals": {
-        "liquidity": "유동성",
-        "flow": "자금 흐름",
-        "regime": "체제",
-        "btcTrend": "BTC 추세",
-        "hashRate": "해시레이트",
-        "momentum": "Momentum",
-        "fearGreed": "공포 & 탐욕"
       }
     },
     "panel": {

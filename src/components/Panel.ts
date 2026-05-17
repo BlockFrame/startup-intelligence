@@ -267,7 +267,14 @@ export class Panel {
       const infoBtn = h('button', { className: 'panel-info-btn', 'aria-label': t('components.panel.showMethodologyInfo') }, '?');
 
       const tooltip = h('div', { className: 'panel-info-tooltip' });
-      tooltip.appendChild(safeHtml(options.infoTooltip));
+      
+      let tooltipContent = options.infoTooltip;
+      if (tooltipContent.startsWith('<strong>')) {
+        tooltipContent = tooltipContent.replace(/^<strong>.*?<\/strong><br>/i, '');
+      }
+      tooltipContent = `<strong>${options.title}</strong><br>${tooltipContent}`;
+      
+      tooltip.appendChild(safeHtml(tooltipContent));
 
       infoBtn.addEventListener('click', (e) => {
         e.stopPropagation();

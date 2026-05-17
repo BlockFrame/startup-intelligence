@@ -16,6 +16,20 @@ import { escapeHtml } from '@/utils/sanitize';
 import { toApiUrl } from '@/services/runtime';
 import { resolveUserCountryCode } from '@/utils/user-location';
 
+function label(key: string, fallback: string): string {
+  const translated = t(key);
+  return !translated || translated === key ? fallback : translated;
+}
+
+function regionLabel(key: string, labelKey: string): string {
+  const labels: Record<string, string> = {
+    markets: 'Market streams',
+    'global-business': 'Global business',
+    'asia-tech': 'Asia tech',
+  };
+  return labels[key] ?? label(labelKey, key.toUpperCase());
+}
+
 /** Builds a stable custom channel id from a YouTube handle (e.g. @Foo -> custom-foo). */
 function customChannelIdFromHandle(handle: string): string {
   const normalized = handle
@@ -98,7 +112,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
   }
 
   if (!containerEl) {
-    document.title = `${t('components.liveNews.manage') ?? 'Channel management'} - Startup Intelligence`;
+    document.title = `${label('components.liveNews.manage', 'Channel management')} - Startup Intelligence`;
   }
 
   channels = loadChannelsFromStorage();
@@ -258,7 +272,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
       handleInput.type = 'text';
       handleInput.className = 'live-news-manage-edit-handle';
       handleInput.value = ch.handle ?? '';
-      handleInput.placeholder = t('components.liveNews.youtubeHandle') ?? 'YouTube handle';
+      handleInput.placeholder = label('components.liveNews.youtubeHandle', 'YouTube handle');
       row.appendChild(handleInput);
     }
 
@@ -266,13 +280,13 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
     nameInput.type = 'text';
     nameInput.className = 'live-news-manage-edit-name';
     nameInput.value = ch.name ?? '';
-    nameInput.placeholder = t('components.liveNews.displayName') ?? 'Display name';
+    nameInput.placeholder = label('components.liveNews.displayName', 'Display name');
     row.appendChild(nameInput);
 
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'live-news-manage-remove live-news-manage-remove-in-form';
-    removeBtn.textContent = t('components.liveNews.remove') ?? 'Remove';
+    removeBtn.textContent = label('components.liveNews.remove', 'Remove');
     removeBtn.addEventListener('click', () => {
       channels = channels.filter((c) => c.id !== ch.id);
       saveChannelsToStorage(channels);
@@ -283,7 +297,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
     const saveBtn = document.createElement('button');
     saveBtn.type = 'button';
     saveBtn.className = 'live-news-manage-save';
-    saveBtn.textContent = t('components.liveNews.save') ?? 'Save';
+    saveBtn.textContent = label('components.liveNews.save', 'Save');
     saveBtn.addEventListener('click', () => {
       const displayName = nameInput.value.trim() || ch.name || ch.handle || '';
       const next = applyEditFormToChannels(ch, row, isCustom, displayName);
@@ -298,7 +312,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
     cancelBtn.className = 'live-news-manage-cancel';
-    cancelBtn.textContent = t('components.liveNews.cancel') ?? 'Cancel';
+    cancelBtn.textContent = label('components.liveNews.cancel', 'Cancel');
     cancelBtn.addEventListener('click', () => {
       renderList(listEl);
     });
@@ -351,10 +365,10 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'panel-tab' + (region.key === activeRegionTab ? ' active' : '');
-      const label = t(region.labelKey) ?? region.key.toUpperCase();
+      const regionName = regionLabel(region.key, region.labelKey);
       btn.textContent = term
-        ? `${label} (${matchingChannels.length})`
-        : addedCount > 0 ? `${label} (${addedCount})` : label;
+        ? `${regionName} (${matchingChannels.length})`
+        : addedCount > 0 ? `${regionName} (${addedCount})` : regionName;
       btn.addEventListener('click', () => {
         activeRegionTab = region.key;
         renderAvailableChannels(listEl);
@@ -384,7 +398,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
       if (matchCount === 0 && term) {
         const empty = document.createElement('div');
         empty.className = 'live-news-manage-empty';
-        empty.textContent = (t('components.liveNews.noResults') ?? 'No channels found matching "{{term}}"').replace('{{term}}', term);
+        empty.textContent = (label('components.liveNews.noResults', 'No channels found matching "{{term}}"')).replace('{{term}}', term);
         panel.appendChild(empty);
       } else {
         panel.appendChild(grid);
@@ -446,42 +460,42 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
   appEl.innerHTML = `
     <div class="live-channels-window-shell">
       <div class="live-channels-window-header">
-        <span class="live-channels-window-title">${escapeHtml(t('components.liveNews.manage') ?? 'Channel management')}</span>
+        <span class="live-channels-window-title">${escapeHtml(label('components.liveNews.manage', 'Channel management'))}</span>
       </div>
       <div class="live-channels-window-content">
         <div class="live-channels-window-toolbar">
-          <button type="button" class="live-news-manage-restore-defaults" id="liveChannelsRestoreBtn" style="display: none;">${escapeHtml(t('components.liveNews.restoreDefaults') ?? 'Restore default channels')}</button>
+          <button type="button" class="live-news-manage-restore-defaults" id="liveChannelsRestoreBtn" style="display: none;">${escapeHtml(label('components.liveNews.restoreDefaults', 'Restore default channels'))}</button>
         </div>
         <div class="live-news-manage-list" id="liveChannelsList"></div>
         <div class="live-news-manage-available-section">
           <div class="live-news-manage-available-header">
-            <span class="live-news-manage-add-title">${escapeHtml(t('components.liveNews.availableChannels') ?? 'Available channels')}</span>
+            <span class="live-news-manage-add-title">${escapeHtml(label('components.liveNews.availableChannels', 'Available channels'))}</span>
             <div class="live-news-manage-search-wrap">
               <span class="live-news-manage-search-icon">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </span>
-              <input type="text" id="liveChannelsSearch" class="live-news-manage-search-input" placeholder="${escapeHtml(t('header.search') ?? 'Search')}..." autocomplete="off" />
+              <input type="text" id="liveChannelsSearch" class="live-news-manage-search-input" placeholder="${escapeHtml(label('header.search', 'Search'))}..." autocomplete="off" />
             </div>
           </div>
           <div class="panel-tabs" id="liveChannelsTabBar"></div>
           <div class="live-news-manage-tab-contents" id="liveChannelsTabContents"></div>
         </div>
         <div class="live-news-manage-add-section">
-          <span class="live-news-manage-add-title">${escapeHtml(t('components.liveNews.customChannel') ?? 'Custom channel')}</span>
+          <span class="live-news-manage-add-title">${escapeHtml(label('components.liveNews.customChannel', 'Custom channel'))}</span>
           <div class="live-news-manage-add">
             <div class="live-news-manage-add-field">
-              <label class="live-news-manage-add-label" for="liveChannelsHandle">${escapeHtml(t('components.liveNews.youtubeHandleOrUrl') ?? 'YouTube handle or URL')}</label>
+              <label class="live-news-manage-add-label" for="liveChannelsHandle">${escapeHtml(label('components.liveNews.youtubeHandleOrUrl', 'YouTube handle or URL'))}</label>
               <input type="text" class="live-news-manage-handle" id="liveChannelsHandle" placeholder="@Channel or youtube.com/watch?v=..." />
             </div>
             <div class="live-news-manage-add-field">
-              <label class="live-news-manage-add-label" for="liveChannelsHlsUrl">${escapeHtml(t('components.liveNews.hlsUrl') ?? 'HLS Stream URL (optional)')}</label>
+              <label class="live-news-manage-add-label" for="liveChannelsHlsUrl">${escapeHtml(label('components.liveNews.hlsUrl', 'HLS Stream URL (optional)'))}</label>
               <input type="text" class="live-news-manage-handle" id="liveChannelsHlsUrl" placeholder="https://example.com/stream.m3u8" />
             </div>
             <div class="live-news-manage-add-field">
-              <label class="live-news-manage-add-label" for="liveChannelsName">${escapeHtml(t('components.liveNews.displayName') ?? 'Display name (optional)')}</label>
+              <label class="live-news-manage-add-label" for="liveChannelsName">${escapeHtml(label('components.liveNews.displayName', 'Display name (optional)'))}</label>
               <input type="text" class="live-news-manage-name" id="liveChannelsName" placeholder="" />
             </div>
-            <button type="button" class="live-news-manage-add-btn" id="liveChannelsAddBtn">${escapeHtml(t('components.liveNews.addChannel') ?? 'Add channel')}</button>
+            <button type="button" class="live-news-manage-add-btn" id="liveChannelsAddBtn">${escapeHtml(label('components.liveNews.addChannel', 'Add channel'))}</button>
           </div>
         </div>
       </div>
@@ -526,7 +540,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
       if (!isHlsUrl(hlsUrl)) {
         if (hlsInput) {
           hlsInput.classList.add('invalid');
-          hlsInput.setAttribute('title', t('components.liveNews.invalidHlsUrl') ?? 'Enter a valid HLS stream URL (.m3u8)');
+          hlsInput.setAttribute('title', label('components.liveNews.invalidHlsUrl', 'Enter a valid HLS stream URL (.m3u8)'));
         }
         return;
       }
@@ -559,7 +573,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
 
       if (addBtn) {
         addBtn.disabled = true;
-        addBtn.textContent = t('components.liveNews.verifying') ?? 'Verifying…';
+        addBtn.textContent = label('components.liveNews.verifying', 'Verifying...');
       }
 
       // Try to resolve video/channel title via our proxy (YouTube oembed has no CORS)
@@ -577,7 +591,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
 
       if (addBtn) {
         addBtn.disabled = false;
-        addBtn.textContent = t('components.liveNews.addChannel') ?? 'Add channel';
+        addBtn.textContent = label('components.liveNews.addChannel', 'Add channel');
       }
 
       channels.push({ id, name: resolvedName, handle: `@video`, fallbackVideoId: videoId, useFallbackOnly: true });
@@ -598,7 +612,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
     if (!/^@[\w.-]{3,30}$/i.test(handle)) {
       if (handleInput) {
         handleInput.classList.add('invalid');
-        handleInput.setAttribute('title', t('components.liveNews.invalidHandle') ?? 'Enter a valid YouTube handle (e.g. @ChannelName)');
+        handleInput.setAttribute('title', label('components.liveNews.invalidHandle', 'Enter a valid YouTube handle (e.g. @ChannelName)'));
       }
       return;
     }
@@ -609,7 +623,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
     // Validate channel exists on YouTube + resolve name
     if (addBtn) {
       addBtn.disabled = true;
-      addBtn.textContent = t('components.liveNews.verifying') ?? 'Verifying…';
+      addBtn.textContent = label('components.liveNews.verifying', 'Verifying...');
     }
 
     let resolvedName = '';
@@ -626,7 +640,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
     } finally {
       if (addBtn) {
         addBtn.disabled = false;
-        addBtn.textContent = t('components.liveNews.addChannel') ?? 'Add channel';
+        addBtn.textContent = label('components.liveNews.addChannel', 'Add channel');
       }
     }
 

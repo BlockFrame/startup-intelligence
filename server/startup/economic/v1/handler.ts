@@ -4,7 +4,6 @@ import { getFredSeries } from './get-fred-series';
 import { getFredSeriesBatch } from './get-fred-series-batch';
 import { listWorldBankIndicators } from './list-world-bank-indicators';
 import { getEnergyPrices } from './get-energy-prices';
-import { getMacroSignals } from './get-macro-signals';
 import { getEnergyCapacity } from './get-energy-capacity';
 import { getBisPolicyRates } from './get-bis-policy-rates';
 import { getBisExchangeRates } from './get-bis-exchange-rates';
@@ -33,7 +32,6 @@ export const economicHandler: EconomicServiceHandler = {
   getFredSeriesBatch,
   listWorldBankIndicators,
   getEnergyPrices,
-  getMacroSignals,
   getEnergyCapacity,
   getBisPolicyRates,
   getBisExchangeRates,

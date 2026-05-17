@@ -74,9 +74,10 @@ export async function generateStartupInvestorBrief(items: NewsItem[]): Promise<S
 
   const inputs = topItems.map(describeSignal);
   const context = [
-    'Startup VC investor brief.',
+    'Startup VC investor brief v2.',
     'Return concise sections: Key signal, Why it matters, Investor angle, Diligence questions, Watch next, Confidence.',
     'Focus on investment implications, not generic news summary.',
+    'Do not include geopolitical context unless the supplied signal is directly about startup/AI regulation, export controls, semiconductors, or venture markets.',
   ].join(' ');
 
   const result = await generateSummary(

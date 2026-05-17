@@ -25,6 +25,28 @@ import { getEntityIndex } from '@/services/entity-index';
 
 import type { ClusteredEvent, FocalPoint, MilitaryFlight } from '@/types';
 
+interface StartupBriefSource {
+  provider: string;
+  model?: string;
+  cached?: boolean;
+}
+
+function formatStartupBriefSource(source: StartupBriefSource): string {
+  if (source.provider === 'rules') return 'rules fallback';
+  const provider = source.provider === 'cache' && source.model ? 'cache' : source.provider;
+  const label = provider
+    .replace(/^openrouter$/i, 'OpenRouter')
+    .replace(/^openai$/i, 'OpenAI')
+    .replace(/^groq$/i, 'Groq')
+    .replace(/^anthropic$/i, 'Anthropic')
+    .replace(/^mistral$/i, 'Mistral')
+    .replace(/^huggingface$/i, 'Hugging Face')
+    .replace(/^ollama$/i, 'Ollama')
+    .replace(/^browser$/i, 'Browser AI')
+    .replace(/^cache$/i, 'cache');
+  return source.model ? `${label} · ${source.model}` : label;
+}
+
 export class InsightsPanel extends Panel {
   private lastBriefUpdate = 0;
   private cachedBrief: string | null = null;
@@ -45,7 +67,7 @@ export class InsightsPanel extends Panel {
       id: 'insights',
       title: t('panels.insights'),
       showCount: false,
-      infoTooltip: t('components.insights.infoTooltip'),
+      infoTooltip: t('components.panelTooltips.insights'),
     });
 
     // Web-only: subscribe to AI flow changes so toggling providers re-runs analysis
@@ -283,12 +305,13 @@ export class InsightsPanel extends Panel {
       `;
     }).join('');
 
-    const renderBrief = (summary: string, source: string) => {
-      this.setDataBadge(source === 'cache' ? 'cached' : 'live', source === 'rules' ? 'rules fallback' : source);
+    const renderBrief = (summary: string, source: StartupBriefSource) => {
+      const sourceLabel = formatStartupBriefSource(source);
+      this.setDataBadge(source.cached || source.provider === 'cache' ? 'cached' : source.provider === 'rules' ? 'live' : 'live');
       this.setContent(`
         ${this.renderWorldBrief(summary)}
         <div class="insight-badges">
-          <span class="insight-badge ${source === 'rules' ? 'multi' : 'confirmed'}">${source === 'rules' ? 'Rules fallback' : `GenAI · ${escapeHtml(source)}`}</span>
+          <span class="insight-badge ${source.provider === 'rules' ? 'multi' : 'confirmed'}">${source.provider === 'rules' ? 'Rules fallback' : `GenAI · ${escapeHtml(sourceLabel)}`}</span>
         </div>
         <div class="insights-stats">
           <div class="insight-stat">
@@ -311,7 +334,7 @@ export class InsightsPanel extends Panel {
       `);
     };
 
-    renderBrief(brief, 'rules');
+    renderBrief(brief, { provider: 'rules', model: 'startup-investor-brief-rules' });
 
     const headlines = scored
       .slice(0, 8)
@@ -325,9 +348,11 @@ export class InsightsPanel extends Panel {
 
     const aiContext = [
       'You are writing for a VC partner using Startup Intelligence.',
+      'Startup VC investor brief v2.',
       'Generate a concise investor brief, not generic news summary.',
       'Focus on investment thesis, timing, diligence questions, market map, and watchlist.',
       'Avoid hype. Call out uncertainty and what must be verified.',
+      'Do not include geopolitical context unless the supplied signal is directly about startup/AI regulation, export controls, semiconductors, or venture markets.',
       entityLine ? `Known entities: ${entityLine}` : '',
       themes.length ? `Dominant themes: ${themes.join(', ')}` : '',
     ].filter(Boolean).join('\n');
@@ -341,7 +366,11 @@ export class InsightsPanel extends Panel {
     );
 
     if (this.updateGeneration !== thisGeneration || !aiResult?.summary) return;
-    renderBrief(aiResult.summary, aiResult.cached ? 'cache' : `${aiResult.provider}${aiResult.model ? ` / ${aiResult.model}` : ''}`);
+    renderBrief(aiResult.summary, {
+      provider: aiResult.provider,
+      model: aiResult.model,
+      cached: aiResult.cached,
+    });
   }
 
   private async updateFromServer(

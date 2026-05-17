@@ -3,9 +3,26 @@ import type { NewsItem } from '@/types';
 import { generateStartupInvestorBrief } from '@/services/startup-investor-brief';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
 import { formatTime } from '@/utils';
+import { t } from '@/services/i18n';
 
 const MIN_SIGNAL_SCORE = 45;
 const MAX_SIGNALS = 12;
+
+function formatBriefSource(result: Awaited<ReturnType<typeof generateStartupInvestorBrief>>): string {
+  if (result.provider === 'rules') return 'rules fallback';
+  const provider = result.cached || result.provider === 'cache'
+    ? 'cache'
+    : result.provider
+      .replace(/^openrouter$/i, 'OpenRouter')
+      .replace(/^openai$/i, 'OpenAI')
+      .replace(/^groq$/i, 'Groq')
+      .replace(/^anthropic$/i, 'Anthropic')
+      .replace(/^mistral$/i, 'Mistral')
+      .replace(/^huggingface$/i, 'Hugging Face')
+      .replace(/^ollama$/i, 'Ollama')
+      .replace(/^browser$/i, 'Browser AI');
+  return result.model ? `${provider} · ${result.model}` : provider;
+}
 
 function signalScore(item: NewsItem): number {
   return Math.round(item.startupSignal?.score ?? item.importanceScore ?? 0);
@@ -40,10 +57,27 @@ export class TopVCSignalsPanel extends Panel {
       title: 'Highest-Conviction Signals',
       showCount: true,
       defaultRowSpan: 2,
-      infoTooltip: 'Highest-scoring startup and market signals ranked for investor relevance.',
+      infoTooltip: t('components.panelTooltips.topVCSignals'),
     });
 
     this.render();
+    this.content.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement | null;
+      const briefButton = target?.closest<HTMLButtonElement>('.vc-ai-brief-btn');
+      if (briefButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        void this.generateBrief();
+        return;
+      }
+
+      const filterButton = target?.closest<HTMLButtonElement>('.vc-signal-filter');
+      if (!filterButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.activeFilter = (filterButton.dataset.filter as FilterKey | undefined) ?? 'all';
+      this.render();
+    });
   }
 
   public updateSignals(items: NewsItem[]): void {
@@ -130,22 +164,11 @@ export class TopVCSignalsPanel extends Panel {
       </div>
     `);
 
-    window.setTimeout(() => this.bindActions(), 0);
-  }
-
-  private bindActions(): void {
-    this.briefButton = this.getElement().querySelector('.vc-ai-brief-btn') as HTMLButtonElement | null;
-    this.briefEl = this.getElement().querySelector('.vc-ai-brief') as HTMLElement | null;
-    this.briefButton?.addEventListener('click', () => void this.generateBrief());
-    this.getElement().querySelectorAll<HTMLButtonElement>('.vc-signal-filter').forEach((button) => {
-      button.addEventListener('click', () => {
-        this.activeFilter = (button.dataset.filter as FilterKey | undefined) ?? 'all';
-        this.render();
-      });
-    });
   }
 
   private async generateBrief(): Promise<void> {
+    this.briefButton = this.getElement().querySelector('.vc-ai-brief-btn') as HTMLButtonElement | null;
+    this.briefEl = this.getElement().querySelector('.vc-ai-brief') as HTMLElement | null;
     if (this.isBriefing || !this.briefEl || !this.briefButton) return;
 
     const briefItems = this.filteredItems.length > 0 ? this.filteredItems : this.items;
@@ -159,7 +182,7 @@ export class TopVCSignalsPanel extends Panel {
 
     try {
       const result = await generateStartupInvestorBrief(briefItems);
-      const source = result.provider === 'rules' ? 'rules fallback' : `${result.provider}${result.cached ? ' cache' : ''}`;
+      const source = formatBriefSource(result);
       this.briefEl.textContent = `${result.brief}\n\nSource: ${source}`;
     } catch {
       this.briefEl.textContent = 'AI brief unavailable. Try again after the LLM provider is online.';

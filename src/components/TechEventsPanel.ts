@@ -110,7 +110,7 @@ export class TechEventsPanel extends Panel {
   private error: string | null = null;
 
   constructor(id: string, private getLatestNews?: () => NewsItem[]) {
-    super({ id, title: t('panels.events'), showCount: true, infoTooltip: t('components.techEvents.infoTooltip') });
+    super({ id, title: t('panels.events'), showCount: true, infoTooltip: t('components.panelTooltips.techEvents') });
     this.element.classList.add('panel-tall');
     void this.fetchEvents();
   }

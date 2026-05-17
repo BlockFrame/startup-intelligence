@@ -15,7 +15,6 @@ const BOOTSTRAP_CACHE_KEYS = {
   marketQuotes:     'market:stocks-bootstrap:v1',
   sectors:          'market:sectors:v2',
   etfFlows:         'market:etf-flows:v1',
-  macroSignals:     'economic:macro-signals:v1',
   bisPolicy:        'economic:bis:policy:v1',
   bisExchange:      'economic:bis:eer:v1',
   bisCredit:        'economic:bis:credit:v1',
@@ -63,7 +62,7 @@ const SLOW_KEYS = new Set([
 
 const FAST_KEYS = new Set([
   'outages', 'serviceStatuses', 'ddosAttacks', 'trafficAnomalies',
-  'marketQuotes', 'macroSignals', 'insights', 'gdeltIntel',
+  'marketQuotes', 'insights', 'gdeltIntel',
   'socialVelocity', 'wsbTickers',
 ]);
 

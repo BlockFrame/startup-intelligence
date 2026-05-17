@@ -243,7 +243,6 @@
     "layoffs": "ตัวติดตามการเลิกจ้าง",
     "monitors": "จอมอนิเตอร์ของฉัน",
     "satelliteFires": "ไฟ",
-    "macroSignals": "เรดาร์ตลาด",
     "etfFlows": "ตัวติดตาม BTC ETF",
     "stablecoins": "เหรียญ Stablecoin",
     "deduction": "วิเคราะห์สถานการณ์",
@@ -1610,23 +1609,6 @@
         "estFlow": "กระแสประมาณการ",
         "volume": "ปริมาณ",
         "change": "เปลี่ยนแปลง"
-      }
-    },
-    "macroSignals": {
-      "overall": "ภาพรวม",
-      "verdict": {
-        "buy": "ซื้อ",
-        "cash": "เงินสด"
-      },
-      "bullish": "{{count}}/{{total}} ขาขึ้น",
-      "signals": {
-        "liquidity": "สภาพคล่อง",
-        "flow": "กระแส",
-        "regime": "สภาพตลาด",
-        "btcTrend": "แนวโน้ม BTC",
-        "hashRate": "Hash Rate",
-        "momentum": "Momentum",
-        "fearGreed": "ความกลัวและความโลภ"
       }
     },
     "panel": {

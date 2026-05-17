@@ -243,7 +243,6 @@
     "layoffs": "レイオフ追跡",
     "monitors": "マイモニター",
     "satelliteFires": "火災",
-    "macroSignals": "マーケットレーダー",
     "etfFlows": "BTC ETFトラッカー",
     "stablecoins": "ステーブルコイン",
     "deduction": "状況推定",
@@ -1610,23 +1609,6 @@
         "estFlow": "推定フロー",
         "volume": "出来高",
         "change": "変動率"
-      }
-    },
-    "macroSignals": {
-      "overall": "総合",
-      "verdict": {
-        "buy": "買い",
-        "cash": "現金"
-      },
-      "bullish": "{{count}}/{{total}} 強気",
-      "signals": {
-        "liquidity": "流動性",
-        "flow": "フロー",
-        "regime": "市場環境",
-        "btcTrend": "BTCトレンド",
-        "hashRate": "Hash Rate",
-        "momentum": "Momentum",
-        "fearGreed": "恐怖 &amp; 貪欲"
       }
     },
     "panel": {

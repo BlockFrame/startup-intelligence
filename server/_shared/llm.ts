@@ -24,6 +24,16 @@ export interface ProviderCredentialOverrides {
   model?: string;
 }
 
+const OPENROUTER_FREE_MODEL = 'openrouter/free';
+
+function resolveOpenRouterModel(model?: string): string {
+  const value = (model || '').trim();
+  if (!value) return OPENROUTER_FREE_MODEL;
+  if (value === OPENROUTER_FREE_MODEL || value.endsWith(':free')) return value;
+  console.warn(`[llm] OpenRouter paid model "${value}" blocked; using ${OPENROUTER_FREE_MODEL}`);
+  return OPENROUTER_FREE_MODEL;
+}
+
 const OLLAMA_HOST_ALLOWLIST = new Set([
   'localhost', '127.0.0.1', '::1', '[::1]', 'host.docker.internal',
 ]);
@@ -124,7 +134,7 @@ export function getProviderCredentials(
     if (!apiKey) return null;
     return {
       apiUrl: 'https://openrouter.ai/api/v1/chat/completions',
-      model: overrides.model || process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash',
+      model: resolveOpenRouterModel(overrides.model || process.env.OPENROUTER_MODEL),
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -244,7 +254,10 @@ function callLlmProfile(
     if (envProvider) console.warn(`[llm] ${providerEnv}="${envProvider}" is not a known provider; falling back to "${defaultProvider}"`);
     return defaultProvider;
   })()) as LlmProviderName;
-  const model = process.env[modelEnv];
+  const rawModel = process.env[modelEnv];
+  const model = provider === 'openrouter'
+    ? resolveOpenRouterModel(rawModel || process.env.OPENROUTER_MODEL)
+    : rawModel;
   const remaining = PROVIDER_CHAIN.filter((p) => p !== provider);
   return callLlm({
     ...opts,
@@ -339,7 +352,9 @@ export type LlmStreamOptions = Omit<LlmCallOptions, 'stripThinkingTags' | 'valid
 export function callLlmReasoningStream(opts: LlmStreamOptions): ReadableStream<Uint8Array> {
   const envProvider = process.env.LLM_REASONING_PROVIDER;
   const provider = (envProvider && PROVIDER_SET.has(envProvider) ? envProvider : 'openrouter') as LlmProviderName;
-  const model = process.env.LLM_REASONING_MODEL;
+  const model = provider === 'openrouter'
+    ? resolveOpenRouterModel(process.env.LLM_REASONING_MODEL || process.env.OPENROUTER_MODEL)
+    : process.env.LLM_REASONING_MODEL;
   const remaining = PROVIDER_CHAIN.filter((p) => p !== provider);
   const providerOrder = [provider, ...remaining];
   const modelOverrides = model ? { [provider]: model } as Partial<Record<LlmProviderName, string>> : undefined;

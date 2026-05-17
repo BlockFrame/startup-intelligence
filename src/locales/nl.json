@@ -42,7 +42,6 @@
     "etfFlows": "BTC ETF-tracker",
     "economic": "Economische indicatoren",
     "tradePolicy": "Handelsbeleid",
-    "macroSignals": "Marktradar",
     "commodities": "Grondstoffen",
     "monitors": "Mijn monitoren",
     "regulation": "Dashboard voor AI-regulering",
@@ -1288,23 +1287,6 @@
         "change": "Wijziging"
       },
       "rateLimited": "ETF-gegevens tijdelijk niet beschikbaar (limiet bereikt) — wordt binnenkort opnieuw geprobeerd"
-    },
-    "macroSignals": {
-      "overall": "Totaal",
-      "verdict": {
-        "buy": "BUY",
-        "cash": "CASH"
-      },
-      "bullish": "{{count}}/{{total}} bullish",
-      "signals": {
-        "liquidity": "Liquiditeit",
-        "flow": "Stroom",
-        "regime": "Regime",
-        "btcTrend": "BTC Trend",
-        "hashRate": "Hash Rate",
-        "fearGreed": "Fear &amp; Greed",
-        "momentum": "Momentum"
-      }
     },
     "export": {
       "exportData": "Gegevens exporteren"

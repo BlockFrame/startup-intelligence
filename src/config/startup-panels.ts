@@ -42,7 +42,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   investmentDecision: {
     labelKey: 'header.panelCatMarkets',
-    panelKeys: ['markets', 'macro-signals', 'finance', 'fintech', 'layoffs'],
+    panelKeys: ['markets', 'finance', 'fintech', 'layoffs'],
   },
   optionalResearch: {
     labelKey: 'header.panelCatStartupsVc',

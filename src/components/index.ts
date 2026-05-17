@@ -26,5 +26,4 @@ export * from './ArxivPapersDashboard';
 export * from './GithubReposDashboard';
 export * from './HuggingFaceDashboard';
 export * from './TelegramIntelPanel';
-export * from './MacroSignalsPanel';
 export * from './EconomicCalendarPanel';

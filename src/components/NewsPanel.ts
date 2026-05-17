@@ -226,11 +226,18 @@ export class NewsPanel extends Panel {
 
   private async handleSummarize(): Promise<void> {
     if (this.isSummarizing || !this.summaryContainer || !this.summaryBtn) return;
-    if (this.currentHeadlines.length === 0) return;
+    if (this.currentHeadlines.length === 0) {
+      this.summaryContainer.style.display = 'block';
+      this.summaryContainer.innerHTML = `<div class="panel-summary-error">${t('common.noNewsAvailable')}</div>`;
+      setTimeout(() => this.hideSummary(), 3000);
+      return;
+    }
 
-    // Check cache first (include variant, version, and language)
     const currentLang = getCurrentLanguage();
-    const cacheKey = `panel_summary_v3_${SITE_VARIANT}_${this.panelId}_${currentLang}`;
+    const isVcThesisLibrary = this.panelId === 'vcblogs';
+    const summaryLang = isVcThesisLibrary ? 'en' : currentLang;
+    const cacheVersion = isVcThesisLibrary ? 'panel_summary_vc_thesis_v1' : 'panel_summary_v3';
+    const cacheKey = `${cacheVersion}_${SITE_VARIANT}_${this.panelId}_${summaryLang}`;
     const cached = this.getCachedSummary(cacheKey);
     if (cached) {
       this.showSummary(cached);
@@ -247,23 +254,29 @@ export class NewsPanel extends Panel {
     const sigAtStart = this.lastHeadlineSignature;
 
     try {
-      const result = await generateSummary(this.currentHeadlines.slice(0, 8), undefined, this.panelId, currentLang);
+      const headlines = this.currentHeadlines.slice(0, 8);
+      const result = headlines.length >= 2
+        ? await generateSummary(
+            headlines,
+            undefined,
+            isVcThesisLibrary ? this.buildVcThesisSummaryContext() : `panel:${this.panelId}`,
+            summaryLang,
+            isVcThesisLibrary ? { mode: 'vc_thesis', cacheSalt: 'vc-thesis-v1' } : undefined,
+          )
+        : null;
       if (!this.element?.isConnected) return;
       if (this.lastHeadlineSignature !== sigAtStart) {
         this.hideSummary();
         return;
       }
-      if (result?.summary) {
-        this.setCachedSummary(cacheKey, result.summary);
-        this.showSummary(result.summary);
-      } else {
-        this.summaryContainer.innerHTML = `<div class="panel-summary-error">${t('components.newsPanel.summaryError')}</div>`;
-        setTimeout(() => this.hideSummary(), 3000);
-      }
+      const summary = result?.summary || this.buildFallbackPanelSummary(headlines);
+      this.setCachedSummary(cacheKey, summary);
+      this.showSummary(summary);
     } catch {
       if (!this.element?.isConnected) return;
-      this.summaryContainer.innerHTML = `<div class="panel-summary-error">${t('components.newsPanel.summaryFailed')}</div>`;
-      setTimeout(() => this.hideSummary(), 3000);
+      const summary = this.buildFallbackPanelSummary(this.currentHeadlines.slice(0, 8));
+      this.setCachedSummary(cacheKey, summary);
+      this.showSummary(summary);
     } finally {
       this.isSummarizing = false;
       if (this.summaryBtn) {
@@ -271,6 +284,36 @@ export class NewsPanel extends Panel {
         this.summaryBtn.disabled = false;
       }
     }
+  }
+
+  private buildFallbackPanelSummary(headlines: string[]): string {
+    const clean = headlines
+      .map((headline) => headline.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .slice(0, 5);
+    if (clean.length === 0) return t('common.noNewsAvailable');
+
+    if (this.panelId === 'vcblogs') {
+      const lead = clean[0];
+      const supporting = clean.slice(1, 4).join(' | ');
+      return [
+        `Thesis: Weak signal from current reading queue: ${lead}`,
+        'Why now: These items may point to startup strategy, platform, or capital-market shifts, but evidence is headline-level only.',
+        supporting ? `Evidence: ${supporting}` : '',
+        'Investor action: Use this as thesis material, then validate with funding data, category comps, founder interviews, and buyer pull before acting.',
+      ].filter(Boolean).join(' ');
+    }
+
+    return `Key signal: ${clean[0]}${clean.length > 1 ? ` Related items: ${clean.slice(1, 4).join(' | ')}` : ''}`;
+  }
+
+  private buildVcThesisSummaryContext(): string {
+    return [
+      'Panel: VC Thesis Library.',
+      'Prompt version: vc-thesis-v1.',
+      'Goal: extract investable thesis signals from VC essays, operator newsletters, startup strategy writing, and AI market commentary.',
+      'Do not summarize these as breaking news. Identify durable patterns, evidence strength, and a practical investor next step.',
+    ].join('\n');
   }
 
   private async handleTranslate(element: HTMLElement, text: string): Promise<void> {

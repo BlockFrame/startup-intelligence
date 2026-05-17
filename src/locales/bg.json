@@ -243,7 +243,6 @@
     "layoffs": "Проследяване на съкращенията",
     "monitors": "Мои монитори",
     "satelliteFires": "Пожари",
-    "macroSignals": "Пазарен радар",
     "etfFlows": "BTC ETF Проследяване",
     "stablecoins": "Стабилни монети",
     "deduction": "Ситуация на дедукция",
@@ -1610,23 +1609,6 @@
         "estFlow": "Преценен поток",
         "volume": "Обем",
         "change": "Промяна"
-      }
-    },
-    "macroSignals": {
-      "overall": "Целом",
-      "verdict": {
-        "buy": "КУПУВАЙ",
-        "cash": "ПАРИ"
-      },
-      "bullish": "{{count}}/{{total}} бичи",
-      "signals": {
-        "liquidity": "Ликвидност",
-        "flow": "Поток",
-        "regime": "Режим",
-        "btcTrend": "BTC тенденция",
-        "hashRate": "Хеш скорост",
-        "momentum": "Импулс",
-        "fearGreed": "Страх & хищност"
       }
     },
     "panel": {
