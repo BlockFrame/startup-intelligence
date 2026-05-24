@@ -481,10 +481,8 @@ import { installSwUpdateHandler } from '@/bootstrap/sw-update';
 // Auto-reload on stale chunk 404s after deployment (Vite fires this for modulepreload failures).
 const chunkReloadStorageKey = installChunkReloadGuard(__APP_VERSION__);
 
-// Initialize Vercel Analytics (10% sampling to reduce costs)
-inject({
-  beforeSend: (event) => (Math.random() > 0.1 ? null : event),
-});
+// Initialize Vercel Web Analytics.
+inject();
 
 // Initialize dynamic meta tags for sharing
 initMetaTags();

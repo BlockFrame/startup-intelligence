@@ -7,6 +7,8 @@ import { jsonResponse } from './_json-response.js';
 
 export const config = { runtime: 'edge' };
 
+const RSS_PROXY_RATE_LIMIT_ENABLED = process.env.RSS_PROXY_RATE_LIMIT === 'true';
+
 // Domains that consistently block Vercel edge IPs — skip direct fetch,
 // go straight to Railway relay to avoid wasted invocation + timeout.
 const RELAY_ONLY_DOMAINS = new Set([
@@ -85,8 +87,10 @@ export default async function handler(req) {
     return jsonResponse({ error: keyCheck.error }, 401, corsHeaders);
   }
 
-  const rateLimitResponse = await checkRateLimit(req, corsHeaders);
-  if (rateLimitResponse) return rateLimitResponse;
+  if (RSS_PROXY_RATE_LIMIT_ENABLED) {
+    const rateLimitResponse = await checkRateLimit(req, corsHeaders);
+    if (rateLimitResponse) return rateLimitResponse;
+  }
 
   const requestUrl = new URL(req.url);
   const feedUrl = requestUrl.searchParams.get('url');

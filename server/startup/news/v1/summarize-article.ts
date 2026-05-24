@@ -160,7 +160,7 @@ export async function summarizeArticle(
             ],
             { temperature: 0.3, maxTokens: mode === 'vc_thesis' ? 220 : 100, topP: 0.9 },
           )),
-          signal: AbortSignal.timeout(25_000),
+          signal: AbortSignal.timeout(9_000),
         });
 
         if (!response.ok) {

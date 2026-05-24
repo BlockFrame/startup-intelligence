@@ -14,6 +14,8 @@ export const config = { runtime: 'edge' };
 // @ts-expect-error — JS module, no declaration file
 import { getCorsHeaders } from './_cors.js';
 // @ts-expect-error — JS module, no declaration file
+import { validateApiKey } from './_api-key.js';
+// @ts-expect-error — JS module, no declaration file
 import { captureEdgeException } from './_sentry-edge.js';
 import { validateBearerToken } from '../server/auth-session';
 import { getEntitlements } from '../server/_shared/entitlement-check';
@@ -136,17 +138,27 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
       headers: {
         ...corsHeaders,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Startup-Intelligence-Key',
       },
     });
   }
 
   const authHeader = req.headers.get('Authorization') ?? '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-  if (!token) return json({ error: 'Unauthorized' }, 401, corsHeaders);
+  const keyCheck = validateApiKey(req, { forceKey: true }) as { valid: boolean; required: boolean; error?: string };
+  let userId = '';
+  let isTesterKey = false;
 
-  const session = await validateBearerToken(token);
-  if (!session.valid || !session.userId) return json({ error: 'Unauthorized' }, 401, corsHeaders);
+  if (keyCheck.valid) {
+    const key = req.headers.get('X-Startup-Intelligence-Key') ?? '';
+    userId = key ? `tester:${key.slice(0, 16)}` : 'tester:startup-intelligence';
+    isTesterKey = true;
+  } else {
+    if (!token) return json({ error: 'Unauthorized' }, 401, corsHeaders);
+    const session = await validateBearerToken(token);
+    if (!session.valid || !session.userId) return json({ error: 'Unauthorized' }, 401, corsHeaders);
+    userId = session.userId;
+  }
 
   if (!CONVEX_SITE_URL || !RELAY_SHARED_SECRET) {
     return json({ error: 'Service unavailable' }, 503, corsHeaders);
@@ -154,7 +166,7 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
 
   if (req.method === 'GET') {
     try {
-      const resp = await convexRelay({ action: 'get', userId: session.userId });
+      const resp = await convexRelay({ action: 'get', userId });
       if (!resp.ok) {
         const errText = await resp.text();
         console.error('[notification-channels] GET relay error:', resp.status, errText);
@@ -170,8 +182,8 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
   }
 
   if (req.method === 'POST') {
-    const ent = await getEntitlements(session.userId);
-    if (!ent || ent.features.tier < 1) {
+    const ent = isTesterKey ? null : await getEntitlements(userId);
+    if (!isTesterKey && (!ent || ent.features.tier < 1)) {
       return json({
         error: 'pro_required',
         message: 'Real-time alerts are available on the Pro plan.',
@@ -190,7 +202,7 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
 
     try {
       if (action === 'create-pairing-token') {
-        const relayBody: Record<string, unknown> = { action: 'create-pairing-token', userId: session.userId };
+        const relayBody: Record<string, unknown> = { action: 'create-pairing-token', userId };
         if (body.variant) relayBody.variant = body.variant;
         const resp = await convexRelay(relayBody);
         if (!resp.ok) {
@@ -218,7 +230,7 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
           }
         }
 
-        const relayBody: Record<string, unknown> = { action: 'set-channel', userId: session.userId, channelType };
+        const relayBody: Record<string, unknown> = { action: 'set-channel', userId, channelType };
         if (email !== undefined) relayBody.email = email;
         if (webhookLabel !== undefined) relayBody.webhookLabel = String(webhookLabel).slice(0, 100);
         if (webhookEnvelope !== undefined) {
@@ -236,14 +248,14 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
         const setResult = await resp.json() as { ok: boolean; isNew?: boolean };
         console.log(`[notification-channels] set-channel ${channelType}: isNew=${setResult.isNew}`);
         // Only send welcome on first connect, not re-links; use waitUntil so the edge isolate doesn't terminate early
-        if (setResult.isNew) ctx.waitUntil(publishWelcome(session.userId, channelType));
+        if (setResult.isNew) ctx.waitUntil(publishWelcome(userId, channelType));
         return json({ ok: true }, 200, corsHeaders);
       }
 
       if (action === 'delete-channel') {
         const { channelType } = body;
         if (!channelType) return json({ error: 'channelType required' }, 400, corsHeaders);
-        const resp = await convexRelay({ action: 'delete-channel', userId: session.userId, channelType });
+        const resp = await convexRelay({ action: 'delete-channel', userId, channelType });
         if (!resp.ok) {
           console.error('[notification-channels] POST delete-channel relay error:', resp.status);
           return json({ error: 'Operation failed' }, 500, corsHeaders);
@@ -255,7 +267,7 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
         const { variant, enabled, eventTypes, sensitivity, channels, aiDigestEnabled } = body;
         const resp = await convexRelay({
           action: 'set-alert-rules',
-          userId: session.userId,
+          userId,
           variant,
           enabled,
           eventTypes,
@@ -281,7 +293,7 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
         }
         const resp = await convexRelay({
           action: 'set-quiet-hours',
-          userId: session.userId,
+          userId,
           variant,
           quietHoursEnabled,
           quietHoursStart,
@@ -296,7 +308,7 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
         // If quiet hours were disabled or override changed away from batch_on_wake,
         // flush any held events so they're delivered rather than expiring silently.
         const abandonsBatch = !quietHoursEnabled || quietHoursOverride !== 'batch_on_wake';
-        if (abandonsBatch) ctx.waitUntil(publishFlushHeld(session.userId, variant));
+        if (abandonsBatch) ctx.waitUntil(publishFlushHeld(userId, variant));
         return json({ ok: true }, 200, corsHeaders);
       }
 
@@ -308,7 +320,7 @@ export default async function handler(req: Request, ctx: { waitUntil: (p: Promis
         }
         const resp = await convexRelay({
           action: 'set-digest-settings',
-          userId: session.userId,
+          userId,
           variant,
           digestMode,
           digestHour,

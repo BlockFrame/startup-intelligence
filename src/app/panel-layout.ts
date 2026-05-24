@@ -697,7 +697,9 @@ export class PanelLayoutManager implements AppModule {
       const repairedConfig = {
         ...defaultConfig,
         ...currentConfig,
-        enabled: defaultConfig.enabled,
+        enabled: typeof currentConfig.enabled === 'boolean'
+          ? currentConfig.enabled
+          : defaultConfig.enabled,
       };
       if (
         currentConfig.name !== repairedConfig.name ||

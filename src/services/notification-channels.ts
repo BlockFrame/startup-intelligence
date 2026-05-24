@@ -1,5 +1,6 @@
 import { getClerkToken } from '@/services/clerk';
 import { SITE_VARIANT } from '@/config/variant';
+import { getBrowserTesterKey } from '@/services/widget-store';
 
 export type ChannelType = 'telegram' | 'slack' | 'email' | 'discord' | 'webhook';
 export type Sensitivity = 'all' | 'high' | 'critical';
@@ -47,13 +48,19 @@ async function authFetch(path: string, init?: RequestInit): Promise<Response> {
     await new Promise((r) => setTimeout(r, 2000));
     token = await getClerkToken();
   }
-  if (!token) throw new Error('Not authenticated (Clerk token null after retry)');
+  const headers: Record<string, string> = {
+    ...(init?.headers as Record<string, string> | undefined ?? {}),
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  } else {
+    const testerKey = getBrowserTesterKey();
+    if (!testerKey) throw new Error('Not authenticated (Clerk token null after retry)');
+    headers['X-Startup-Intelligence-Key'] = testerKey;
+  }
   return fetch(path, {
     ...init,
-    headers: {
-      ...(init?.headers ?? {}),
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
   });
 }
 

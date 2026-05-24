@@ -89,6 +89,27 @@ const COUNTRY_BOUNDARY_SOURCE = 'startup-country-boundaries';
 const COUNTRY_BOUNDARY_GLOW_LAYER = 'startup-country-boundaries-glow';
 const COUNTRY_BOUNDARY_LAYER = 'startup-country-boundaries-line';
 
+function installMapLibreMissingImages(map: maplibregl.Map): void {
+  map.on('styleimagemissing', (event) => {
+    if (event.id !== 'circle-11' || map.hasImage(event.id)) return;
+    const size = 22;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#20d39b';
+    ctx.strokeStyle = '#07110d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    const image = ctx.getImageData(0, 0, size, size);
+    map.addImage(event.id, image, { pixelRatio: 2 });
+  });
+}
+
 export class StartupMapContainer implements AppMap {
   private map: maplibregl.Map | null = null;
   private markers: maplibregl.Marker[] = [];
@@ -127,6 +148,7 @@ export class StartupMapContainer implements AppMap {
         bearing: this.globeMode ? -12 : 0,
         dragRotate: this.globeMode,
       });
+      installMapLibreMissingImages(this.map);
     } catch (error) {
       console.warn('[startup-map] WebGL unavailable; map disabled for this browser session', error);
       this.renderStaticFallback();

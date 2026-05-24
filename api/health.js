@@ -377,6 +377,31 @@ const SEED_META = {
   recoveryFuelStocks:      { key: 'seed-meta:resilience:recovery:fuel-stocks',      maxStaleMin: 86400 }, // monthly cron; 86400min = 60d = 2x interval
 };
 
+const STARTUP_HEALTH_NAMES = new Set([
+  'marketQuotes',
+  'sectors',
+  'breadthHistory',
+  'techEvents',
+  'techReadiness',
+  'serviceStatuses',
+  'productCatalog',
+  'telegramFeed',
+]);
+
+function pickRegistry(registry, names) {
+  return Object.fromEntries(
+    Object.entries(registry).filter(([name]) => names.has(name)),
+  );
+}
+
+function getStartupHealthRegistries() {
+  return {
+    bootstrapKeys: pickRegistry(BOOTSTRAP_KEYS, STARTUP_HEALTH_NAMES),
+    standaloneKeys: pickRegistry(STANDALONE_KEYS, STARTUP_HEALTH_NAMES),
+    seedMeta: pickRegistry(SEED_META, STARTUP_HEALTH_NAMES),
+  };
+}
+
 // Standalone keys that are populated on-demand by RPC handlers (not seeds).
 // Empty = WARN not CRIT since they only exist after first request.
 const ON_DEMAND_KEYS = new Set([
@@ -504,8 +529,8 @@ function isCascadeCovered(name, hasData, keyStrens, keyErrors) {
 }
 
 function classifyKey(name, redisKey, opts, ctx) {
-  const { keyStrens, keyErrors, keyMetaValues, keyMetaErrors, now } = ctx;
-  const seedCfg = SEED_META[name];
+  const { keyStrens, keyErrors, keyMetaValues, keyMetaErrors, seedMeta, now } = ctx;
+  const seedCfg = seedMeta[name];
   const isOnDemand = !!opts.allowOnDemand && ON_DEMAND_KEYS.has(name);
 
   const meta = readSeedMeta(seedCfg, keyMetaValues, keyMetaErrors, now);
@@ -575,12 +600,13 @@ export default async function handler(req, ctx) {
   }
 
   const now = Date.now();
+  const { bootstrapKeys, standaloneKeys, seedMeta } = getStartupHealthRegistries();
 
   const allDataKeys = [
-    ...Object.values(BOOTSTRAP_KEYS),
-    ...Object.values(STANDALONE_KEYS),
+    ...Object.values(bootstrapKeys),
+    ...Object.values(standaloneKeys),
   ];
-  const allMetaKeys = Object.values(SEED_META).map(s => s.key);
+  const allMetaKeys = Object.values(seedMeta).map(s => s.key);
 
   // STRLEN for data keys avoids loading large blobs into memory (OOM prevention).
   // NEG_SENTINEL ('__SI_NEG__') is 10 bytes — strlenIsData() rejects exactly
@@ -622,14 +648,14 @@ export default async function handler(req, ctx) {
     keyMetaValues.set(allMetaKeys[i], r?.result ?? null);
   }
 
-  const classifyCtx = { keyStrens, keyErrors, keyMetaValues, keyMetaErrors, now };
+  const classifyCtx = { keyStrens, keyErrors, keyMetaValues, keyMetaErrors, seedMeta, now };
   const checks = {};
   const counts = { ok: 0, warn: 0, onDemandWarn: 0, crit: 0 };
   let totalChecks = 0;
 
   const sources = [
-    [BOOTSTRAP_KEYS, { allowOnDemand: false }],
-    [STANDALONE_KEYS, { allowOnDemand: true }],
+    [bootstrapKeys, { allowOnDemand: false }],
+    [standaloneKeys, { allowOnDemand: true }],
   ];
   for (const [registry, opts] of sources) {
     for (const [name, redisKey] of Object.entries(registry)) {
@@ -668,6 +694,7 @@ export default async function handler(req, ctx) {
     const persist = redisPipeline([['SET', 'health:last-failure', JSON.stringify({
       at: new Date(now).toISOString(),
       status: overall,
+      scope: 'startup',
       critCount,
       crits: problemKeys,
     }), 'EX', 86400]]).catch(() => {});
@@ -679,6 +706,7 @@ export default async function handler(req, ctx) {
 
   const body = {
     status: overall,
+    scope: 'startup',
     summary: {
       total: totalChecks,
       ok: counts.ok,

@@ -8,62 +8,26 @@ import { unwrapEnvelope } from './_seed-envelope.js';
 export const config = { runtime: 'edge' };
 
 const BOOTSTRAP_CACHE_KEYS = {
-  outages:          'infra:outages:v1',
   serviceStatuses:  'infra:service-statuses:v1',
-  ddosAttacks:      'cf:radar:ddos:v1',
-  trafficAnomalies: 'cf:radar:traffic-anomalies:v1',
   marketQuotes:     'market:stocks-bootstrap:v1',
   sectors:          'market:sectors:v2',
-  etfFlows:         'market:etf-flows:v1',
-  bisPolicy:        'economic:bis:policy:v1',
-  bisExchange:      'economic:bis:eer:v1',
-  bisCredit:        'economic:bis:credit:v1',
   crossSourceSignals: 'intelligence:cross-source-signals:v1',
-  cyberThreats:     'cyber:threats-bootstrap:v2',
   techReadiness:    'economic:worldbank-techreadiness:v1',
   insights:         'news:insights:v1',
-  cryptoQuotes:     'market:crypto:v1',
-  cryptoSectors:    'market:crypto-sectors:v1',
-  defiTokens:       'market:defi-tokens:v1',
-  aiTokens:         'market:ai-tokens:v1',
-  otherTokens:      'market:other-tokens:v1',
-  stablecoinMarkets: 'market:stablecoins:v1',
   techEvents:        'research:tech-events-bootstrap:v1',
-  gdeltIntel:        'intelligence:gdelt-intel:v1',
   securityAdvisories: 'intelligence:advisories-bootstrap:v1',
-  consumerPricesOverview:   'consumer-prices:overview:ae',
-  consumerPricesCategories: 'consumer-prices:categories:ae:30d',
-  consumerPricesMovers:     'consumer-prices:movers:ae:30d',
-  consumerPricesSpread:     'consumer-prices:retailer-spread:ae:essentials-ae',
   marketImplications: 'intelligence:market-implications:v1',
-  fearGreedIndex:    'market:fear-greed:v1',
-  hyperliquidFlow:   'market:hyperliquid:flow:v1',
-  crudeInventories:  'economic:crude-inventories:v1',
-  natGasStorage:     'economic:nat-gas-storage:v1',
-  ecbFxRates:        'economic:ecb-fx-rates:v1',
-  euFsi:             'economic:fsi-eu:v1',
   socialVelocity:    'intelligence:social:reddit:v1',
-  wsbTickers:        'intelligence:wsb-tickers:v1',
-  aaiiSentiment:     'market:aaii-sentiment:v1',
   breadthHistory:    'market:breadth-history:v1',
 };
 
 const SLOW_KEYS = new Set([
-  'bisPolicy', 'bisExchange', 'bisCredit',
-  'sectors', 'etfFlows', 'crossSourceSignals',
-  'cyberThreats', 'techReadiness',
-  'cryptoQuotes', 'cryptoSectors', 'defiTokens', 'aiTokens', 'otherTokens',
-  'stablecoinMarkets', 'techEvents', 'securityAdvisories',
-  'consumerPricesOverview', 'consumerPricesCategories', 'consumerPricesMovers', 'consumerPricesSpread',
-  'marketImplications', 'fearGreedIndex', 'hyperliquidFlow',
-  'crudeInventories', 'natGasStorage', 'ecbFxRates', 'euFsi',
-  'aaiiSentiment', 'breadthHistory',
+  'sectors', 'crossSourceSignals', 'techReadiness', 'techEvents',
+  'securityAdvisories', 'marketImplications', 'breadthHistory',
 ]);
 
 const FAST_KEYS = new Set([
-  'outages', 'serviceStatuses', 'ddosAttacks', 'trafficAnomalies',
-  'marketQuotes', 'insights', 'gdeltIntel',
-  'socialVelocity', 'wsbTickers',
+  'serviceStatuses', 'marketQuotes', 'insights', 'socialVelocity',
 ]);
 
 // No public/s-maxage: some shared CDN layers ignore Vary: Origin and would pin

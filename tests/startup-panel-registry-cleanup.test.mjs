@@ -43,7 +43,6 @@ const legacyPanelKeys = [
 
 const requiredStartupPanelKeys = [
   'producthunt',
-  'funding',
   'hardware',
   'tech-readiness',
   'top-vc-signals',
@@ -100,7 +99,8 @@ test('startup panel layout repairs stale cross-variant panel storage', () => {
   assert.match(panelLayoutSource, /DEFAULT_PANELS as STARTUP_PANEL_DEFAULTS/);
   assert.match(panelLayoutSource, /for \(const key of VARIANT_DEFAULTS\.startup \?\? \[\]\)/);
   assert.match(panelLayoutSource, /this\.ctx\.panelSettings\[key\] = \{ \.\.\.defaultConfig \}/);
-  assert.match(panelLayoutSource, /enabled: defaultConfig\.enabled/);
+  assert.match(panelLayoutSource, /typeof currentConfig\.enabled === 'boolean'/);
+  assert.match(panelLayoutSource, /: defaultConfig\.enabled/);
   assert.match(panelLayoutSource, /saveToStorage\(STORAGE_KEYS\.panels, this\.ctx\.panelSettings\)/);
 });
 

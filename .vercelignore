@@ -19,5 +19,4 @@ target/
 # Common local artifacts
 .DS_Store
 
-api/bootstrap.js
 api/eia/

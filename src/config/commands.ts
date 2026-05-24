@@ -3,6 +3,8 @@ import { CURATED_COUNTRIES } from '@/config/countries';
 // boundary-ignore: commands are built lazily at runtime via getAllCommands()
 import { getCurrentLanguage, t } from '@/services/i18n';
 import { toFlagEmoji } from '@/utils/country-flag';
+import { SITE_VARIANT } from '@/config/variant';
+import { VARIANT_DEFAULTS } from '@/config/panels';
 
 export interface Command {
   id: string;
@@ -18,6 +20,8 @@ export const LAYER_PRESETS: Record<string, (keyof MapLayers)[]> = {
   infra: ['cables', 'pipelines', 'datacenters', 'spaceports', 'minerals'],
   intel: ['conflicts', 'hotspots', 'protests', 'ucdpEvents', 'displacement'],
   minimal: ['conflicts', 'hotspots'],
+  startup: ['datacenters', 'startupHubs', 'cloudRegions', 'accelerators', 'techHQs', 'techEvents'],
+  aiInfra: ['datacenters', 'cloudRegions', 'techHQs'],
 };
 
 // Maps command suffix → actual MapLayers key when they differ
@@ -30,6 +34,32 @@ export const LAYER_KEY_MAP: Record<string, keyof MapLayers> = {
   radiation: 'radiationWatch',
   natural: 'natural',
 };
+
+const STARTUP_PANEL_COMMANDS = new Set([
+  'panel:map',
+  ...((VARIANT_DEFAULTS.startup ?? []).map((key) => `panel:${key}`)),
+]);
+
+const STARTUP_LAYER_COMMANDS = new Set([
+  'layers:startup',
+  'layers:aiInfra',
+  'layers:all',
+  'layers:none',
+  'layer:datacenters',
+  'layer:startupHubs',
+  'layer:cloudRegions',
+  'layer:accelerators',
+  'layer:techHQs',
+  'layer:techEvents',
+]);
+
+const STARTUP_VIEW_COMMANDS = new Set([
+  'view:dark',
+  'view:light',
+  'view:fullscreen',
+  'view:settings',
+  'view:refresh',
+]);
 
 export const COMMANDS: Command[] = [
   // Navigation (region switching)
@@ -47,6 +77,8 @@ export const COMMANDS: Command[] = [
   { id: 'layers:finance', keywords: ['finance layers', 'show finance', 'financial'], label: 'Show finance layers', icon: '\u{1F4B0}', category: 'layers' },
   { id: 'layers:infra', keywords: ['infrastructure', 'infra layers', 'show infrastructure'], label: 'Show infrastructure layers', icon: '\u{1F3D7}\uFE0F', category: 'layers' },
   { id: 'layers:intel', keywords: ['intelligence', 'intel layers', 'show intel', 'conflicts only'], label: 'Show intelligence layers', icon: '\u{1F50D}', category: 'layers' },
+  { id: 'layers:startup', keywords: ['startup layers', 'startup map', 'vc map', 'show startup'], label: 'Show startup intelligence layers', icon: '\u{1F680}', category: 'layers' },
+  { id: 'layers:aiInfra', keywords: ['ai infrastructure', 'compute map', 'data centers', 'cloud regions'], label: 'Show AI infrastructure layers', icon: '\u{1F5A5}\uFE0F', category: 'layers' },
   { id: 'layers:all', keywords: ['all layers', 'show all', 'enable all'], label: 'Enable all layers', icon: '\u{1F441}\uFE0F', category: 'layers' },
   { id: 'layers:none', keywords: ['hide all', 'clear layers', 'no layers', 'disable all'], label: 'Hide all layers', icon: '\u{1F6AB}', category: 'layers' },
   { id: 'layers:minimal', keywords: ['minimal', 'minimal layers', 'clean'], label: 'Minimal layers (conflicts + hotspots)', icon: '\u2728', category: 'layers' },
@@ -76,6 +108,10 @@ export const COMMANDS: Command[] = [
   { id: 'layer:radiation', keywords: ['radiation', 'radnet', 'safecast', 'anomalies'], label: 'Toggle radiation anomalies', icon: '\u2622\uFE0F', category: 'layers' },
   { id: 'layer:spaceports', keywords: ['spaceports', 'launch sites', 'rockets'], label: 'Toggle spaceports', icon: '\u{1F680}', category: 'layers' },
   { id: 'layer:datacenters', keywords: ['datacenters', 'data centers', 'ai data'], label: 'Toggle AI data centers', icon: '\u{1F5A5}\uFE0F', category: 'layers' },
+  { id: 'layer:startupHubs', keywords: ['startup hubs', 'ecosystems', 'vc hubs'], label: 'Toggle startup hubs', icon: '\u{1F680}', category: 'layers' },
+  { id: 'layer:cloudRegions', keywords: ['cloud regions', 'aws regions', 'azure regions', 'gcp regions'], label: 'Toggle cloud regions', icon: '\u2601\uFE0F', category: 'layers' },
+  { id: 'layer:techHQs', keywords: ['tech hq', 'tech headquarters', 'big tech', 'ai labs'], label: 'Toggle tech headquarters', icon: '\u{1F3E2}', category: 'layers' },
+  { id: 'layer:techEvents', keywords: ['tech events', 'conferences', 'summits'], label: 'Toggle tech events', icon: '\u{1F4C5}', category: 'layers' },
   { id: 'layer:military', keywords: ['military activity', 'mil activity'], label: 'Toggle military activity', icon: '\u{1F396}\uFE0F', category: 'layers' },
   { id: 'layer:natural', keywords: ['natural events', 'earthquakes', 'volcanoes', 'tsunamis'], label: 'Toggle natural events', icon: '\u{1F30B}', category: 'layers' },
   { id: 'layer:waterways', keywords: ['waterways', 'chokepoints', 'straits', 'canals'], label: 'Toggle strategic waterways', icon: '\u2693', category: 'layers' },
@@ -275,6 +311,7 @@ const ISO_CODES = [
 ];
 
 let _cachedLang = '';
+let _cachedVariant = '';
 let _cachedCountryCommands: Command[] = [];
 let _cachedAllCommands: Command[] = [];
 
@@ -314,7 +351,8 @@ function injectLocalizedKeywords(commands: Command[]): Command[] {
 
 function buildCountryCommands(): Command[] {
   const lang = getCurrentLanguage();
-  if (lang === _cachedLang && _cachedCountryCommands.length > 0) {
+  const variant = SITE_VARIANT || 'full';
+  if (lang === _cachedLang && variant === _cachedVariant && _cachedCountryCommands.length > 0) {
     return _cachedCountryCommands;
   }
 
@@ -345,12 +383,26 @@ function buildCountryCommands(): Command[] {
   });
 
   _cachedLang = lang;
+  _cachedVariant = variant;
   _cachedCountryCommands = result;
-  _cachedAllCommands = [...injectLocalizedKeywords(COMMANDS), ...result];
+  _cachedAllCommands = [...injectLocalizedKeywords(getBaseCommandsForVariant()), ...result];
   return result;
+}
+
+function getBaseCommandsForVariant(): Command[] {
+  if (SITE_VARIANT !== 'startup') return COMMANDS;
+
+  return COMMANDS.filter((cmd) => {
+    if (cmd.id.startsWith('nav:')) return true;
+    if (cmd.id.startsWith('time:')) return true;
+    if (cmd.category === 'view') return STARTUP_VIEW_COMMANDS.has(cmd.id);
+    if (cmd.category === 'layers') return STARTUP_LAYER_COMMANDS.has(cmd.id);
+    if (cmd.category === 'panels') return STARTUP_PANEL_COMMANDS.has(cmd.id);
+    return false;
+  });
 }
 
 export function getAllCommands(): Command[] {
   buildCountryCommands();
-  return _cachedAllCommands.length > 0 ? _cachedAllCommands : COMMANDS;
+  return _cachedAllCommands.length > 0 ? _cachedAllCommands : getBaseCommandsForVariant();
 }
