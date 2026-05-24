@@ -39,13 +39,15 @@ export async function initEntitlementSubscription(_userId?: string): Promise<voi
   try {
     const client = await getConvexClient();
     if (!client) {
-      console.log('[entitlements] No VITE_CONVEX_URL — skipping Convex subscription');
+      console.debug('[entitlements] Convex not configured; subscription disabled');
+      initialized = true;
       return;
     }
 
     const api = await getConvexApi();
     if (!api) {
-      console.log('[entitlements] Could not load Convex API — skipping subscription');
+      console.debug('[entitlements] Convex API unavailable; subscription disabled');
+      initialized = true;
       return;
     }
 

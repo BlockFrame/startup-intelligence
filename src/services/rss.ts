@@ -7,7 +7,7 @@ import { getPersistentCache, setPersistentCache } from './persistent-cache';
 import { dataFreshness } from './data-freshness';
 import { ingestHeadlines } from './trending-keywords';
 import { getCurrentLanguage } from '@/services/i18n';
-import { parseFeedDateOrNow } from './feed-date';
+import { parseFeedDate } from './feed-date';
 import { canQueueAiClassification, AI_CLASSIFY_MAX_PER_FEED } from './ai-classify-queue';
 import { mlWorker } from './ml-worker';
 import { isHeadlineMemoryEnabled } from './ai-flow-settings';
@@ -16,7 +16,7 @@ const FEED_COOLDOWN_MS = 5 * 60 * 1000;
 const MAX_FAILURES = 2;
 const MAX_CACHE_ENTRIES = 100;
 const FEED_SCOPE_SEPARATOR = '::';
-const STARTUP_MAX_ITEM_AGE_MS = 8 * 24 * 60 * 60 * 1000;
+const STARTUP_MAX_ITEM_AGE_MS = 72 * 60 * 60 * 1000;
 const feedFailures = new Map<string, { count: number; cooldownUntil: number }>();
 const feedCache = new Map<string, { items: NewsItem[]; timestamp: number }>();
 const CACHE_TTL = 30 * 60 * 1000;
@@ -300,7 +300,7 @@ export async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
 
     const parsed = filterFreshStartupItems(Array.from(items)
       .slice(0, 5)
-      .map((item): NewsItem => {
+      .map((item): NewsItem | null => {
         const title = item.querySelector('title')?.textContent || '';
         let link = '';
         if (isAtom) {
@@ -313,7 +313,8 @@ export async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
         const pubDateStr = isAtom
           ? (item.querySelector('published')?.textContent || item.querySelector('updated')?.textContent || '')
           : (item.querySelector('pubDate')?.textContent || '');
-        const pubDate = parseFeedDateOrNow(pubDateStr);
+        const pubDate = parseFeedDate(pubDateStr);
+        if (!pubDate) return null;
         const threat = classifyByKeyword(title, SITE_VARIANT);
         const isAlert = threat.level === 'critical' || threat.level === 'high';
         const geoMatches = inferGeoHubsFromTitle(title);
@@ -330,7 +331,8 @@ export async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
           lang: feed.lang,
           ...(SITE_VARIANT === 'happy' && { imageUrl: extractImageUrl(item) }),
         };
-      }), url);
+      })
+      .filter((item): item is NewsItem => Boolean(item)), url);
 
     feedCache.set(feedScope, { items: parsed, timestamp: Date.now() });
     void setPersistentCache(getPersistentFeedKey(feedScope), toSerializable(parsed));

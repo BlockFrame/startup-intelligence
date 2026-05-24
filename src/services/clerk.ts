@@ -81,7 +81,7 @@ export async function initClerk(): Promise<void> {
   if (clerkInstance) return;
   if (loadPromise) return loadPromise;
   if (!PUBLISHABLE_KEY) {
-    console.warn('[clerk] VITE_CLERK_PUBLISHABLE_KEY not set, auth disabled');
+    console.debug('[clerk] Publishable key not configured; auth disabled');
     return;
   }
   loadPromise = (async () => {

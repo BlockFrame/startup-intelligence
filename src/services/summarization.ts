@@ -28,7 +28,7 @@ export type ApiSummarizationProvider =
   | 'mistral'
   | 'huggingface';
 
-export type SummarizationProvider = ApiSummarizationProvider | 'browser' | 'cache';
+export type SummarizationProvider = ApiSummarizationProvider | 'browser' | 'cache' | 'rules';
 export type SummaryMode = 'brief' | 'analysis' | 'vc_thesis';
 
 export interface SummarizationResult {
@@ -172,6 +172,32 @@ async function tryBrowserT5(headlines: string[], modelId?: string, mode: Summary
   }
 }
 
+function buildRulesSummary(headlines: string[], mode: SummaryMode = 'brief'): SummarizationResult | null {
+  const cleaned = headlines
+    .map((headline) => headline.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .slice(0, 5);
+  if (cleaned.length < 2) return null;
+
+  const primary = cleaned[0];
+  const secondary = cleaned.slice(1, 4);
+  const summary = mode === 'vc_thesis'
+    ? [
+      `Key signal: ${primary}`,
+      `Why it matters: ${secondary[0] || primary}`,
+      `Investor angle: Track whether this becomes repeated customer, funding, product, or distribution evidence.`,
+      'Confidence: Early signal until confirmed by multiple sources.',
+    ].join('\n\n')
+    : `${primary}. Related signals: ${secondary.join('; ')}.`;
+
+  return {
+    summary,
+    provider: 'rules',
+    model: 'startup-summary-rules',
+    cached: false,
+  };
+}
+
 // ── Fallback chain runner ──
 
 async function runApiChain(
@@ -296,13 +322,10 @@ async function generateSummaryInternal(
         if (browserResult) return browserResult;
       }
 
-      onProgress?.(totalSteps, totalSteps, 'No providers available');
+      onProgress?.(totalSteps, totalSteps, 'Using fallback summary');
     }
 
-    if (!shouldSkipSummarizationRpcInDev()) {
-      console.warn('[BETA] All providers failed');
-    }
-    return null;
+    return buildRulesSummary(headlines, options?.mode || 'brief');
   }
 
   // Normal mode: API chain -> Browser T5
@@ -320,10 +343,7 @@ async function generateSummaryInternal(
     if (browserResult) return browserResult;
   }
 
-  if (!shouldSkipSummarizationRpcInDev()) {
-    console.warn('[Summarization] All providers failed');
-  }
-  return null;
+  return buildRulesSummary(headlines, options?.mode || 'brief');
 }
 
 

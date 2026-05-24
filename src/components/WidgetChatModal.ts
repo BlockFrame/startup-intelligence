@@ -45,7 +45,7 @@ let overlay: HTMLElement | null = null;
 let abortController: AbortController | null = null;
 let clientTimeout: ReturnType<typeof setTimeout> | null = null;
 
-async function buildWidgetAuthHeaders(isPro: boolean): Promise<Record<string, string>> {
+async function buildWidgetAuthHeaders(): Promise<Record<string, string>> {
   const testerKey = getBrowserTesterKey();
   const widgetKey = getWidgetAgentKey();
   const proKey = getProWidgetKey();
@@ -53,7 +53,7 @@ async function buildWidgetAuthHeaders(isPro: boolean): Promise<Record<string, st
     const headers: Record<string, string> = {};
     if (testerKey) headers['X-Startup-Intelligence-Key'] = testerKey;
     if (widgetKey) headers['X-Widget-Key'] = widgetKey;
-    if (isPro && proKey) headers['X-Pro-Key'] = proKey;
+    if (proKey) headers['X-Pro-Key'] = proKey;
     return headers;
   }
   const token = await getClerkToken();
@@ -160,7 +160,7 @@ export function openWidgetChatModal(options: WidgetChatOptions): void {
   async function runPreflight(): Promise<void> {
     setReadinessState(readinessEl, 'checking', t('widgets.checkingConnection'));
     try {
-      const headers = await buildWidgetAuthHeaders(isPro);
+      const headers = await buildWidgetAuthHeaders();
       const res = await fetch(widgetAgentHealthUrl(), { headers });
       let payload: WidgetAgentHealth | null = null;
       try { payload = await res.json() as WidgetAgentHealth; } catch { /* ignore */ }
@@ -243,7 +243,7 @@ export function openWidgetChatModal(options: WidgetChatOptions): void {
     try {
       const reqHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...(await buildWidgetAuthHeaders(isPro)),
+        ...(await buildWidgetAuthHeaders()),
       };
 
       const res = await fetch(widgetAgentUrl(), {

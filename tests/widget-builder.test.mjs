@@ -1180,6 +1180,13 @@ describe('PRO widget — modal and layout integration', () => {
     );
   });
 
+  it('modal sends legacy PRO key whenever present so basic preflight can still unlock tester access', () => {
+    assert.ok(
+      modal.includes('if (proKey) headers[\'X-Pro-Key\'] = proKey;'),
+      'Modal must always send X-Pro-Key when si-pro-key exists, not only for explicit PRO tier',
+    );
+  });
+
   it('modal uses 120s timeout for PRO (vs 60s basic)', () => {
     assert.ok(
       modal.includes('120_000') || modal.includes('120000'),

@@ -17,7 +17,7 @@ import {
   type DigestMode,
 } from '@/services/notification-channels';
 import { getCurrentClerkUser } from '@/services/clerk';
-import { hasTier } from '@/services/entitlements';
+import { hasPremiumAccess } from '@/services/panel-gating';
 import { SITE_VARIANT } from '@/config/variant';
 
 const QUIET_HOURS_BATCH_ENABLED = import.meta.env.VITE_QUIET_HOURS_BATCH_ENABLED !== '0';
@@ -33,7 +33,7 @@ export interface NotificationsSettingsResult {
 }
 
 export function renderNotificationsSettings(host: NotificationsSettingsHost): NotificationsSettingsResult {
-  const isPro = !!host.isSignedIn && hasTier(1);
+  const isPro = hasPremiumAccess();
 
   let html = '';
   if (isPro) {

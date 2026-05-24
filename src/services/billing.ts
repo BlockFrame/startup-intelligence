@@ -37,13 +37,15 @@ export async function initSubscriptionWatch(_userId?: string): Promise<void> {
   try {
     const client = await getConvexClient();
     if (!client) {
-      console.warn('[billing] No VITE_CONVEX_URL -- skipping subscription watch');
+      console.debug('[billing] Convex not configured; subscription watch disabled');
+      initialized = true;
       return;
     }
 
     const api = await getConvexApi();
     if (!api) {
-      console.warn('[billing] Could not load Convex API -- skipping subscription watch');
+      console.debug('[billing] Convex API unavailable; subscription watch disabled');
+      initialized = true;
       return;
     }
 

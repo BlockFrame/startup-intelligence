@@ -35,6 +35,8 @@ const MAX_ITEMS_PER_CATEGORY = 20;
 const FEED_TIMEOUT_MS = 8_000;
 const OVERALL_DEADLINE_MS = 25_000;
 const BATCH_CONCURRENCY = 20;
+const STARTUP_MAX_ITEM_AGE_MS = 72 * 60 * 60 * 1000;
+const MAX_FUTURE_ITEM_AGE_MS = 6 * 60 * 60 * 1000;
 
 const LEVEL_TO_PROTO: Record<ThreatLevel, ProtoThreatLevel> = {
   critical: 'THREAT_LEVEL_CRITICAL',
@@ -147,7 +149,7 @@ async function fetchAndParseRss(
   variant: string,
   signal: AbortSignal,
 ): Promise<ParsedItem[]> {
-  const cacheKey = `rss:feed:v1:${variant}:${feed.url}`;
+  const cacheKey = `rss:feed:v2:${variant}:${feed.url}`;
 
   try {
     const cached = await cachedFetchJson<ParsedItem[]>(cacheKey, 3600, async () => {
@@ -184,6 +186,7 @@ async function fetchAndParseRss(
 
 function parseRssXml(xml: string, feed: ServerFeed, variant: string): ParsedItem[] | null {
   const items: ParsedItem[] = [];
+  const now = Date.now();
 
   const itemRegex = /<item[\s>]([\s\S]*?)<\/item>/gi;
   const entryRegex = /<entry[\s>]([\s\S]*?)<\/entry>/gi;
@@ -211,8 +214,12 @@ function parseRssXml(xml: string, feed: ServerFeed, variant: string): ParsedItem
     const pubDateStr = isAtom
       ? (extractTag(block, 'published') || extractTag(block, 'updated'))
       : extractTag(block, 'pubDate');
-    const parsedDate = pubDateStr ? new Date(pubDateStr) : new Date();
-    const publishedAt = Number.isNaN(parsedDate.getTime()) ? Date.now() : parsedDate.getTime();
+    if (!pubDateStr) continue;
+    const parsedDate = new Date(pubDateStr);
+    if (Number.isNaN(parsedDate.getTime())) continue;
+    const publishedAt = parsedDate.getTime();
+    const ageMs = now - publishedAt;
+    if (ageMs > STARTUP_MAX_ITEM_AGE_MS || ageMs < -MAX_FUTURE_ITEM_AGE_MS) continue;
 
     const threat = classifyByKeyword(title, variant);
     const isAlert = threat.level === 'critical' || threat.level === 'high';
@@ -392,7 +399,7 @@ export async function listFeedDigest(
   const variant = VALID_VARIANTS.has(req.variant) ? req.variant : 'startup';
   const lang = req.lang || 'en';
 
-  const digestCacheKey = `news:digest:v1:${variant}:${lang}`;
+  const digestCacheKey = `news:digest:v2:${variant}:${lang}`;
   const fallbackKey = `${variant}:${lang}`;
 
   const empty = (): ListFeedDigestResponse => ({ categories: {}, feedStatuses: {}, generatedAt: new Date().toISOString() });

@@ -104,7 +104,7 @@ export class DataLoaderManager implements AppModule {
       });
     }
 
-    this.ctx.allNews = this.mergeNewsItems(collected, Object.values(this.ctx.newsByCategory).flat());
+    this.ctx.allNews = this.mergeNewsItems(collected);
     this.callPanel('top-vc-signals', 'updateSignals', this.ctx.allNews);
     this.callPanel('insights', 'updateInsights', this.buildStartupSignalClusters(this.ctx.allNews));
     this.ctx.initialLoadComplete = true;
@@ -274,6 +274,7 @@ export class DataLoaderManager implements AppModule {
     } catch (error) {
       const failures = getFeedFailures();
       const failedFeeds = enabledFeeds.filter((feed) => failures.has(feed.name));
+      this.renderNewsForCategory(category, []);
       panel?.showError(failedFeeds.length > 0
         ? `${t('common.noNewsAvailable')} (${failedFeeds.map((feed) => feed.name).join(', ')} failed)`
         : t('common.noNewsAvailable'));
