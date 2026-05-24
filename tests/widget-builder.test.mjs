@@ -133,9 +133,8 @@ describe('widget-agent relay — security', () => {
   it('injection guard — hard rejected before API call', () => {
     const guardIdx = relay.indexOf('isWidgetInjectionAttempt(prompt)');
     assert.ok(guardIdx !== -1, 'injection check must be called on prompt');
-    // Guard must appear before the Anthropic client is created
-    const anthropicIdx = relay.indexOf('new Anthropic(');
-    assert.ok(guardIdx < anthropicIdx, 'injection check must happen before any Anthropic API call');
+    const openRouterIdx = relay.indexOf('await callWidgetOpenRouter');
+    assert.ok(guardIdx < openRouterIdx, 'injection check must happen before any OpenRouter API call');
   });
 
   it('injection guard — tool results are sanitized before context insertion', () => {
@@ -207,22 +206,21 @@ describe('widget-agent relay — security', () => {
     assert.ok(healthRouteIdx < catchAllIdx, 'widget-agent health route must appear before 404 catch-all');
   });
 
-  it('uses raw @anthropic-ai/sdk (not agent SDK)', () => {
-    // Dynamic import should be for @anthropic-ai/sdk specifically
+  it('uses OpenRouter free directly for widget generation', () => {
     assert.ok(
-      relay.includes("'@anthropic-ai/sdk'") || relay.includes('"@anthropic-ai/sdk"'),
-      'Must use @anthropic-ai/sdk (raw SDK)',
+      relay.includes('https://openrouter.ai/api/v1/chat/completions'),
+      'Must use OpenRouter chat completions',
     );
     assert.ok(
-      !relay.includes('@anthropic-ai/claude-code'),
-      'Must NOT use @anthropic-ai/claude-code Agent SDK',
+      relay.includes("WIDGET_OPENROUTER_MODEL = 'openrouter/free'"),
+      'Must force openrouter/free for widget agent',
     );
   });
 
-  it('model used is claude-haiku (cost-efficient for widgets)', () => {
+  it('model used is openrouter/free (cost-controlled for widgets)', () => {
     assert.ok(
-      relay.includes('claude-haiku'),
-      'Widget agent should use claude-haiku model for cost efficiency',
+      relay.includes('openrouter/free'),
+      'Widget agent should use openrouter/free for cost control',
     );
   });
 });
@@ -960,10 +958,10 @@ describe('PRO widget — relay auth and configuration', () => {
     );
   });
 
-  it('PRO uses claude-sonnet model (not haiku)', () => {
+  it('PRO also uses OpenRouter free model', () => {
     assert.ok(
-      relay.includes('claude-sonnet'),
-      'PRO tier must use claude-sonnet model',
+      relay.includes('const model = WIDGET_OPENROUTER_MODEL'),
+      'PRO tier must stay on the shared OpenRouter free model',
     );
   });
 

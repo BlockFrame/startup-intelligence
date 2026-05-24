@@ -24,7 +24,6 @@
     "Portkey-AI/gateway",
     "BerriAI/litellm",
     "Helicone/helicone",
-    "langgenius/dify",
     "microsoft/promptflow",
     "guardrails-ai/guardrails",
     "NVIDIA/garak",
@@ -35,7 +34,6 @@
     "langfuse/langfuse",
     "openai/evals",
     "EleutherAI/lm-evaluation-harness",
-    "microsoft/promptflow",
     "Farama-Foundation/Gymnasium",
     "google-deepmind/open_spiel",
     "awesome-llm-apps/awesome-llm-apps"

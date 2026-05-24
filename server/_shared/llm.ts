@@ -197,8 +197,12 @@ export function stripThinkingTags(text: string): string {
 }
 
 
-const PROVIDER_CHAIN = ['ollama', 'groq', 'openrouter', 'openai', 'anthropic', 'mistral', 'huggingface', 'generic'] as const;
+const PROVIDER_CHAIN = ['openrouter', 'ollama', 'groq', 'openai', 'anthropic', 'mistral', 'huggingface', 'generic'] as const;
 const PROVIDER_SET = new Set<string>(PROVIDER_CHAIN);
+
+function shouldAllowPaidLlmFallbacks(): boolean {
+  return process.env.LLM_ALLOW_PAID_FALLBACKS === 'true';
+}
 
 export interface LlmCallOptions {
   messages: Array<{ role: string; content: string }>;
@@ -206,8 +210,8 @@ export interface LlmCallOptions {
   maxTokens?: number;
   timeoutMs?: number;
   provider?: string;
-  // Optional overrides. When omitted, the historic provider chain and default
-  // provider models remain unchanged for all existing callers.
+  // Optional overrides. When omitted, Startup Intelligence uses OpenRouter free
+  // only unless LLM_ALLOW_PAID_FALLBACKS=true is explicitly set.
   providerOrder?: string[];
   modelOverrides?: Partial<Record<LlmProviderName, string>>;
   stripThinkingTags?: boolean;
@@ -229,7 +233,7 @@ function resolveProviderChain(opts: {
 }): string[] {
   if (opts.forcedProvider) return [opts.forcedProvider];
   if (!Array.isArray(opts.providerOrder) || opts.providerOrder.length === 0) {
-    return [...PROVIDER_CHAIN];
+    return shouldAllowPaidLlmFallbacks() ? [...PROVIDER_CHAIN] : ['openrouter'];
   }
 
   const seen = new Set<string>();
@@ -258,7 +262,7 @@ function callLlmProfile(
   const model = provider === 'openrouter'
     ? resolveOpenRouterModel(rawModel || process.env.OPENROUTER_MODEL)
     : rawModel;
-  const remaining = PROVIDER_CHAIN.filter((p) => p !== provider);
+  const remaining = shouldAllowPaidLlmFallbacks() ? PROVIDER_CHAIN.filter((p) => p !== provider) : [];
   return callLlm({
     ...opts,
     providerOrder: [provider, ...remaining],
@@ -331,7 +335,7 @@ function extractLlmStreamDelta(creds: ProviderCredentials, chunk: any): string {
 
 /** Cheap/fast model for extraction and parsing tasks. Configurable via LLM_TOOL_PROVIDER / LLM_TOOL_MODEL. */
 export const callLlmTool = (opts: Omit<LlmCallOptions, 'providerOrder' | 'modelOverrides'>) =>
-  callLlmProfile(opts, 'LLM_TOOL_PROVIDER', 'LLM_TOOL_MODEL', 'groq');
+  callLlmProfile(opts, 'LLM_TOOL_PROVIDER', 'LLM_TOOL_MODEL', 'openrouter');
 
 /** Powerful model for synthesis and reasoning tasks. Configurable via LLM_REASONING_PROVIDER / LLM_REASONING_MODEL. */
 export const callLlmReasoning = (opts: Omit<LlmCallOptions, 'providerOrder' | 'modelOverrides'>) =>
@@ -355,7 +359,7 @@ export function callLlmReasoningStream(opts: LlmStreamOptions): ReadableStream<U
   const model = provider === 'openrouter'
     ? resolveOpenRouterModel(process.env.LLM_REASONING_MODEL || process.env.OPENROUTER_MODEL)
     : process.env.LLM_REASONING_MODEL;
-  const remaining = PROVIDER_CHAIN.filter((p) => p !== provider);
+  const remaining = shouldAllowPaidLlmFallbacks() ? PROVIDER_CHAIN.filter((p) => p !== provider) : [];
   const providerOrder = [provider, ...remaining];
   const modelOverrides = model ? { [provider]: model } as Partial<Record<LlmProviderName, string>> : undefined;
 

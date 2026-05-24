@@ -22,6 +22,7 @@ type WidgetAgentHealth = {
   agentEnabled?: boolean;
   widgetKeyConfigured?: boolean;
   anthropicConfigured?: boolean;
+  openRouterConfigured?: boolean;
   proKeyConfigured?: boolean;
   error?: string;
 };
@@ -389,7 +390,7 @@ function renderExampleChips(container: HTMLElement, inputEl: HTMLTextAreaElement
 function resolvePreflightMessage(status: number, payload: WidgetAgentHealth | null, isPro: boolean): string {
   if (status === 403) return isPro ? t('widgets.preflightInvalidProKey') : t('widgets.preflightInvalidKey');
   if (status === 503 && payload?.proKeyConfigured === false) return t('widgets.preflightProUnavailable');
-  if (payload?.anthropicConfigured === false) return t('widgets.preflightAiUnavailable');
+  if (payload?.openRouterConfigured === false || payload?.anthropicConfigured === false) return t('widgets.preflightAiUnavailable');
   return t('widgets.preflightUnavailable');
 }
 

@@ -1,7 +1,8 @@
 /**
  * Summarization Service with Fallback Chain
  * Server-side Redis caching handles cross-user deduplication
- * Fallback: Ollama -> Groq -> OpenRouter -> OpenAI -> Anthropic -> Mistral -> Hugging Face -> Browser T5
+ * Fallback: OpenRouter free -> Browser T5.
+ * Paid cloud fallbacks stay disabled unless VITE_ALLOW_PAID_LLM_FALLBACKS=true.
  *
  * Uses NewsServiceClient.summarizeArticle() RPC instead of legacy
  * per-provider fetch endpoints.
@@ -69,14 +70,21 @@ interface ApiProviderDef {
 }
 
 const API_PROVIDERS: ApiProviderDef[] = [
+  { featureId: 'aiOpenRouter',  provider: 'openrouter', label: 'OpenRouter' },
+];
+
+const PAID_FALLBACK_PROVIDERS: ApiProviderDef[] = [
   { featureId: 'aiOllama',      provider: 'ollama',     label: 'Ollama' },
   { featureId: 'aiGroq',        provider: 'groq',       label: 'Groq AI' },
-  { featureId: 'aiOpenRouter',  provider: 'openrouter', label: 'OpenRouter' },
   { featureId: 'aiOpenAI',      provider: 'openai',     label: 'OpenAI' },
   { featureId: 'aiAnthropic',   provider: 'anthropic',  label: 'Anthropic' },
   { featureId: 'aiMistral',     provider: 'mistral',    label: 'Mistral' },
   { featureId: 'aiHuggingFace', provider: 'huggingface', label: 'Hugging Face' },
 ];
+
+const CLOUD_PROVIDERS: ApiProviderDef[] = import.meta.env.VITE_ALLOW_PAID_LLM_FALLBACKS === 'true'
+  ? [...API_PROVIDERS, ...PAID_FALLBACK_PROVIDERS]
+  : API_PROVIDERS;
 
 let lastAttemptedProvider = 'none';
 
@@ -186,7 +194,7 @@ async function runApiChain(
 
 /**
  * Generate a summary using the fallback chain:
- * Ollama -> Groq -> OpenRouter -> OpenAI -> Anthropic -> Mistral -> Hugging Face -> Browser T5
+ * OpenRouter free -> Browser T5
  * Server-side Redis caching is handled by the SummarizeArticle RPC handler
  * @param geoContext Optional geographic signal context to include in the prompt
  */
@@ -252,33 +260,30 @@ async function generateSummaryInternal(
     const modelReady = mlWorker.isAvailable && mlWorker.isModelLoaded('summarization-beta');
 
     if (modelReady) {
-      const totalSteps = 1 + API_PROVIDERS.length;
+      const totalSteps = 1 + CLOUD_PROVIDERS.length;
       // Model already loaded -- use browser T5-small first
       if (!options?.skipBrowserFallback) {
         onProgress?.(1, totalSteps, 'Running local AI model (beta)...');
         const browserResult = await tryBrowserT5(headlines, 'summarization-beta', options?.mode || 'brief');
         if (browserResult) {
-          const groqProvider = API_PROVIDERS.find(p => p.provider === 'groq');
-          if (groqProvider && !options?.skipCloudProviders) tryApiProvider(groqProvider, headlines, geoContext, lang, options?.mode || 'brief').catch(() => {});
-
           return browserResult;
         }
       }
 
       // Warm model failed inference -- fallback through API providers
       if (!options?.skipCloudProviders) {
-        const chainResult = await runApiChain(API_PROVIDERS, headlines, geoContext, undefined, onProgress, 2, totalSteps, options?.mode || 'brief');
+        const chainResult = await runApiChain(CLOUD_PROVIDERS, headlines, geoContext, undefined, onProgress, 2, totalSteps, options?.mode || 'brief');
         if (chainResult) return chainResult;
       }
     } else {
-      const totalSteps = API_PROVIDERS.length + 2;
+      const totalSteps = CLOUD_PROVIDERS.length + 2;
       if (mlWorker.isAvailable && !options?.skipBrowserFallback) {
         mlWorker.loadModel('summarization-beta').catch(() => {});
       }
 
       // API providers while model loads
       if (!options?.skipCloudProviders) {
-        const chainResult = await runApiChain(API_PROVIDERS, headlines, geoContext, undefined, onProgress, 1, totalSteps, options?.mode || 'brief');
+        const chainResult = await runApiChain(CLOUD_PROVIDERS, headlines, geoContext, undefined, onProgress, 1, totalSteps, options?.mode || 'brief');
         if (chainResult) {
           return chainResult;
         }
@@ -286,7 +291,7 @@ async function generateSummaryInternal(
 
       // Last resort: try browser T5 (may have finished loading by now)
       if (mlWorker.isAvailable && !options?.skipBrowserFallback) {
-        onProgress?.(API_PROVIDERS.length + 1, totalSteps, 'Waiting for local AI model...');
+        onProgress?.(CLOUD_PROVIDERS.length + 1, totalSteps, 'Waiting for local AI model...');
         const browserResult = await tryBrowserT5(headlines, 'summarization-beta', options?.mode || 'brief');
         if (browserResult) return browserResult;
       }
@@ -301,11 +306,11 @@ async function generateSummaryInternal(
   }
 
   // Normal mode: API chain -> Browser T5
-  const totalSteps = API_PROVIDERS.length + 1;
+  const totalSteps = CLOUD_PROVIDERS.length + 1;
   let chainResult: SummarizationResult | null = null;
 
   if (!options?.skipCloudProviders) {
-    chainResult = await runApiChain(API_PROVIDERS, headlines, geoContext, lang, onProgress, 1, totalSteps, options?.mode || 'brief');
+    chainResult = await runApiChain(CLOUD_PROVIDERS, headlines, geoContext, lang, onProgress, 1, totalSteps, options?.mode || 'brief');
   }
   if (chainResult) return chainResult;
 
@@ -334,8 +339,8 @@ export async function translateText(
 ): Promise<string | null> {
   if (!text) return null;
 
-  const totalSteps = API_PROVIDERS.length;
-  for (const [i, providerDef] of API_PROVIDERS.entries()) {
+  const totalSteps = CLOUD_PROVIDERS.length;
+  for (const [i, providerDef] of CLOUD_PROVIDERS.entries()) {
     if (!isFeatureAvailable(providerDef.featureId)) continue;
 
     onProgress?.(i + 1, totalSteps, `Translating with ${providerDef.label}...`);

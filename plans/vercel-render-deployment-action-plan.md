@@ -244,12 +244,48 @@ Check these cards:
 - `Trending repos` tab loads direct GitHub Trending data.
 - Search and filters work inside each tab.
 - Repo first column is clickable.
+- `Master repos` first tries `/api/github-master-repos` backed by Supabase, then falls back to `src/config/github-curated-fallback.json`.
+- Public users do not fan out into one GitHub request per master repo.
+
+Supabase table for manually managed master repos:
+
+```sql
+create table if not exists public.github_master_repos (
+  full_name text primary key,
+  status text not null default 'master',
+  sort_order integer not null default 1000,
+  repo_json jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists github_master_repos_status_sort_idx
+  on public.github_master_repos (status, sort_order);
+```
+
+Required env vars:
+
+```bash
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_GITHUB_MASTER_REPOS_TABLE=github_master_repos
+RELAY_SHARED_SECRET=
+```
+
+Admin update endpoint:
+
+```bash
+curl -X PUT "$APP_URL/api/github-master-repos" \
+  -H "Authorization: Bearer $RELAY_SHARED_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"items":[{"full_name":"owner/repo","description":"...","html_url":"https://github.com/owner/repo"}]}'
+```
 
 ### APIs
 
 Test from browser or curl:
 
 ```text
+/api/github-master-repos
 /api/github-repos?trending=1
 /api/arxiv
 /api/rss-proxy?url=https%3A%2F%2Ftechcrunch.com%2Ffeed%2F

@@ -80,6 +80,7 @@ describe('Legacy api/*.js endpoint allowlist', () => {
     'download.js',
     'fwdstart.js',
     'geo.js',
+    'github-master-repos.js',
     'github-repos.js',
     'health.js',
     'huggingface.js',

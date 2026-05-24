@@ -31,6 +31,8 @@ const defaultFilters: Filters = {
   implementationOnly: false,
 };
 
+const PAGE_SIZE = 15;
+
 function uniq<T extends string>(values: T[]): T[] {
   return Array.from(new Set(values)).sort();
 }
@@ -108,6 +110,7 @@ export class ArxivPapersDashboard {
   private fetchedAt = '';
   private radarOpen = false;
   private queryRenderTimer: number | null = null;
+  private visibleCount = PAGE_SIZE;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -131,6 +134,7 @@ export class ArxivPapersDashboard {
       });
       this.papers = data.papers;
       this.fetchedAt = data.rawFeed.fetchedAt;
+      this.visibleCount = PAGE_SIZE;
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'Unable to fetch arXiv papers';
     } finally {
@@ -288,6 +292,8 @@ export class ArxivPapersDashboard {
     const contributions = uniq(this.papers.flatMap((paper) => paper.contributionTypes));
     const categories = uniq(this.papers.flatMap((paper) => paper.categories));
     const filtered = this.filteredPapers();
+    const visible = filtered.slice(0, this.visibleCount);
+    const remaining = filtered.length - visible.length;
 
     this.container.innerHTML = `
       <div class="arxiv-dashboard-shell ${this.radarOpen ? 'radar-open' : 'radar-collapsed'}">
@@ -330,7 +336,7 @@ export class ArxivPapersDashboard {
             <table class="arxiv-table">
               <thead><tr><th>Paper</th><th>Date</th><th>Research area</th><th>Signals</th><th>Score</th><th>Authors</th></tr></thead>
               <tbody>
-                ${filtered.map((paper) => `
+                ${visible.map((paper) => `
                   <tr>
                     <td><a class="arxiv-paper-link" href="${escapeHtml(paper.absUrl)}" target="_blank" rel="noopener"><strong>${escapeHtml(this.displayTitle(paper))}</strong></a><small>${escapeHtml(paper.summary.slice(0, 220))}${paper.summary.length > 220 ? '...' : ''}</small></td>
                     <td>${escapeHtml(new Date(paper.published).toLocaleDateString('en-US'))}</td>
@@ -342,6 +348,7 @@ export class ArxivPapersDashboard {
               </tbody>
             </table>
             ${filtered.length === 0 ? (this.error ? `<div class="arxiv-empty arxiv-empty-error">⚠️ ${escapeHtml(this.error)}</div>` : '<div class="arxiv-empty">No matching papers yet. Refresh arXiv or loosen filters.</div>') : ''}
+            ${remaining > 0 ? `<button class="arxiv-show-more" id="arxivShowMore">Show ${Math.min(remaining, PAGE_SIZE)} more · ${remaining} remaining</button>` : ''}
           </div>
         </main>
       </div>`;
@@ -354,6 +361,7 @@ export class ArxivPapersDashboard {
         const key = input.dataset.filter as keyof Filters;
         const value = input instanceof HTMLInputElement && input.type === 'checkbox' ? input.checked : input.value;
         this.filters = { ...this.filters, [key]: value };
+        this.visibleCount = PAGE_SIZE;
         if (key === 'query') {
           if (this.queryRenderTimer !== null) window.clearTimeout(this.queryRenderTimer);
           this.queryRenderTimer = window.setTimeout(() => {
@@ -385,5 +393,10 @@ export class ArxivPapersDashboard {
       this.bind();
     });
     this.container.querySelector<HTMLButtonElement>('#arxivRefreshBtn')?.addEventListener('click', () => void this.refresh());
+    this.container.querySelector<HTMLButtonElement>('#arxivShowMore')?.addEventListener('click', () => {
+      this.visibleCount += PAGE_SIZE;
+      this.render();
+      this.bind();
+    });
   }
 }

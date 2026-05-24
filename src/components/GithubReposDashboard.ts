@@ -5,6 +5,7 @@ import { intelligenceClusterViews, type IntelligenceClusterId } from '@/config/i
 
 const views = intelligenceClusterViews;
 type GithubRepoTab = 'master' | 'trending';
+type GithubTrendingWindow = 'daily' | 'weekly';
 
 interface Filters {
   view: IntelligenceClusterId;
@@ -36,6 +37,8 @@ const defaults: Filters = {
   lane: '',
 };
 
+const PAGE_SIZE = 15;
+
 const label = (s: string) => s.replace(/_/g, ' ');
 const uniq = (items: string[]) => Array.from(new Set(items)).sort();
 
@@ -62,6 +65,8 @@ export class GithubReposDashboard {
   private radarOpen = false;
   private queryRenderTimer: number | null = null;
   private activeRepoTab: GithubRepoTab = 'master';
+  private trendingWindow: GithubTrendingWindow = 'daily';
+  private visibleCount = PAGE_SIZE;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -71,24 +76,6 @@ export class GithubReposDashboard {
     this.render();
     this.bind();
     if (this.repos.length === 0) void this.refresh();
-  }
-
-  async refresh(): Promise<void> {
-    this.loading = true;
-    this.error = '';
-    this.render();
-    this.bind();
-    try {
-      const state = await fetchGithubRepoDashboardData(this.filters.view, this.activeRepoTab);
-      this.repos = this.mergeRepos(this.repos, state.repos);
-      this.fetchedAt = state.fetchedAt;
-    } catch (error) {
-      this.error = error instanceof Error ? error.message : 'Unable to fetch GitHub repositories';
-    } finally {
-      this.loading = false;
-      this.render();
-      this.bind();
-    }
   }
 
   private mergeRepos(existing: GithubEnrichedRepo[], incoming: GithubEnrichedRepo[]): GithubEnrichedRepo[] {
@@ -156,27 +143,59 @@ export class GithubReposDashboard {
     return Array.from(new Set(chips)).slice(0, 5).map((chip) => `<span>${escapeHtml(chip)}</span>`).join('');
   }
 
+  private renderScoreTooltip(repo: GithubEnrichedRepo): string {
+    const factors = [
+      { name: 'Relevance', value: repo.relevanceScore, weight: '35%', desc: 'GenAI theme alignment' },
+      { name: 'Recency', value: repo.recencyScore, weight: '20%', desc: `Updated ${repo.updatedDays}d ago` },
+      { name: 'Activity', value: Math.round(repo.activityScore), weight: '20%', desc: `${repo.forks.toLocaleString()} forks` },
+      { name: 'Popularity', value: Math.round(repo.popularityScore), weight: '15%', desc: `${repo.stars.toLocaleString()} stars` },
+      { name: 'Impl. signals', value: repo.implementationSignalScore, weight: '10%', desc: [repo.hasDocs && 'docs', repo.hasDemo && 'demo', repo.hasPaper && 'paper', repo.hasMcp && 'MCP', repo.hasDataset && 'dataset', repo.hasBenchmark && 'bench'].filter(Boolean).join(', ') || 'none' },
+    ];
+    const bonus = repo.discoveryLane === 'emerging' && repo.stars >= 1000 ? 8 : repo.discoveryLane === 'curated' ? 5 : 0;
+    return `<div class="github-score-tooltip">
+      <div class="github-score-tooltip-title">Score breakdown</div>
+      ${factors.map((f) => `<div class="github-score-tooltip-row">
+        <span class="github-score-tooltip-name">${f.name}</span>
+        <span class="github-score-tooltip-bar"><span style="width:${f.value}%"></span></span>
+        <span class="github-score-tooltip-val">${f.value}</span>
+        <span class="github-score-tooltip-weight">×${f.weight}</span>
+      </div>
+      <div class="github-score-tooltip-desc">${escapeHtml(f.desc)}</div>`).join('')}
+      ${bonus > 0 ? `<div class="github-score-tooltip-row"><span class="github-score-tooltip-name">Traction bonus</span><span class="github-score-tooltip-val">+${bonus}</span></div>` : ''}
+      <div class="github-score-tooltip-total">Final: <b>${repo.finalScore}</b>/100</div>
+    </div>`;
+  }
+
   private renderPriorityStack(repos: GithubEnrichedRepo[]): string {
     const sections = this.activeRepoTab === 'trending'
       ? [
-        { title: 'Trending repos', items: repos.slice(0, 4) },
-        { title: 'GenAI / agentic trending repos', items: repos.filter((repo) => repo.themeTags.length > 0).sort((a, b) => b.finalScore - a.finalScore || (b.starsToday ?? 0) - (a.starsToday ?? 0)).slice(0, 4) },
+        {
+          title: 'Trending repos',
+          description: 'Daily GitHub Trending, filtered and scored for GenAI, agentic systems, RAG, memory, observability, gateways, and security relevance.',
+          items: repos.slice(0, 6),
+        },
       ].filter((section) => section.items.length > 0)
       : [
-        { title: 'Master GenAI repos', items: [...repos].sort((a, b) => b.finalScore - a.finalScore).slice(0, 4) },
-        { title: 'Agentic / memory master repos', items: repos.filter((repo) => repo.themeTags.some((tag) => ['agents', 'memory', 'knowledge_layer', 'rag'].includes(tag))).sort((a, b) => b.finalScore - a.finalScore).slice(0, 4) },
+        {
+          title: 'Master repos',
+          description: 'Curated reference set for durable GenAI infrastructure: frameworks, agent runtimes, memory, RAG, gateways, observability, evaluation, and security.',
+          items: [...repos].sort((a, b) => b.finalScore - a.finalScore).slice(0, 6),
+        },
       ].filter((section) => section.items.length > 0);
     if (sections.length === 0) return '';
     return `<section class="github-priority">
       <div class="github-section-heading">
         <span>Repo priority stack</span>
-        <span class="github-score-help" tabindex="0">Score <b>?</b><em>Single formula: 30% GenAI relevance + 20% freshness + 20% community activity + 15% stars + 10% implementation readiness + 5% curated/master signal. Red &lt; 30, yellow 30-70, green &gt; 70.</em></span>
+        <span class="github-score-help" tabindex="0">Score <b>?</b><em>Single formula: 35% GenAI relevance + 20% freshness + 20% community activity + 15% stars + 10% implementation readiness + traction bonus. Red &lt; 30, yellow 30-70, green &gt; 70.</em></span>
       </div>
       ${sections.map((section) => `<div class="github-priority-group">
         <h2>${escapeHtml(section.title)}</h2>
-        <div class="github-priority-grid">
+        <p class="github-priority-copy">${escapeHtml(section.description)}</p>
+        <div class="github-carousel-shell">
+          <button class="github-carousel-btn" data-github-carousel-dir="-1" aria-label="Previous repositories">‹</button>
+          <div class="github-priority-grid github-priority-carousel" data-github-carousel>
           ${section.items.map((repo) => `<article class="github-priority-card">
-            <div class="github-priority-score score-${scoreBand(repo.finalScore)}"><b>${repo.finalScore}</b><span>Score</span></div>
+            <div class="github-priority-score score-${scoreBand(repo.finalScore)}" data-score-repo="${escapeHtml(repo.fullName)}"><b>${repo.finalScore}</b><span>Score</span>${this.renderScoreTooltip(repo)}</div>
             <div>
               <h3><a class="github-repo-link" href="${escapeHtml(repo.url)}" target="_blank" rel="noopener">${escapeHtml(repo.fullName)}</a></h3>
               <p>${escapeHtml(repo.description || 'No description available')}</p>
@@ -187,13 +206,45 @@ export class GithubReposDashboard {
               </div>
             </div>
           </article>`).join('')}
+          </div>
+          <button class="github-carousel-btn" data-github-carousel-dir="1" aria-label="Next repositories">›</button>
         </div>
       </div>`).join('')}
     </section>`;
   }
 
+  private renderTrendingWindowToggle(): string {
+    if (this.activeRepoTab !== 'trending') return '';
+    return `<div class="github-trending-window-tabs" role="tablist" aria-label="Trending repository window">
+      <button class="${this.trendingWindow === 'daily' ? 'active' : ''}" data-github-trending-window="daily">Today</button>
+      <button class="${this.trendingWindow === 'weekly' ? 'active' : ''}" data-github-trending-window="weekly">This week</button>
+    </div>`;
+  }
+
+  private renderEmptyState(): string {
+    if (this.loading) {
+      return `<div class="github-empty github-empty-loading">
+        <div class="github-empty-icon">⏳</div>
+        <p>${this.activeRepoTab === 'master' ? 'Loading curated GenAI repositories...' : 'Fetching trending repos...'}</p>
+      </div>`;
+    }
+    if (this.error) {
+      return `<div class="github-empty github-empty-error">
+        <div class="github-empty-icon">⚠️</div>
+        <p>${escapeHtml(this.error)}</p>
+        <button class="github-refresh" id="githubRefreshBtnRetry">Retry</button>
+      </div>`;
+    }
+    return `<div class="github-empty">
+      <div class="github-empty-icon">📭</div>
+      <p>No matching repositories. Adjust filters or refresh data.</p>
+    </div>`;
+  }
+
   render(): void {
     const filtered = this.filtered();
+    const visible = filtered.slice(0, this.visibleCount);
+    const remaining = filtered.length - visible.length;
     const themes = uniq(this.repos.flatMap((repo) => repo.themeTags));
     const types = uniq(this.repos.flatMap((repo) => repo.repoTypes));
     const languages = uniq(this.repos.map((repo) => repo.language).filter(Boolean));
@@ -250,17 +301,18 @@ export class GithubReposDashboard {
           <button class="${this.activeRepoTab === 'trending' ? 'active' : ''}" data-github-source-tab="trending">Trending repos</button>
         </div>
         ${this.renderPriorityStack(filtered)}
+        ${this.renderTrendingWindowToggle()}
         <div class="github-table-wrap"><table class="github-table"><thead><tr><th>Repo</th><th>Description</th><th>Tags</th><th>Stars</th><th>Updated</th><th>Language</th><th>Score</th></tr></thead><tbody>
-          ${filtered.map((repo) => `<tr>
+          ${visible.map((repo) => `<tr>
             <td><a class="github-table-link" href="${escapeHtml(repo.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(repo.fullName)}</strong></a><small>${escapeHtml(sourceLabel(repo))} · ${escapeHtml(repo.license || 'No license')}</small></td>
             <td>${escapeHtml(repo.description || 'No description available')}</td>
             <td>${this.renderSignals(repo)}</td>
             <td>${repo.stars.toLocaleString('en-US')}${repo.starsToday ? `<small>${repo.starsToday.toLocaleString('en-US')} today</small>` : ''}</td>
             <td>${repo.updatedDays}d ago</td>
             <td>${escapeHtml(repo.language)}</td>
-            <td class="github-score-cell score-${scoreBand(repo.finalScore)}"><span class="github-score-badge"><b>${repo.finalScore}</b><small>Score</small></span><small>Rel ${repo.relevanceScore} · Act ${Math.round(repo.activityScore)}</small></td>
+            <td class="github-score-cell score-${scoreBand(repo.finalScore)}"><span class="github-score-badge" data-score-repo="${escapeHtml(repo.fullName)}"><b>${repo.finalScore}</b><small>Score</small>${this.renderScoreTooltip(repo)}</span><small>Rel ${repo.relevanceScore} · Act ${Math.round(repo.activityScore)}</small></td>
           </tr>`).join('')}
-        </tbody></table>${filtered.length === 0 ? (this.error ? `<div class="github-empty github-empty-error">⚠️ ${escapeHtml(this.error)}</div>` : '<div class="github-empty">No matching repositories yet. Refresh GitHub or loosen filters.</div>') : ''}</div>
+        </tbody></table>${filtered.length === 0 ? this.renderEmptyState() : ''}${remaining > 0 ? `<button class="github-show-more" id="githubShowMore">Show ${Math.min(remaining, PAGE_SIZE)} more · ${remaining} remaining</button>` : ''}</div>
       </main>
     </div>`;
   }
@@ -272,6 +324,7 @@ export class GithubReposDashboard {
         const key = input.dataset.githubFilter as keyof Filters;
         const value = input instanceof HTMLInputElement && input.type === 'checkbox' ? input.checked : input.value;
         this.filters = { ...this.filters, [key]: value };
+        this.visibleCount = PAGE_SIZE;
         if (key === 'query') {
           if (this.queryRenderTimer !== null) window.clearTimeout(this.queryRenderTimer);
           this.queryRenderTimer = window.setTimeout(() => {
@@ -302,6 +355,7 @@ export class GithubReposDashboard {
     this.container.querySelectorAll<HTMLButtonElement>('[data-github-source-tab]').forEach((button) => {
       button.addEventListener('click', () => {
         this.activeRepoTab = button.dataset.githubSourceTab === 'trending' ? 'trending' : 'master';
+        this.visibleCount = PAGE_SIZE;
         this.render();
         this.bind();
         if (this.filtered().length === 0) void this.refresh();
@@ -310,5 +364,43 @@ export class GithubReposDashboard {
     this.container.querySelector<HTMLButtonElement>('#githubRefreshBtnRetry')?.addEventListener('click', () => {
       void this.refresh();
     });
+    this.container.querySelector<HTMLButtonElement>('#githubShowMore')?.addEventListener('click', () => {
+      this.visibleCount += PAGE_SIZE;
+      this.render();
+      this.bind();
+    });
+    this.container.querySelectorAll<HTMLButtonElement>('[data-github-trending-window]').forEach((button) => {
+      button.addEventListener('click', () => {
+        this.trendingWindow = button.dataset.githubTrendingWindow === 'weekly' ? 'weekly' : 'daily';
+        this.visibleCount = PAGE_SIZE;
+        void this.refresh();
+      });
+    });
+    this.container.querySelectorAll<HTMLButtonElement>('[data-github-carousel-dir]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const carousel = button.parentElement?.querySelector<HTMLElement>('[data-github-carousel]');
+        if (!carousel) return;
+        const dir = Number(button.dataset.githubCarouselDir || 1);
+        carousel.scrollBy({ left: dir * Math.max(280, carousel.clientWidth * 0.78), behavior: 'smooth' });
+      });
+    });
+  }
+
+  private async refresh(): Promise<void> {
+    this.loading = true;
+    this.error = '';
+    this.render();
+    this.bind();
+    try {
+      const state = await fetchGithubRepoDashboardData(this.filters.view, this.activeRepoTab, this.trendingWindow);
+      this.repos = this.mergeRepos(this.repos, state.repos);
+      this.fetchedAt = state.fetchedAt;
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'Unable to fetch GitHub repositories';
+    } finally {
+      this.loading = false;
+      this.render();
+      this.bind();
+    }
   }
 }

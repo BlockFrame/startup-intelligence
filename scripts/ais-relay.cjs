@@ -10055,7 +10055,8 @@ const WIDGET_MAX_HTML = 50_000;
 const WIDGET_PRO_MAX_HTML = 80_000;
 const WIDGET_AGENT_KEY = (process.env.WIDGET_AGENT_KEY || '').trim();
 const PRO_WIDGET_KEY = (process.env.PRO_WIDGET_KEY || '').trim();
-const WIDGET_ANTHROPIC_KEY = (process.env.ANTHROPIC_API_KEY || '').trim();
+const WIDGET_OPENROUTER_KEY = (process.env.OPENROUTER_API_KEY || '').trim();
+const WIDGET_OPENROUTER_MODEL = 'openrouter/free';
 const WIDGET_EXA_KEY = (process.env.EXA_API_KEYS || '').split(/[\n,]+/).map(k => k.trim()).filter(Boolean)[0] || '';
 const WIDGET_BRAVE_KEY = (process.env.BRAVE_API_KEYS || '').split(/[\n,]+/).map(k => k.trim()).filter(Boolean)[0] || '';
 
@@ -10118,6 +10119,71 @@ async function performWidgetWebSearch(query) {
 
   return null;
 }
+
+function toOpenRouterTool(tool) {
+  return {
+    type: 'function',
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.input_schema,
+    },
+  };
+}
+
+async function callWidgetOpenRouter({ model, maxTokens, system, tools, messages }) {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${WIDGET_OPENROUTER_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://startupintelligence.app',
+      'X-Title': 'Startup Intelligence Widget Agent',
+      'User-Agent': 'StartupIntelligence-WidgetAgent/1.0',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      temperature: 0.25,
+      messages: [
+        { role: 'system', content: system },
+        ...messages,
+      ],
+      tools: tools.length ? tools.map(toOpenRouterTool) : undefined,
+      tool_choice: tools.length ? 'auto' : undefined,
+    }),
+    signal: AbortSignal.timeout(60_000),
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`OpenRouter widget agent HTTP ${response.status}: ${body.slice(0, 200)}`);
+  }
+
+  const payload = await response.json();
+  const message = payload?.choices?.[0]?.message || {};
+  const rawToolCalls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
+  const toolCalls = rawToolCalls.map((call) => {
+    let input = {};
+    try {
+      input = JSON.parse(call?.function?.arguments || '{}');
+    } catch {
+      input = {};
+    }
+    return {
+      id: call.id,
+      name: call?.function?.name || '',
+      input,
+    };
+  }).filter((call) => call.id && call.name);
+
+  return {
+    stop_reason: toolCalls.length > 0 ? 'tool_use' : 'end_turn',
+    text: typeof message.content === 'string' ? message.content : '',
+    tool_calls: toolCalls,
+    rawToolCalls,
+  };
+}
 const WIDGET_RATE_LIMIT = 10;
 const PRO_WIDGET_RATE_LIMIT = 20;
 const WIDGET_RATE_WINDOW_MS = 60 * 60 * 1000;
@@ -10148,10 +10214,12 @@ function checkProWidgetRateLimit(ip) {
 
 function getWidgetAgentStatus() {
   return {
-    ok: Boolean(WIDGET_AGENT_KEY && WIDGET_ANTHROPIC_KEY),
+    ok: Boolean(WIDGET_AGENT_KEY && WIDGET_OPENROUTER_KEY),
     agentEnabled: true,
     widgetKeyConfigured: Boolean(WIDGET_AGENT_KEY),
-    anthropicConfigured: Boolean(WIDGET_ANTHROPIC_KEY),
+    anthropicConfigured: true,
+    openRouterConfigured: Boolean(WIDGET_OPENROUTER_KEY),
+    model: WIDGET_OPENROUTER_MODEL,
     proKeyConfigured: Boolean(PRO_WIDGET_KEY),
   };
 }
@@ -10213,7 +10281,7 @@ function handleWidgetAgentHealthRequest(req, res) {
   const status = requireWidgetAgentAccess(req, res);
   if (!status) return;
 
-  if (!status.anthropicConfigured) {
+  if (!status.openRouterConfigured) {
     return safeEnd(res, 503, { 'Content-Type': 'application/json' }, JSON.stringify({ ...status, error: 'AI backend unavailable' }));
   }
 
@@ -10223,7 +10291,7 @@ function handleWidgetAgentHealthRequest(req, res) {
 async function handleWidgetAgentRequest(req, res) {
   const status = requireWidgetAgentAccess(req, res);
   if (!status) return;
-  if (!status.anthropicConfigured) {
+  if (!status.openRouterConfigured) {
     return safeEnd(res, 503, { 'Content-Type': 'application/json' }, JSON.stringify({ ...status, error: 'AI backend unavailable' }));
   }
 
@@ -10281,7 +10349,7 @@ async function handleWidgetAgentRequest(req, res) {
   }
 
   // Tier-specific settings
-  const model = isPro ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001';
+  const model = WIDGET_OPENROUTER_MODEL;
   const maxTokens = isPro ? 8192 : 4096;
   const maxTurns = isPro ? 10 : 6;
   const maxHtml = isPro ? WIDGET_PRO_MAX_HTML : WIDGET_MAX_HTML;
@@ -10305,9 +10373,6 @@ async function handleWidgetAgentRequest(req, res) {
   }, timeoutMs);
 
   try {
-    const { default: Anthropic } = await import('@anthropic-ai/sdk');
-    const client = new Anthropic({ apiKey: WIDGET_ANTHROPIC_KEY });
-
     const messages = [
       ...conversationHistory
         .slice(-10)
@@ -10334,17 +10399,16 @@ async function handleWidgetAgentRequest(req, res) {
         ? [...messages, { role: 'user', content: 'FINAL TURN: You have used all available tool calls. You MUST emit the completed widget HTML now using the data you already have. No more tool calls — output <!-- widget-html --> immediately.' }]
         : messages;
 
-      const response = await client.messages.create({
+      const response = await callWidgetOpenRouter({
         model,
-        max_tokens: maxTokens,
+        maxTokens,
         system: systemPrompt,
         tools: isLastChance ? [] : [WIDGET_FETCH_TOOL, WIDGET_SEARCH_TOOL],
         messages: turnMessages,
       });
 
       if (response.stop_reason === 'end_turn') {
-        const textBlock = response.content.find(b => b.type === 'text');
-        const text = textBlock?.text ?? '';
+        const text = response.text ?? '';
         const htmlMatch = text.match(/<!--\s*widget-html\s*-->([\s\S]*?)<!--\s*\/widget-html\s*-->/);
         const html = (htmlMatch?.[1] ?? text).slice(0, maxHtml);
         const titleMatch = text.match(/<!--\s*title:\s*([^\n]+?)\s*-->/);
@@ -10357,21 +10421,19 @@ async function handleWidgetAgentRequest(req, res) {
 
       if (response.stop_reason === 'tool_use') {
         const toolResults = [];
-        for (const block of response.content) {
-          if (block.type !== 'tool_use') continue;
-
+        for (const block of response.tool_calls) {
           if (block.name === 'search_web') {
             const { query = '' } = block.input;
             sendWidgetSSE(res, 'tool_call', { endpoint: `search:${String(query).slice(0, 80)}` });
             try {
               const searchResult = await performWidgetWebSearch(String(query));
               if (searchResult) {
-                toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: sanitizeToolContent(JSON.stringify(searchResult.results)) });
+                toolResults.push({ role: 'tool', tool_call_id: block.id, content: sanitizeToolContent(JSON.stringify(searchResult.results)) });
               } else {
-                toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: 'No search results available. No search provider configured.' });
+                toolResults.push({ role: 'tool', tool_call_id: block.id, content: 'No search results available. No search provider configured.' });
               }
             } catch (err) {
-              toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Search failed: ${err.message}` });
+              toolResults.push({ role: 'tool', tool_call_id: block.id, content: `Search failed: ${err.message}` });
             }
             continue;
           }
@@ -10381,7 +10443,7 @@ async function handleWidgetAgentRequest(req, res) {
           sendWidgetSSE(res, 'tool_call', { endpoint });
 
           if (!isWidgetEndpointAllowed(endpoint)) {
-            toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: 'Endpoint not allowed.' });
+            toolResults.push({ role: 'tool', tool_call_id: block.id, content: 'Endpoint not allowed.' });
             continue;
           }
 
@@ -10397,16 +10459,16 @@ async function handleWidgetAgentRequest(req, res) {
             const data = await dataRes.text();
             const trimmed = data.trimStart();
             if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html')) {
-              toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: 'Error: endpoint returned HTML instead of JSON. No data available.' });
+              toolResults.push({ role: 'tool', tool_call_id: block.id, content: 'Error: endpoint returned HTML instead of JSON. No data available.' });
             } else {
-              toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: sanitizeToolContent(data) });
+              toolResults.push({ role: 'tool', tool_call_id: block.id, content: sanitizeToolContent(data) });
             }
           } catch (err) {
-            toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Fetch failed: ${err.message}` });
+            toolResults.push({ role: 'tool', tool_call_id: block.id, content: `Fetch failed: ${err.message}` });
           }
         }
-        messages.push({ role: 'assistant', content: response.content });
-        messages.push({ role: 'user', content: toolResults });
+        messages.push({ role: 'assistant', content: response.text || '', tool_calls: response.rawToolCalls });
+        messages.push(...toolResults);
         toolCallCount++;
       }
     }

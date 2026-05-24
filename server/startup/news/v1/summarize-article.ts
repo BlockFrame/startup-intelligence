@@ -42,6 +42,7 @@ export async function summarizeArticle(
   const isPremium = await isCallerPremium(ctx.request);
   const { provider, mode = 'brief', geoContext = '', variant = 'full', lang = 'en' } = req;
   const systemAppend = isPremium && typeof req.systemAppend === 'string' ? req.systemAppend : '';
+  const paidFallbacksEnabled = process.env.LLM_ALLOW_PAID_FALLBACKS === 'true';
 
   const MAX_HEADLINES = 10;
   const MAX_HEADLINE_LEN = 500;
@@ -72,6 +73,20 @@ export async function summarizeArticle(
     huggingface: 'HUGGINGFACE_API_KEY or HUGGINGFACE_TOKEN not configured',
     generic: 'LLM_API_URL/LLM_API_KEY not configured',
   };
+
+  if (provider !== 'openrouter' && !paidFallbacksEnabled) {
+    return {
+      summary: '',
+      model: '',
+      provider: provider,
+      tokens: 0,
+      fallback: true,
+      error: '',
+      errorType: '',
+      status: 'SUMMARIZE_STATUS_SKIPPED',
+      statusDetail: 'Paid LLM fallbacks disabled; use OpenRouter free.',
+    };
+  }
 
   const credentials = getProviderCredentials(provider);
   if (!credentials) {

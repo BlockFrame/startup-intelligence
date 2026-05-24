@@ -573,6 +573,24 @@ function gpsjamDevPlugin(): Plugin {
 }
 
 function githubReposDevPlugin(): Plugin {
+  const cache = new Map<string, { expiresAt: number; payload: unknown }>();
+  const lastGood = new Map<string, unknown>();
+  const readCache = (key: string) => {
+    const hit = cache.get(key);
+    return hit && hit.expiresAt > Date.now() ? hit.payload : null;
+  };
+  const writeCache = (key: string, payload: unknown, ttlMs: number) => {
+    cache.set(key, { expiresAt: Date.now() + ttlMs, payload });
+    lastGood.set(key, payload);
+  };
+  const sendJson = (res: any, payload: unknown, cacheStatus: string, maxAge = 300) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', `public, max-age=60, s-maxage=${maxAge}, stale-while-revalidate=${maxAge}, stale-if-error=86400`);
+    res.setHeader('X-Startup-Cache', cacheStatus);
+    res.end(JSON.stringify({ ...(payload as Record<string, unknown>), cache: cacheStatus }));
+  };
+
   return {
     name: 'github-repos-dev',
     configureServer(server) {
@@ -586,17 +604,23 @@ function githubReposDevPlugin(): Plugin {
           const repo = url.searchParams.get('repo');
           const search = url.searchParams.get('search');
           const trending = url.searchParams.get('trending');
+          const trendingSince = url.searchParams.get('since') === 'weekly' ? 'weekly' : 'daily';
           let upstream = '';
           if (trending === '1') {
-            const response = await fetch('https://github.com/trending', {
+            const cacheKey = `trending:${trendingSince}`;
+            const cached = readCache(cacheKey);
+            if (cached) {
+              sendJson(res, cached, 'memory-hit', 1800);
+              return;
+            }
+            const response = await fetch(`https://github.com/trending?since=${trendingSince}`, {
               headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' },
               signal: AbortSignal.timeout(10_000),
             });
             const html = await response.text();
-            res.statusCode = response.status;
-            res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Cache-Control', 'public, max-age=300');
-            res.end(JSON.stringify({ items: extractGithubTrendingRepos(html) }));
+            const payload = { items: extractGithubTrendingRepos(html), isFallback: false, source: 'github-trending-live', since: trendingSince };
+            writeCache(cacheKey, payload, 30 * 60 * 1000);
+            sendJson(res, payload, 'live-refresh', 1800);
             return;
           }
           if (repo) {
@@ -619,6 +643,15 @@ function githubReposDevPlugin(): Plugin {
             return;
           }
 
+          const cacheKey = repo
+            ? `repo:${repo.toLowerCase()}`
+            : `search:${search}:${url.searchParams.get('sort') || 'stars'}:${url.searchParams.get('order') || 'desc'}:${url.searchParams.get('per_page') || 20}`;
+          const cached = readCache(cacheKey);
+          if (cached) {
+            sendJson(res, cached, 'memory-hit', repo ? 21600 : 7200);
+            return;
+          }
+
           const response = await fetch(upstream, {
             headers: {
               Accept: 'application/vnd.github+json',
@@ -627,14 +660,70 @@ function githubReposDevPlugin(): Plugin {
             },
           });
           const json = await response.json();
-          res.statusCode = response.status;
-          res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Cache-Control', 'public, max-age=300');
-          res.end(JSON.stringify(repo ? { repo: json } : json));
+          if (!response.ok) {
+            const stale = lastGood.get(cacheKey);
+            if (stale) {
+              sendJson(res, stale, 'last-good', repo ? 21600 : 7200);
+              return;
+            }
+            res.statusCode = response.status;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(repo ? { repo: json } : json));
+            return;
+          }
+          const payload = repo ? { repo: json, source: 'github-api-live' } : { ...json, source: 'github-api-live' };
+          writeCache(cacheKey, payload, repo ? 6 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000);
+          sendJson(res, payload, 'live-refresh', repo ? 21600 : 7200);
         } catch (error: any) {
           res.statusCode = 502;
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ error: error?.message || 'GitHub request failed' }));
+        }
+      });
+    },
+  };
+}
+
+function githubMasterReposDevPlugin(): Plugin {
+  let masterRepos: unknown[] | null = null;
+  const loadFallback = async (): Promise<unknown[]> => {
+    const raw = await readFile(resolve(__dirname, 'src/config/github-curated-fallback.json'), 'utf8');
+    return JSON.parse(raw);
+  };
+
+  return {
+    name: 'github-master-repos-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith('/api/github-master-repos')) return next();
+        try {
+          if (req.method === 'GET') {
+            if (!masterRepos) masterRepos = await loadFallback();
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.end(JSON.stringify({ items: masterRepos, source: 'dev-memory', fetchedAt: new Date().toISOString() }));
+            return;
+          }
+          if (req.method === 'PUT') {
+            const chunks: Buffer[] = [];
+            req.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+            req.on('end', () => {
+              const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+              masterRepos = Array.isArray(body.items) ? body.items : [];
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ updated: masterRepos.length, source: 'dev-memory' }));
+            });
+            return;
+          }
+          res.statusCode = 405;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Method not allowed' }));
+        } catch (error: any) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: error?.message || 'GitHub master repos dev endpoint failed' }));
         }
       });
     },
@@ -853,6 +942,7 @@ export default defineConfig(({ mode }) => {
       rssProxyPlugin(),
       youtubeLivePlugin(),
       gpsjamDevPlugin(),
+      githubMasterReposDevPlugin(),
       githubReposDevPlugin(),
       huggingFaceDevPlugin(),
       alphaXivDevPlugin(),

@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 describe('callLlm', () => {
-  it('preserves the default provider order', async () => {
+  it('uses OpenRouter free as the default cloud provider', async () => {
     process.env.GROQ_API_KEY = 'groq-test-key';
     process.env.OPENROUTER_API_KEY = 'or-test-key';
     delete process.env.OLLAMA_API_URL;
@@ -47,13 +47,6 @@ describe('callLlm', () => {
       }
 
       postUrls.push(url);
-      if (url.includes('api.groq.com')) {
-        return new Response(JSON.stringify({
-          choices: [{ message: { content: 'groq response' } }],
-          usage: { total_tokens: 42 },
-        }), { status: 200 });
-      }
-
       return new Response(JSON.stringify({
         choices: [{ message: { content: 'openrouter response' } }],
         usage: { total_tokens: 99 },
@@ -65,14 +58,14 @@ describe('callLlm', () => {
     });
 
     assert.ok(result);
-    assert.equal(result.provider, 'groq');
-    assert.equal(result.model, 'llama-3.1-8b-instant');
+    assert.equal(result.provider, 'openrouter');
+    assert.equal(result.model, 'openrouter/free');
     assert.deepEqual(postUrls.filter(url => url.includes('/chat/completions')), [
-      'https://api.groq.com/openai/v1/chat/completions',
+      'https://openrouter.ai/api/v1/chat/completions',
     ]);
   });
 
-  it('supports explicitly bypassing groq with a stronger model override', async () => {
+  it('blocks paid OpenRouter model overrides and forces openrouter/free', async () => {
     process.env.GROQ_API_KEY = 'groq-test-key';
     process.env.OPENROUTER_API_KEY = 'or-test-key';
     delete process.env.OLLAMA_API_URL;
@@ -114,10 +107,10 @@ describe('callLlm', () => {
 
     assert.ok(result);
     assert.equal(result.provider, 'openrouter');
-    assert.equal(result.model, 'google/gemini-2.5-pro');
+    assert.equal(result.model, 'openrouter/free');
     assert.equal(postBodies.length, 1);
     assert.equal(postBodies[0]?.url, 'https://openrouter.ai/api/v1/chat/completions');
-    assert.equal(postBodies[0]?.body.model, 'google/gemini-2.5-pro');
+    assert.equal(postBodies[0]?.body.model, 'openrouter/free');
   });
 
   it('falls back within an explicit provider order when the upper model fails', async () => {

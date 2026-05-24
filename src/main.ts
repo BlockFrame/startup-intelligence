@@ -529,6 +529,10 @@ if (urlParams.get('settings') === '1') {
       m.initSettingsWindow();
     }
   );
+} else if (location.pathname === '/admin/github-master-repos' || urlParams.get('github-master-admin') === '1') {
+  void import('./github-master-admin-window').then((m) => {
+    m.initGithubMasterAdminWindow();
+  });
 } else if (urlParams.get('live-channels') === '1') {
   void Promise.all([import('@/services/i18n'), import('./live-channels-window')]).then(
     async ([i18n, m]) => {
