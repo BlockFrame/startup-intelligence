@@ -14,8 +14,23 @@ interface CountryHit {
 
 const COUNTRY_GEOJSON_URL = '/data/countries.geojson';
 
-/** Optional higher-resolution boundary overrides sourced from Natural Earth (served from R2 CDN). */
-const COUNTRY_OVERRIDES_URL = 'https://maps.startupintelligence.app/country-boundary-overrides.geojson';
+const ENV = (() => {
+  try {
+    return import.meta.env ?? {};
+  } catch {
+    return {} as Record<string, string | undefined>;
+  }
+})();
+const PROCESS_ENV = (() => {
+  try {
+    return (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
+  } catch {
+    return {} as Record<string, string | undefined>;
+  }
+})();
+
+/** Optional higher-resolution boundary overrides. Configure only when the maps CDN exists. */
+const COUNTRY_OVERRIDES_URL = ENV.VITE_COUNTRY_BOUNDARY_OVERRIDES_URL || PROCESS_ENV.VITE_COUNTRY_BOUNDARY_OVERRIDES_URL || '';
 const COUNTRY_OVERRIDE_TIMEOUT_MS = 3_000;
 
 const POLITICAL_OVERRIDES: Record<string, string> = { 'CN-TW': 'TW' };
@@ -266,18 +281,20 @@ async function ensureLoaded(): Promise<void> {
       rebuildCountryIndex(data);
 
       // Apply optional higher-resolution boundary overrides (sourced from Natural Earth)
-      try {
-        const overrideResp = await fetch(COUNTRY_OVERRIDES_URL, {
-          signal: makeTimeout(COUNTRY_OVERRIDE_TIMEOUT_MS),
-        });
-        if (overrideResp.ok) {
-          const overrideData = (await overrideResp.json()) as FeatureCollection<Geometry>;
-          if (overrideData?.type === 'FeatureCollection' && Array.isArray(overrideData.features)) {
-            applyCountryGeometryOverrides(data, overrideData);
+      if (COUNTRY_OVERRIDES_URL) {
+        try {
+          const overrideResp = await fetch(COUNTRY_OVERRIDES_URL, {
+            signal: makeTimeout(COUNTRY_OVERRIDE_TIMEOUT_MS),
+          });
+          if (overrideResp.ok) {
+            const overrideData = (await overrideResp.json()) as FeatureCollection<Geometry>;
+            if (overrideData?.type === 'FeatureCollection' && Array.isArray(overrideData.features)) {
+              applyCountryGeometryOverrides(data, overrideData);
+            }
           }
+        } catch {
+          // Overrides optional; ignore fetch/parse errors
         }
-      } catch {
-        // Overrides optional; ignore fetch/parse errors
       }
     } catch (err) {
       console.warn('[country-geometry] Failed to load countries.geojson:', err);

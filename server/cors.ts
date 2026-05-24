@@ -8,6 +8,7 @@
 const PRODUCTION_PATTERNS: RegExp[] = [
   /^https:\/\/(.*\.)?startupintelligence\.app$/,
   /^https:\/\/startup-?intelligence-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
+  /^https:\/\/startup-?intelligence-[a-z0-9-]+\.vercel\.app$/,
   /^https?:\/\/tauri\.localhost(:\d+)?$/,
   /^https?:\/\/[a-z0-9-]+\.tauri\.localhost(:\d+)?$/i,
   /^tauri:\/\/localhost$/,

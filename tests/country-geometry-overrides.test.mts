@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const originalFetch = globalThis.fetch;
 const originalAbortSignalTimeout = AbortSignal.timeout;
+const originalOverrideUrl = process.env.VITE_COUNTRY_BOUNDARY_OVERRIDES_URL;
 
 function jsonResponse(body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -25,6 +26,8 @@ function installFastAbortTimeout(delayMs = 5): void {
 
 function restoreGlobals(): void {
   globalThis.fetch = originalFetch;
+  if (originalOverrideUrl == null) delete process.env.VITE_COUNTRY_BOUNDARY_OVERRIDES_URL;
+  else process.env.VITE_COUNTRY_BOUNDARY_OVERRIDES_URL = originalOverrideUrl;
   Object.defineProperty(AbortSignal, 'timeout', {
     configurable: true,
     writable: true,
@@ -68,6 +71,7 @@ afterEach(() => {
 
 describe('country geometry overrides', () => {
   it('loads bundled geometry when override fetch times out', async () => {
+    process.env.VITE_COUNTRY_BOUNDARY_OVERRIDES_URL = 'https://maps.startupintelligence.app/country-boundary-overrides.geojson';
     installFastAbortTimeout();
     let overrideAborted = false;
 
@@ -98,6 +102,7 @@ describe('country geometry overrides', () => {
   });
 
   it('applies override geometry when the CDN responds in time', async () => {
+    process.env.VITE_COUNTRY_BOUNDARY_OVERRIDES_URL = 'https://maps.startupintelligence.app/country-boundary-overrides.geojson';
     globalThis.fetch = ((input: string | URL | Request) => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       if (url === '/data/countries.geojson') {

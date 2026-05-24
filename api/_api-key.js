@@ -7,6 +7,8 @@ const DESKTOP_ORIGIN_PATTERNS = [
 
 const BROWSER_ORIGIN_PATTERNS = [
   /^https:\/\/(.*\.)?startupintelligence\.app$/,
+  /^https:\/\/startup-?intelligence-[a-z0-9-]+\.vercel\.app$/,
+  /^https:\/\/startup-?intelligence-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
   ...(process.env.NODE_ENV === 'production' ? [] : [
     /^https?:\/\/localhost(:\d+)?$/,
     /^https?:\/\/127\.0\.0\.1(:\d+)?$/,

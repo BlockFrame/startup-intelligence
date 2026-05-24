@@ -58,6 +58,15 @@ describe('gateway CDN origin policy', () => {
     assert.match(res.headers.get('CDN-Cache-Control') ?? '', /s-maxage=/);
   });
 
+  it('enables CDN caching for beta Vercel project origins', async () => {
+    const origin = 'https://startup-intelligence-beta.vercel.app';
+    const res = await requestPublicRoute(origin);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('Access-Control-Allow-Origin'), origin);
+    assert.equal(res.headers.get('Vary'), 'Origin');
+    assert.match(res.headers.get('CDN-Cache-Control') ?? '', /s-maxage=/);
+  });
+
   it('enables CDN caching for localhost origins', async () => {
     const origin = 'http://127.0.0.1:5173';
     const res = await requestPublicRoute(origin);

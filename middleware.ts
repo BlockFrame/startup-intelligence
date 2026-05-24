@@ -56,9 +56,10 @@ const VARIANT_OG: Record<string, { title: string; description: string; image: st
 
 const ALLOWED_HOSTS = new Set([
   'startupintelligence.app',
+  'startup-intelligence-beta.vercel.app',
   ...Object.keys(VARIANT_HOST_MAP),
 ]);
-const VERCEL_PREVIEW_RE = /^[a-z0-9-]+-[a-z0-9]{8,}\.vercel\.app$/;
+const VERCEL_PREVIEW_RE = /^(?:[a-z0-9-]+-[a-z0-9]{8,}|startup-?intelligence-[a-z0-9-]+(?:-[a-z0-9-]+)?)\.vercel\.app$/;
 
 function normalizeHost(raw: string): string {
   return raw.toLowerCase().replace(/:\d+$/, '');
