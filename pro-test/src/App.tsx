@@ -72,7 +72,7 @@ const Logo = () => (
       <Activity className="w-6 h-6 text-si-green absolute z-10" aria-hidden="true" />
     </div>
     <div className="flex flex-col">
-      <span className="font-display font-bold text-sm leading-none tracking-tight">WORLD MONITOR</span>
+      <span className="font-display font-bold text-sm leading-none tracking-tight">AI STARTUP INTELLIGENCE</span>
       <span className="text-[9px] text-si-muted font-mono uppercase tracking-widest leading-none mt-1">by Someone.ceo</span>
     </div>
   </a>
@@ -474,7 +474,7 @@ const ProShowcase = () => (
           <div className="w-3 h-3 rounded-full bg-red-500" />
           <div className="w-3 h-3 rounded-full bg-yellow-500" />
           <div className="w-3 h-3 rounded-full bg-green-500" />
-          <span className="ml-2 font-mono text-xs text-gray-400">#world-monitor-alerts</span>
+          <span className="ml-2 font-mono text-xs text-gray-400">#ai-startup-intelligence-alerts</span>
         </div>
         <div className="p-6 space-y-6 font-sans text-sm">
           <div className="flex gap-4">
@@ -797,7 +797,7 @@ const Footer = () => (
       <div className="flex items-center gap-3 mb-4 md:mb-0">
         <img src="/favico/favicon-32x32.png" alt="" width="28" height="28" className="rounded-full" />
         <div className="flex flex-col">
-          <span className="font-display font-bold text-sm leading-none tracking-tight text-si-text">WORLD MONITOR</span>
+          <span className="font-display font-bold text-sm leading-none tracking-tight text-si-text">AI STARTUP INTELLIGENCE</span>
           <span className="text-[9px] uppercase tracking-[2px] opacity-60 mt-0.5">by Someone.ceo</span>
         </div>
       </div>
@@ -997,7 +997,7 @@ const EnterprisePage = () => (
         <div className="flex items-center gap-3 mb-4 md:mb-0">
           <img src="/favico/favicon-32x32.png" alt="" width="28" height="28" className="rounded-full" />
           <div className="flex flex-col">
-            <span className="font-display font-bold text-sm leading-none tracking-tight text-si-text">WORLD MONITOR</span>
+            <span className="font-display font-bold text-sm leading-none tracking-tight text-si-text">AI STARTUP INTELLIGENCE</span>
             <span className="text-[9px] uppercase tracking-[2px] opacity-60 mt-0.5">by Someone.ceo</span>
           </div>
         </div>

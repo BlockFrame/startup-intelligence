@@ -646,6 +646,13 @@
   flex-shrink: 0;
 }
 
+.settings-alpha-notice {
+  margin-left: auto;
+  color: var(--settings-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .settings-btn {
   font: inherit;
   font-size: 13px;
@@ -1432,4 +1439,3 @@ tr.diag-err td { color: var(--settings-red); }
     flex-wrap: wrap;
   }
 }
-

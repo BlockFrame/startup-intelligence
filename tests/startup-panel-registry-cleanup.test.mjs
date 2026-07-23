@@ -6,8 +6,8 @@ const panelsSource = readFileSync(new URL('../src/config/panels.ts', import.meta
 const panelLayoutSource = readFileSync(new URL('../src/app/panel-layout.ts', import.meta.url), 'utf8');
 const nonStartupLayoutRuntimeSource = readFileSync(new URL('../src/app/non-startup-layout-runtime.ts', import.meta.url), 'utf8');
 const startupVariantSource = readFileSync(new URL('../src/config/variants/startup.ts', import.meta.url), 'utf8');
-const startupPanelsSource = readFileSync(new URL('../src/config/startup-panels.ts', import.meta.url), 'utf8');
 const viteConfigSource = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
+const appSource = readFileSync(new URL('../src/App.ts', import.meta.url), 'utf8');
 
 const legacyPanelKeys = [
   'live-webcams',
@@ -59,14 +59,12 @@ function defaultPanelsBlock() {
   return startupVariantSource.slice(start, end);
 }
 
-test('startup panel registry lives in its own variant module', () => {
+test('startup panel registry lives in its own variant module without a build alias', () => {
   assert.match(panelsSource, /from '\.\/variants\/startup'/);
   assert.doesNotMatch(panelsSource, /const STARTUP_PANELS/);
   assert.doesNotMatch(panelsSource, /const STARTUP_MAP_LAYERS/);
   assert.doesNotMatch(panelsSource, /const STARTUP_MOBILE_MAP_LAYERS/);
-  assert.match(startupPanelsSource, /STARTUP_PANELS/);
-  assert.match(viteConfigSource, /find: '@\/config\/panels'/);
-  assert.match(viteConfigSource, /startup-panels\.ts/);
+  assert.doesNotMatch(viteConfigSource, /startup-panels\.ts/);
 });
 
 test('startup variant includes target dashboards and excludes legacy StartupIntelligence panels', () => {
@@ -102,6 +100,56 @@ test('startup panel layout repairs stale cross-variant panel storage', () => {
   assert.match(panelLayoutSource, /typeof currentConfig\.enabled === 'boolean'/);
   assert.match(panelLayoutSource, /: defaultConfig\.enabled/);
   assert.match(panelLayoutSource, /saveToStorage\(STORAGE_KEYS\.panels, this\.ctx\.panelSettings\)/);
+});
+
+test('startup MVP defaults show only investor decision-loop panels', () => {
+  const panelBlock = defaultPanelsBlock();
+  const corePanels = [
+    'map',
+    'insights',
+    'top-vc-signals',
+    'startups',
+    'ai',
+    'markets',
+    'tech-readiness',
+  ];
+  const optionalPanels = [
+    'producthunt',
+    'live-news',
+    'vcblogs',
+    'regionalStartups',
+    'unicorns',
+    'accelerators',
+    'ipo',
+    'tech',
+    'cloud',
+    'hardware',
+    'fintech',
+    'finance',
+    'layoffs',
+    'policy',
+    'security',
+    'events',
+    'monitors',
+  ];
+
+  for (const key of corePanels) {
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(panelBlock, new RegExp(`(?:${escaped}:|['"]${escaped}['"]:)\\s*\\{[^}]*enabled:\\s*true`));
+  }
+  for (const key of optionalPanels) {
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(panelBlock, new RegExp(`(?:${escaped}:|['"]${escaped}['"]:)\\s*\\{[^}]*enabled:\\s*false`));
+  }
+  assert.match(panelBlock, /Funding & Companies to Watch/);
+});
+
+test('existing startup sessions migrate to the focused defaults and keep dynamic panels', () => {
+  assert.match(appSource, /STARTUP_MVP_PANEL_FOCUS_KEY/);
+  assert.match(appSource, /new Set<string>\(STARTUP_CORE_PANEL_KEYS\)/);
+  assert.match(appSource, /enabled: corePanels\.has\(key\)/);
+  assert.match(appSource, /isDynamicPanel\(key\)/);
+  assert.match(appSource, /\[\.\.\.STARTUP_DEFAULT_PANEL_ORDER, \.\.\.dynamicOrder\]/);
 });
 
 test('startup route does not call non-startup product links for premium gating or repo stars', () => {

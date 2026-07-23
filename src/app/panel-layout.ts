@@ -7,7 +7,7 @@ import type { RelatedAsset } from '@/types';
 import type { TheaterPostureSummary } from '@/services/military-surge';
 import { LiveNewsPanel, getDefaultLiveChannels, loadChannelsFromStorage } from '@/components/LiveNewsPanel';
 import { NewsPanel } from '@/components/NewsPanel';
-import { debounce, saveToStorage, loadFromStorage } from '@/utils';
+import { debounce, formatTime, saveToStorage, loadFromStorage } from '@/utils';
 import { escapeHtml } from '@/utils/sanitize';
 import {
   FEEDS,
@@ -43,6 +43,8 @@ import type { Panel } from '@/components/Panel';
 
 const IS_STARTUP_BUILD = import.meta.env.VITE_VARIANT === 'startup';
 const STARTUP_MVP_TABS = new Set(['vc-startup', 'arxiv', 'github-repos']);
+const STARTUP_PRODUCT_NAME = 'AI Startup Intelligence';
+const APP_HOME_URL = (import.meta.env.VITE_APP_HOME_URL as string | undefined)?.trim() || '/';
 
 /** Panels that require premium access on web. Auth-based gating applies to these. */
 const WEB_PREMIUM_PANELS = new Set([
@@ -264,7 +266,7 @@ export class PanelLayoutManager implements AppModule {
               <span class="variant-label">GitHub Repo</span>
             </button>
           </div>
-          <span class="logo">${SITE_VARIANT === 'startup' ? 'Startup Intelligence' : 'Startup Intelligence'}</span><span class="logo-mobile">Startup Intelligence</span><span class="version">v${__APP_VERSION__}</span>${BETA_MODE ? '<span class="beta-badge">BETA</span>' : ''}
+          <a class="logo header-home-link" href="${escapeHtml(APP_HOME_URL)}" aria-label="${SITE_VARIANT === 'startup' ? `${STARTUP_PRODUCT_NAME} home` : 'Startup Intelligence home'}">${SITE_VARIANT === 'startup' ? STARTUP_PRODUCT_NAME : 'Startup Intelligence'}</a><a class="logo-mobile header-home-link" href="${escapeHtml(APP_HOME_URL)}" aria-label="${SITE_VARIANT === 'startup' ? `${STARTUP_PRODUCT_NAME} home` : 'Startup Intelligence home'}">${SITE_VARIANT === 'startup' ? STARTUP_PRODUCT_NAME : 'Startup Intelligence'}</a><span class="version">v${__APP_VERSION__}</span>${BETA_MODE ? '<span class="beta-badge">BETA</span>' : ''}
           ${legacyHeaderLinks}
           <button class="mobile-settings-btn" id="mobileSettingsBtn" title="${t('header.settings')}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -302,7 +304,7 @@ export class PanelLayoutManager implements AppModule {
       <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
       <nav class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-header">
-          <span class="mobile-menu-title">Startup Intelligence</span>
+          <span class="mobile-menu-title">${SITE_VARIANT === 'startup' ? STARTUP_PRODUCT_NAME : 'Startup Intelligence'}</span>
           <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close menu">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -344,7 +346,7 @@ export class PanelLayoutManager implements AppModule {
         <div class="mobile-menu-divider"></div>
         <div class="mobile-menu-footer-links">
           ${SITE_VARIANT === 'startup'
-            ? '<span>VC research workspace</span>'
+            ? '<span>Alpha test version. Data and AI outputs are experimental.</span>'
             : legacyMobileFooterLinks}
         </div>
         <div class="mobile-menu-version">v${__APP_VERSION__}</div>
@@ -398,16 +400,16 @@ export class PanelLayoutManager implements AppModule {
         <div class="site-footer-brand">
           <img src="/favico/favicon-32x32.png" alt="" width="28" height="28" class="site-footer-icon" />
           <div class="site-footer-brand-text">
-          <span class="site-footer-name">Startup Intelligence</span>
+          <span class="site-footer-name">${SITE_VARIANT === 'startup' ? STARTUP_PRODUCT_NAME : 'Startup Intelligence'}</span>
           <span class="site-footer-sub">v${__APP_VERSION__}${SITE_VARIANT === 'startup' ? '' : ' &middot; <a href="https://x.com/eliehabib" target="_blank" rel="noopener" class="site-footer-credit">@eliehabib</a>'}</span>
           </div>
         </div>
         <nav>
           ${SITE_VARIANT === 'startup'
-            ? '<span>GenAI stack intelligence for VC and investors</span>'
+            ? '<span class="site-footer-alpha">Alpha test version. Data and AI outputs are experimental and should be verified before investment decisions.</span>'
             : legacyFooterLinks}
         </nav>
-        <span class="site-footer-copy">&copy; ${new Date().getFullYear()} ${SITE_VARIANT === 'startup' ? 'Startup Intelligence' : 'Startup Intelligence'}</span>
+        <span class="site-footer-copy">&copy; ${new Date().getFullYear()} ${SITE_VARIANT === 'startup' ? STARTUP_PRODUCT_NAME : 'Startup Intelligence'}</span>
       </footer>
     `;
 
@@ -438,7 +440,7 @@ export class PanelLayoutManager implements AppModule {
       arxivEl.classList.toggle('hidden', !showArxiv);
       githubEl.classList.toggle('hidden', !showGithub);
       huggingFaceEl?.classList.toggle('hidden', !showHuggingFace);
-      footerEl?.classList.toggle('hidden', showArxiv || showGithub || showHuggingFace);
+      footerEl?.classList.remove('hidden');
       newsFilterEl?.classList.toggle('hidden', showArxiv || showGithub || showHuggingFace);
       this.ctx.container.querySelectorAll<HTMLElement>('[data-startup-tab]').forEach((el) => {
         const active = el.dataset.startupTab === tab;
@@ -1132,7 +1134,15 @@ export class PanelLayoutManager implements AppModule {
       const filtered = this.filterItemsByTimeRange(items);
       if (filtered.length === 0 && items.length > 0) {
         if (SITE_VARIANT === 'startup' && this.ctx.currentTimeRange !== 'all') {
-          panel.renderNews(items);
+          const newest = items
+            .map((item) => item.pubDate instanceof Date ? item.pubDate : new Date(item.pubDate))
+            .filter((date) => Number.isFinite(date.getTime()))
+            .sort((a, b) => b.getTime() - a.getTime())[0];
+          const rangeLabel = this.getTimeRangeLabel();
+          panel.renderNews(items, {
+            freshnessFallbackMessage: `No items in ${rangeLabel}. Showing the latest available signals${newest ? `; newest item is ${formatTime(newest)}` : ''}.`,
+            freshnessBadgeDetail: `outside ${this.ctx.currentTimeRange}`,
+          });
           return;
         }
         panel.renderFilteredEmpty(`No items in ${this.getTimeRangeLabel()}`);

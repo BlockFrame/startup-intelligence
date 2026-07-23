@@ -142,7 +142,7 @@ export function initGithubMasterAdminWindow(): void {
       <main class="admin-master-page">
         <header class="admin-master-header">
           <div>
-            <p>Startup Intelligence Admin</p>
+            <p>AI Startup Intelligence Admin</p>
             <h1>GitHub Master Repos</h1>
             <span>Manual curated source for the GitHub Repo page. Public users read this through Supabase with JSON fallback.</span>
           </div>

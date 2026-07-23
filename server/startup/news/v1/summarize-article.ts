@@ -158,7 +158,7 @@ export async function summarizeArticle(
               { role: 'system', content: effectiveSystemPrompt },
               { role: 'user', content: userPrompt },
             ],
-            { temperature: 0.3, maxTokens: mode === 'vc_thesis' ? 220 : 100, topP: 0.9 },
+            { temperature: 0.3, maxTokens: mode === 'vc_thesis' ? 220 : (mode === 'brief' || mode === 'analysis') ? 180 : 100, topP: 0.9 },
           )),
           signal: AbortSignal.timeout(9_000),
         });

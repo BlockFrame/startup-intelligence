@@ -396,7 +396,7 @@ function formatDigestHtml(stories, nowMs) {
                   <img src="https://startupintelligence.app/favico/android-chrome-192x192.png" width="36" height="36" alt="StartupIntelligence" style="border-radius: 50%; display: block;" />
                 </td>
                 <td style="padding-left: 10px;">
-                  <div style="font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.3px;">WORLD MONITOR</div>
+                  <div style="font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.3px;">AI STARTUP INTELLIGENCE</div>
                 </td>
               </tr>
             </table>

@@ -51,7 +51,7 @@ async function sendConfirmationEmail(email, referralCode) {
                     <img src="https://startupintelligence.app/favico/android-chrome-192x192.png" width="40" height="40" alt="StartupIntelligence" style="border-radius: 50%; display: block;" />
                   </td>
                   <td style="padding-left: 12px;">
-                    <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.5px;">WORLD MONITOR</div>
+                    <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.5px;">AI STARTUP INTELLIGENCE</div>
                   </td>
                 </tr>
               </table>

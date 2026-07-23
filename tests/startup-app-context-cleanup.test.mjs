@@ -46,8 +46,9 @@ test('AppContext composes startup core with legacy extension for non-startup com
   assert.match(appContextSource, /export type AppContext = StartupAppContext & LegacyAppContextExtension/);
 });
 
-test('startup news panels keep showing available items when current time range is empty', () => {
+test('startup news panels label older fallback items when the current time range is empty', () => {
   assert.match(panelLayoutSource, /SITE_VARIANT === 'startup'/);
   assert.match(panelLayoutSource, /filtered\.length === 0 && items\.length > 0/);
-  assert.match(panelLayoutSource, /panel\.renderNews\(items\)/);
+  assert.match(panelLayoutSource, /freshnessFallbackMessage/);
+  assert.match(panelLayoutSource, /freshnessBadgeDetail/);
 });

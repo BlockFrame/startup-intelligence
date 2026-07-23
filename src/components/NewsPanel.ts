@@ -4,6 +4,7 @@ import type { NewsItem, ClusteredEvent, DeviationLevel, RelatedAsset, RelatedAss
 import { THREAT_PRIORITY } from '@/services/threat-classifier';
 import { formatTime, getCSSColor } from '@/utils';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
+import { renderFormattedSummary } from '@/utils/summary-format';
 import { activityTracker } from '@/services/activity-tracker';
 import { analysisWorker } from '@/services/analysis-worker';
 import { getClusterAssetContext, MAX_DISTANCE_KM } from '@/services/related-assets';
@@ -13,14 +14,25 @@ import { getSourcePropagandaRisk, getSourceTier, getSourceType } from '@/config/
 import { SITE_VARIANT } from '@/config/variant';
 import { t, getCurrentLanguage } from '@/services/i18n';
 import { track } from '@/services/analytics';
+import {
+  FEED_STALE_AFTER_MS,
+  getNewestFeedDate,
+  isFeedCollectionStale,
+} from '@/services/feed-date';
 
 type SortMode = 'relevance' | 'newest';
+
+export interface NewsRenderOptions {
+  freshnessFallbackMessage?: string;
+  freshnessBadgeDetail?: string;
+}
 
 /** Threshold for enabling virtual scrolling */
 const VIRTUAL_SCROLL_THRESHOLD = 15;
 
 /** Summary cache TTL in milliseconds (10 minutes) */
 const SUMMARY_CACHE_TTL = 10 * 60 * 1000;
+const SUMMARY_HEADLINE_LIMIT = 12;
 
 /** Prepared cluster data for rendering */
 interface PreparedCluster {
@@ -54,8 +66,10 @@ export class NewsPanel extends Panel {
   private summaryBtn: HTMLButtonElement | null = null;
   private summaryContainer: HTMLElement | null = null;
   private currentHeadlines: string[] = [];
+  private currentSummaryContext = '';
   private lastHeadlineSignature = '';
   private isSummarizing = false;
+  private freshnessNotice: HTMLElement | null = null;
 
   // Optional risk score getter: computes 0-100 score per cluster for badge display
   private riskScoreGetter: ((cluster: ClusteredEvent) => number | null) | null = null;
@@ -70,6 +84,7 @@ export class NewsPanel extends Panel {
     this.createDeviationIndicator();
     this.createSortToggle();
     this.createSummarizeButton();
+    this.createFreshnessNotice();
     this.setupActivityTracking();
     this.initWindowedList();
     this.setupContentDelegation();
@@ -224,6 +239,30 @@ export class NewsPanel extends Panel {
     }
   }
 
+  private createFreshnessNotice(): void {
+    this.freshnessNotice = document.createElement('div');
+    this.freshnessNotice.className = 'panel-freshness-notice';
+    this.freshnessNotice.hidden = true;
+    this.element.insertBefore(this.freshnessNotice, this.content);
+  }
+
+  private setFreshnessNotice(message?: string): void {
+    if (!this.freshnessNotice) return;
+    this.freshnessNotice.hidden = !message;
+    this.freshnessNotice.textContent = message ?? '';
+  }
+
+  private getAutomaticFreshnessOptions(items: NewsItem[]): NewsRenderOptions | null {
+    const dates = items.map((item) => item.pubDate);
+    if (!isFeedCollectionStale(dates)) return null;
+    const newest = getNewestFeedDate(dates);
+    if (!newest) return null;
+    return {
+      freshnessFallbackMessage: `No source updates in the last 24 hours. Showing the latest available signals; newest item is ${formatTime(newest)}.`,
+      freshnessBadgeDetail: `>${Math.round(FEED_STALE_AFTER_MS / (60 * 60 * 1000))}h`,
+    };
+  }
+
   private async handleSummarize(): Promise<void> {
     if (this.isSummarizing || !this.summaryContainer || !this.summaryBtn) return;
     if (this.currentHeadlines.length === 0) {
@@ -236,7 +275,7 @@ export class NewsPanel extends Panel {
     const currentLang = getCurrentLanguage();
     const isVcThesisLibrary = this.panelId === 'vcblogs';
     const summaryLang = isVcThesisLibrary ? 'en' : currentLang;
-    const cacheVersion = isVcThesisLibrary ? 'panel_summary_vc_thesis_v1' : 'panel_summary_v3';
+    const cacheVersion = isVcThesisLibrary ? 'panel_summary_vc_thesis_v5' : 'panel_summary_v7';
     const cacheKey = `${cacheVersion}_${SITE_VARIANT}_${this.panelId}_${summaryLang}`;
     const cached = this.getCachedSummary(cacheKey);
     if (cached) {
@@ -254,12 +293,12 @@ export class NewsPanel extends Panel {
     const sigAtStart = this.lastHeadlineSignature;
 
     try {
-      const headlines = this.currentHeadlines.slice(0, 8);
+      const headlines = this.currentHeadlines.slice(0, SUMMARY_HEADLINE_LIMIT);
       const result = headlines.length >= 2
         ? await generateSummary(
             headlines,
             undefined,
-            isVcThesisLibrary ? this.buildVcThesisSummaryContext() : `panel:${this.panelId}`,
+            isVcThesisLibrary ? this.buildVcThesisSummaryContext() : this.buildPanelSummaryContext(),
             summaryLang,
             isVcThesisLibrary ? { mode: 'vc_thesis', cacheSalt: 'vc-thesis-v1' } : undefined,
           )
@@ -274,7 +313,7 @@ export class NewsPanel extends Panel {
       this.showSummary(summary);
     } catch {
       if (!this.element?.isConnected) return;
-      const summary = this.buildFallbackPanelSummary(this.currentHeadlines.slice(0, 8));
+      const summary = this.buildFallbackPanelSummary(this.currentHeadlines.slice(0, SUMMARY_HEADLINE_LIMIT));
       this.setCachedSummary(cacheKey, summary);
       this.showSummary(summary);
     } finally {
@@ -290,21 +329,26 @@ export class NewsPanel extends Panel {
     const clean = headlines
       .map((headline) => headline.replace(/\s+/g, ' ').trim())
       .filter(Boolean)
-      .slice(0, 5);
+      .slice(0, SUMMARY_HEADLINE_LIMIT);
     if (clean.length === 0) return t('common.noNewsAvailable');
 
     if (this.panelId === 'vcblogs') {
       const lead = clean[0];
-      const supporting = clean.slice(1, 4).join(' | ');
+      const supporting = clean.slice(1, 4);
       return [
-        `Thesis: Weak signal from current reading queue: ${lead}`,
-        'Why now: These items may point to startup strategy, platform, or capital-market shifts, but evidence is headline-level only.',
-        supporting ? `Evidence: ${supporting}` : '',
-        'Investor action: Use this as thesis material, then validate with funding data, category comps, founder interviews, and buyer pull before acting.',
-      ].filter(Boolean).join(' ');
+        `**Thesis:** Weak signal from current reading queue: ${lead}`,
+        '**Why now:** These items may point to startup strategy, platform, or capital-market shifts, but evidence is headline-level only.',
+        supporting.length ? ['**Evidence:**', ...supporting.map((item) => `- ${item}`)].join('\n') : '',
+        '**Investor action:** Validate with funding data, category comps, founder interviews, and buyer pull before acting.',
+      ].filter(Boolean).join('\n\n');
     }
 
-    return `Key signal: ${clean[0]}${clean.length > 1 ? ` Related items: ${clean.slice(1, 4).join(' | ')}` : ''}`;
+    return [
+      `**Key signal:** ${clean[0]}`,
+      clean.length > 1 ? `**Why it matters:** The panel has ${clean.length} current signals. Interesting if they point to customer demand, platform shifts, funding momentum, or distribution change rather than isolated announcements.` : '',
+      clean.length > 1 ? ['**Evidence:**', ...clean.slice(1, 5).map((item) => `- ${item}`)].join('\n') : '',
+      '**Next step:** Verify whether the pattern repeats across independent sources before treating it as investable.',
+    ].filter(Boolean).join('\n\n');
   }
 
   private buildVcThesisSummaryContext(): string {
@@ -314,6 +358,104 @@ export class NewsPanel extends Panel {
       'Goal: extract investable thesis signals from VC essays, operator newsletters, startup strategy writing, and AI market commentary.',
       'Do not summarize these as breaking news. Identify durable patterns, evidence strength, and a practical investor next step.',
     ].join('\n');
+  }
+
+  private buildPanelSummaryContext(): string {
+    return [
+      `Panel: ${this.panelId}.`,
+      'Summary input is a representative sample from the panel, not a chronological feed.',
+      'Selection mixes high-signal items, recent items, source diversity, and distinct clusters.',
+      'Goal: explain what is interesting and why, then cite the most useful evidence bullets.',
+      this.currentSummaryContext,
+    ].filter(Boolean).join('\n');
+  }
+
+  private updateSummarySelectionFromItems(items: NewsItem[]): void {
+    const seenTitles = new Set<string>();
+    const seenSources = new Set<string>();
+    const selected: NewsItem[] = [];
+    const add = (item: NewsItem | undefined) => {
+      if (!item?.title) return;
+      const key = item.title.replace(/\s+/g, ' ').trim().toLowerCase();
+      if (!key || seenTitles.has(key)) return;
+      seenTitles.add(key);
+      selected.push(item);
+    };
+
+    const byScore = [...items].sort((a, b) => {
+      const aScore = Math.max(a.importanceScore ?? 0, a.startupSignal?.score ?? 0);
+      const bScore = Math.max(b.importanceScore ?? 0, b.startupSignal?.score ?? 0);
+      return bScore - aScore || b.pubDate.getTime() - a.pubDate.getTime();
+    });
+    byScore.slice(0, 4).forEach(add);
+
+    const byRecent = [...items].sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
+    byRecent.slice(0, 4).forEach(add);
+
+    for (const item of byScore) {
+      if (selected.length >= SUMMARY_HEADLINE_LIMIT) break;
+      if (item.source && seenSources.has(item.source)) continue;
+      seenSources.add(item.source);
+      add(item);
+    }
+
+    for (const item of byScore) {
+      if (selected.length >= SUMMARY_HEADLINE_LIMIT) break;
+      add(item);
+    }
+
+    this.currentHeadlines = selected.slice(0, SUMMARY_HEADLINE_LIMIT).map(item => item.title);
+    const sourceCount = new Set(selected.map(item => item.source).filter(Boolean)).size;
+    const scoredCount = selected.filter(item => Math.max(item.importanceScore ?? 0, item.startupSignal?.score ?? 0) > 0).length;
+    this.currentSummaryContext = `Representative sample: ${selected.length}/${items.length} items, ${sourceCount} sources, ${scoredCount} scored signals.`;
+  }
+
+  private updateSummarySelectionFromClusters(clusters: ClusteredEvent[]): void {
+    const seenTitles = new Set<string>();
+    const seenSources = new Set<string>();
+    const selected: ClusteredEvent[] = [];
+    const clusterScore = (cluster: ClusteredEvent) => Math.max(
+      cluster.sourceCount * 10,
+      ...cluster.allItems.map(item => Math.max(item.importanceScore ?? 0, item.startupSignal?.score ?? 0)),
+    );
+    const add = (cluster: ClusteredEvent | undefined) => {
+      if (!cluster?.primaryTitle) return;
+      const key = cluster.primaryTitle.replace(/\s+/g, ' ').trim().toLowerCase();
+      if (!key || seenTitles.has(key)) return;
+      seenTitles.add(key);
+      selected.push(cluster);
+    };
+
+    const byScore = [...clusters].sort((a, b) => clusterScore(b) - clusterScore(a) || b.lastUpdated.getTime() - a.lastUpdated.getTime());
+    byScore.slice(0, 4).forEach(add);
+
+    const byRecent = [...clusters].sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime());
+    byRecent.slice(0, 4).forEach(add);
+
+    const byCorroboration = [...clusters].sort((a, b) => b.sourceCount - a.sourceCount || b.lastUpdated.getTime() - a.lastUpdated.getTime());
+    byCorroboration.slice(0, 3).forEach(add);
+
+    for (const cluster of byScore) {
+      if (selected.length >= SUMMARY_HEADLINE_LIMIT) break;
+      if (cluster.primarySource && seenSources.has(cluster.primarySource)) continue;
+      seenSources.add(cluster.primarySource);
+      add(cluster);
+    }
+
+    for (const cluster of byScore) {
+      if (selected.length >= SUMMARY_HEADLINE_LIMIT) break;
+      add(cluster);
+    }
+
+    this.currentHeadlines = selected.slice(0, SUMMARY_HEADLINE_LIMIT).map(cluster => {
+      const topScore = Math.max(0, ...cluster.allItems.map(item => Math.max(item.importanceScore ?? 0, item.startupSignal?.score ?? 0)));
+      const sourceSuffix = cluster.sourceCount > 1 ? ` (${cluster.sourceCount} sources)` : '';
+      const scoreSuffix = topScore > 0 ? ` [signal ${Math.round(topScore)}]` : '';
+      return `${cluster.primaryTitle}${sourceSuffix}${scoreSuffix}`;
+    });
+    const sourceCount = new Set(selected.flatMap(cluster => cluster.topSources.map(source => source.name)).filter(Boolean)).size;
+    const multiSourceCount = selected.filter(cluster => cluster.sourceCount > 1).length;
+    this.currentSummaryContext = `Representative sample: ${selected.length}/${clusters.length} clusters, ${sourceCount} sources, ${multiSourceCount} multi-source signals.`;
   }
 
   private async handleTranslate(element: HTMLElement, text: string): Promise<void> {
@@ -358,7 +500,7 @@ export class NewsPanel extends Panel {
     this.summaryContainer.style.display = 'block';
     this.summaryContainer.innerHTML = `
       <div class="panel-summary-content">
-        <span class="panel-summary-text">${escapeHtml(summary)}</span>
+        <div class="panel-summary-text">${renderFormattedSummary(summary)}</div>
         <button class="panel-summary-close" title="${t('components.newsPanel.close')}" aria-label="${t('components.newsPanel.close')}">×</button>
       </div>
     `;
@@ -372,7 +514,7 @@ export class NewsPanel extends Panel {
   }
 
   private getHeadlineSignature(): string {
-    return JSON.stringify(this.currentHeadlines.slice(0, 5).sort());
+    return JSON.stringify(this.currentHeadlines.slice(0, SUMMARY_HEADLINE_LIMIT).sort());
   }
 
   private updateHeadlineSignature(): void {
@@ -428,18 +570,28 @@ export class NewsPanel extends Panel {
   public override showError(message?: string, onRetry?: () => void, autoRetrySeconds?: number): void {
     this.lastRawClusters = null;
     this.lastRawItems = null;
+    this.setFreshnessNotice();
     super.showError(message, onRetry, autoRetrySeconds);
   }
 
-  public renderNews(items: NewsItem[]): void {
+  public renderNews(items: NewsItem[], options: NewsRenderOptions = {}): void {
     if (items.length === 0) {
       this.renderRequestId += 1; // Cancel in-flight clustering from previous renders.
+      this.setFreshnessNotice();
       this.setDataBadge('unavailable');
       this.showError(t('common.noNewsAvailable'));
       return;
     }
 
-    this.setDataBadge('live');
+    const freshness = options.freshnessFallbackMessage
+      ? options
+      : this.getAutomaticFreshnessOptions(items);
+    this.setFreshnessNotice(freshness?.freshnessFallbackMessage);
+    if (freshness?.freshnessFallbackMessage) {
+      this.setDataBadge('cached', freshness.freshnessBadgeDetail);
+    } else {
+      this.setDataBadge('live');
+    }
 
     // Always show flat items immediately for instant visual feedback,
     // then upgrade to clustered view in the background when ready.
@@ -458,6 +610,8 @@ export class NewsPanel extends Panel {
     this.setCount(0);
     this.relatedAssetContext.clear();
     this.currentHeadlines = [];
+    this.currentSummaryContext = '';
+    this.setFreshnessNotice();
     this.updateHeadlineSignature();
     this.setContent(`<div class="panel-empty">${escapeHtml(message)}</div>`);
   }
@@ -494,10 +648,7 @@ export class NewsPanel extends Panel {
     }
 
     this.setCount(sorted.length);
-    this.currentHeadlines = sorted
-      .slice(0, 5)
-      .map(item => item.title)
-      .filter((title): title is string => typeof title === 'string' && title.trim().length > 0);
+    this.updateSummarySelectionFromItems(sorted);
 
     this.updateHeadlineSignature();
 
@@ -553,8 +704,7 @@ export class NewsPanel extends Panel {
     this.setCount(totalItems);
     this.relatedAssetContext.clear();
 
-    // Store headlines for summarization (cap at 5 to reduce entity conflation in small models)
-    this.currentHeadlines = sorted.slice(0, 5).map(c => c.primaryTitle);
+    this.updateSummarySelectionFromClusters(sorted);
 
     this.updateHeadlineSignature();
 

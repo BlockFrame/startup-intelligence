@@ -1,13 +1,10 @@
-import enTranslation from '../locales/en.json';
-import itTranslation from '../locales/it.json';
-
 type TranslationValue = string | Record<string, unknown>;
 type TranslationDictionary = Record<string, TranslationValue>;
 
 const dictionary = {
   app: {
-    title: 'Startup Intelligence',
-    description: 'Startup, VC, AI stack, and market intelligence',
+    title: 'AI Startup Intelligence',
+    description: 'AI-native startup, VC, AI stack, and market intelligence',
   },
   header: {
     world: 'WORLD',
@@ -19,7 +16,7 @@ const dictionary = {
     unavailable: 'UNAVAILABLE',
     search: 'Search',
     settings: 'SETTINGS',
-    copyLink: 'Link',
+    copyLink: 'Share link',
     downloadApp: 'Download App',
     fullscreen: 'Fullscreen',
     pinMap: 'Pin map to top',
@@ -421,7 +418,7 @@ const dictionary = {
   },
   premium: {
     pro: 'PRO',
-    lockedDesc: 'Requires a Startup Intelligence license key',
+    lockedDesc: 'Requires an AI Startup Intelligence license key',
     signInToUnlock: 'Sign in to unlock premium features',
     signIn: 'Sign In to Unlock',
     upgradeDesc: 'Upgrade to Pro for full access to premium analytics',
@@ -436,18 +433,6 @@ const dictionary = {
 let currentLang = 'en';
 
 function lookup(path: string): string | null {
-  if (currentLang === 'it') {
-    let itCurrent: unknown = itTranslation;
-    for (const part of path.split('.')) {
-      if (!itCurrent || typeof itCurrent !== 'object' || !(part in itCurrent)) {
-        itCurrent = null;
-        break;
-      }
-      itCurrent = (itCurrent as Record<string, unknown>)[part];
-    }
-    if (typeof itCurrent === 'string') return itCurrent;
-  }
-
   let current: unknown = dictionary;
   for (const part of path.split('.')) {
     if (!current || typeof current !== 'object' || !(part in current)) {
@@ -458,12 +443,7 @@ function lookup(path: string): string | null {
   }
   if (typeof current === 'string') return current;
 
-  let enCurrent: unknown = enTranslation;
-  for (const part of path.split('.')) {
-    if (!enCurrent || typeof enCurrent !== 'object' || !(part in enCurrent)) return null;
-    enCurrent = (enCurrent as Record<string, unknown>)[part];
-  }
-  return typeof enCurrent === 'string' ? enCurrent : null;
+  return null;
 }
 
 function interpolate(template: string, options?: Record<string, unknown>): string {
@@ -475,14 +455,7 @@ function interpolate(template: string, options?: Record<string, unknown>): strin
 }
 
 export async function initI18n(): Promise<void> {
-  try {
-    const saved = localStorage.getItem('i18nextLng');
-    if (saved && (saved.startsWith('it') || saved.startsWith('en'))) {
-      currentLang = saved.split('-')[0]!;
-    }
-  } catch {
-    /* ignore storage errors */
-  }
+  currentLang = 'en';
   document.documentElement.setAttribute('lang', currentLang);
   document.documentElement.removeAttribute('dir');
 }
@@ -492,13 +465,8 @@ export function t(key: string, options?: Record<string, unknown>): string {
 }
 
 export async function changeLanguage(lng: string): Promise<void> {
-  const base = lng.split('-')[0] || 'en';
-  currentLang = base === 'it' ? 'it' : 'en';
-  try {
-    localStorage.setItem('i18nextLng', currentLang);
-  } catch {
-    /* ignore storage errors */
-  }
+  void lng;
+  currentLang = 'en';
   document.documentElement.setAttribute('lang', currentLang);
   window.location.reload();
 }
@@ -512,10 +480,9 @@ export function isRTL(): boolean {
 }
 
 export function getLocale(): string {
-  return currentLang === 'it' ? 'it-IT' : 'en-US';
+  return 'en-US';
 }
 
 export const LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'it', label: 'Italiano', flag: '🇮🇹' },
 ];

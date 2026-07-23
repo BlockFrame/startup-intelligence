@@ -112,7 +112,7 @@ export async function initLiveChannelsWindow(containerEl?: HTMLElement): Promise
   }
 
   if (!containerEl) {
-    document.title = `${label('components.liveNews.manage', 'Channel management')} - Startup Intelligence`;
+    document.title = `${label('components.liveNews.manage', 'Channel management')} - AI Startup Intelligence`;
   }
 
   channels = loadChannelsFromStorage();

@@ -415,6 +415,16 @@ canvas,
   color: var(--accent);
 }
 
+.header-home-link {
+  text-decoration: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.header-home-link:hover {
+  color: var(--accent);
+  opacity: 0.9;
+}
+
 .logo-mobile {
   display: none;
   font-weight: bold;
@@ -1171,11 +1181,11 @@ canvas,
   flex-direction: column;
 }
 .site-footer-name {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-body-base, system-ui, sans-serif);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
   color: var(--text);
-  letter-spacing: 1px;
+  letter-spacing: 0;
 }
 .site-footer-sub {
   font-family: var(--font-mono, monospace);
@@ -1202,6 +1212,15 @@ canvas,
   font-size: 10px;
   color: var(--text-dim);
   opacity: 0.6;
+}
+
+.site-footer-alpha {
+  display: inline-flex;
+  max-width: 760px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
@@ -1736,6 +1755,17 @@ body.panel-resize-active iframe {
   background: rgba(255, 139, 139, 0.12);
 }
 
+.panel-freshness-notice {
+  margin: 8px 10px 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(245, 191, 89, 0.32);
+  border-radius: 6px;
+  background: rgba(245, 191, 89, 0.08);
+  color: var(--semantic-elevated);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 /* Panel Sort Toggle Button (#107) */
 .panel-sort-btn {
   background: var(--overlay-medium);
@@ -1801,13 +1831,14 @@ body.panel-resize-active iframe {
 /* Panel Summary Container */
 .panel-summary {
   margin: 8px;
-  padding: 10px;
-  background: linear-gradient(135deg, rgba(68, 136, 255, 0.08), rgba(136, 68, 255, 0.08));
+  padding: 12px;
+  background: rgba(10, 16, 18, 0.92);
   border-radius: 6px;
+  border: 1px solid rgba(122, 255, 189, 0.18);
   border-left: 3px solid var(--accent);
-  font-size: 11px;
-  line-height: 1.5;
-  max-height: 100px;
+  font-size: 12px;
+  line-height: 1.58;
+  max-height: 220px;
   overflow-y: auto;
   flex-shrink: 0;
 }
@@ -1821,6 +1852,36 @@ body.panel-resize-active iframe {
 .panel-summary-text {
   flex: 1;
   color: var(--text);
+}
+
+.panel-summary-text p,
+.insights-brief-text p {
+  margin: 0 0 8px;
+}
+
+.panel-summary-text p:last-child,
+.insights-brief-text p:last-child {
+  margin-bottom: 0;
+}
+
+.panel-summary-text strong,
+.insights-brief-text strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.formatted-summary-list {
+  margin: 6px 0 8px 16px;
+  padding: 0;
+}
+
+.formatted-summary-list:last-child {
+  margin-bottom: 0;
+}
+
+.formatted-summary-list li {
+  margin: 4px 0;
+  padding-left: 2px;
 }
 
 .panel-summary-close {

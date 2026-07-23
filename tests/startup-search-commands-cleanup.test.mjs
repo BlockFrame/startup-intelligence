@@ -26,7 +26,7 @@ describe('startup search commands cleanup', () => {
     assert.match(source, /STARTUP_VIEW_COMMANDS\.has\(cmd\.id\)/);
   });
 
-  it('does not allow legacy World Monitor command groups in startup search', () => {
+  it('does not allow legacy command groups in startup search', () => {
     const startupFilterStart = source.indexOf('const STARTUP_LAYER_COMMANDS');
     const startupFilterEnd = source.indexOf('export const COMMANDS');
     assert.ok(startupFilterStart >= 0 && startupFilterEnd > startupFilterStart);

@@ -1082,7 +1082,6 @@ export default defineConfig(({ mode }) => {
         ...(startupOnly
           ? [
               { find: '@/services/i18n', replacement: resolve(__dirname, 'src/services/startup-i18n.ts') },
-              { find: '@/config/panels', replacement: resolve(__dirname, 'src/config/startup-panels.ts') },
             ]
           : []),
         { find: '@', replacement: resolve(__dirname, 'src') },

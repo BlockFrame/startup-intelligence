@@ -71,15 +71,24 @@ Best-practice rules:
     if (isTechVariant) {
       systemPrompt = `${dateContext}
 
-Summarize the single most important tech/startup headline in 2 concise sentences MAX (under 60 words total).
+Write a compact tech/startup intelligence brief from the supplied headlines.
+Output format:
+Key signal: one cohesive takeaway in 1-2 sentences.
+Why it matters: one sentence on startup, AI, funding, product, developer, or market relevance.
+Evidence:
+- synthesize one of the most relevant headlines in plain English
+- synthesize another relevant headline if it supports or challenges the pattern
+- synthesize a third headline only if it adds new evidence
+Next step: one concrete monitoring or diligence action.
+
 Rules:
-- Each numbered headline below is a SEPARATE, UNRELATED story
-- Pick the ONE most significant headline and summarize ONLY that story
-- NEVER combine or merge facts, names, or details from different headlines
-- Focus ONLY on technology, startups, AI, funding, product launches, or developer news
-- IGNORE political news, trade policy, tariffs, government actions unless directly about tech regulation
-- Lead with the company/product/technology name
-- No bullet points, no meta-commentary, no elaboration beyond the core facts${langInstruction}`;
+- Do not enumerate every headline sequentially.
+- Do not invent facts or merge unrelated companies into a fake narrative.
+- If headlines are unrelated, synthesize only the strongest shared pattern and say evidence is mixed.
+- Focus only on technology, startups, AI, funding, product launches, developer news, or tech policy.
+- Ignore politics unless directly about tech regulation, AI policy, chips, cloud, or venture markets.
+- Evidence bullets must be concise, not copied headline dumps.
+- No preamble, no meta-commentary, under 130 words.${langInstruction}`;
     } else {
       systemPrompt = `${dateContext}
 
@@ -94,19 +103,29 @@ Rules:
 - If intelligence context is provided, use it only if it relates to your chosen headline
 - No bullet points, no meta-commentary, no elaboration beyond the core facts${langInstruction}`;
     }
-    userPrompt = `Each headline below is a separate story. Pick the most important ONE and summarize only that story:\n${headlineText}${intelSection}`;
+    userPrompt = `Headlines for one compact brief. Preserve uncertainty and do not fake connections:\n${headlineText}${intelSection}`;
   } else if (opts.mode === 'analysis') {
     if (isTechVariant) {
       systemPrompt = `${dateContext}
 
-Analyze the most significant tech/startup development in 2 concise sentences MAX (under 60 words total).
+Write an insight-oriented tech/startup brief from the supplied headlines.
+Output format:
+Key insight: the most interesting pattern or tension.
+Why it matters: why a VC, founder, or AI operator should care.
+Evidence:
+- synthesize one of the most relevant headlines in plain English
+- synthesize another independent proof point if present
+- synthesize a third headline only if it adds new evidence
+Next step: what to watch or validate next.
+
 Rules:
-- Each numbered headline below is a SEPARATE, UNRELATED story
-- Pick the ONE most significant story and analyze ONLY that
-- NEVER combine facts from different headlines
-- Focus ONLY on technology implications: funding trends, AI developments, market shifts, product strategy
-- IGNORE political implications, trade wars, government unless directly about tech policy
-- Lead with the insight, no filler or elaboration`;
+- Use multiple headlines when they support a real pattern.
+- Do not summarize headlines sequentially.
+- Do not invent facts or force unrelated stories together.
+- If evidence is mixed, say so directly.
+- Evidence bullets must be concise, not copied headline dumps.
+- Focus on funding trends, AI developments, market shifts, product strategy, developer adoption, or tech policy.
+- Under 130 words.`;
     } else {
       systemPrompt = `${dateContext}
 
@@ -121,7 +140,7 @@ Rules:
 - If intelligence context is provided, use it only if it relates to your chosen headline`;
     }
     userPrompt = isTechVariant
-      ? `Each headline is a separate story. What's the key tech trend?\n${headlineText}${intelSection}`
+      ? `Create one insight brief from these current panel headlines. Use multiple headlines only when they support a real pattern:\n${headlineText}${intelSection}`
       : `Each headline is a separate story. What's the key pattern or risk?\n${headlineText}${intelSection}`;
   } else if (opts.mode === 'translate') {
     const targetLang = opts.variant;
@@ -134,9 +153,9 @@ Rules:
     userPrompt = `Translate to ${targetLang}:\n${headlines[0]}`;
   } else {
     systemPrompt = isTechVariant
-      ? `${dateContext}\n\nPick the most important tech headline and summarize it in 2 concise sentences (under 60 words). Each headline is a separate story - NEVER merge facts from different headlines. Focus on startups, AI, funding, products. Ignore politics unless directly about tech regulation.${langInstruction}`
+      ? `${dateContext}\n\nWrite an insight-oriented tech/startup brief with labels Key insight, Why it matters, Evidence, and Next step. Evidence must be 2-4 concise bullet points that synthesize the most interesting headlines, not copied headline dumps. Use multiple headlines when they support a real pattern. Do not enumerate every headline. Do not invent facts or fake connections. Under 130 words.${langInstruction}`
       : `${dateContext}\n\nPick the most important headline and summarize it in 2 concise sentences (under 60 words). Each headline is a separate, unrelated story - NEVER merge people or facts from different headlines. Lead with substance. NEVER start with "Breaking news" or "Tonight".${langInstruction}`;
-    userPrompt = `Each headline is a separate story. Key takeaway from the most important one:\n${headlineText}${intelSection}`;
+    userPrompt = `Create one insight brief from these current panel headlines. Preserve uncertainty and explain what is interesting and why:\n${headlineText}${intelSection}`;
   }
 
   return { systemPrompt, userPrompt };

@@ -34,7 +34,8 @@ test('startup bundle core imports config modules directly instead of the legacy 
 
 test('startup build variant cannot be overridden by stale localhost storage', () => {
   const variantSource = source('src/config/variant.ts');
-  assert.match(variantSource, /if \(buildVariant === 'startup'\) return 'startup';/);
+  assert.match(variantSource, /SITE_VARIANT:\s*string\s*=\s*'startup'/);
+  assert.doesNotMatch(variantSource, /localStorage|getItem|navigator/);
 });
 
 test('startup search manager does not statically import country instability or legacy geo configs', () => {

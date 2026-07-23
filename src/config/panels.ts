@@ -3,6 +3,8 @@ import {
   DEFAULT_MAP_LAYERS as STARTUP_MAP_LAYERS,
   DEFAULT_PANELS as STARTUP_PANELS,
   MOBILE_DEFAULT_MAP_LAYERS as STARTUP_MOBILE_MAP_LAYERS,
+  STARTUP_CORE_PANEL_KEYS,
+  STARTUP_DEFAULT_PANEL_ORDER,
 } from './variants/startup';
 import { getSecretState } from '@/services/runtime-config';
 import { isEntitled } from '@/services/entitlements';
@@ -16,7 +18,7 @@ export const VARIANT_DEFAULTS: Record<string, string[]> = {
 
 export const VARIANT_PANEL_OVERRIDES: Partial<Record<string, Partial<Record<string, Partial<PanelConfig>>>>> = {
   startup: {
-    map: { name: 'Startup Intelligence Map' },
+    map: { name: 'AI Startup Intelligence Map' },
     'live-news': { name: 'Live News' },
     insights: { name: 'AI Investor Brief' },
   },
@@ -51,6 +53,7 @@ export const DEFAULT_PANELS: Record<string, PanelConfig> = Object.fromEntries(
 
 export const DEFAULT_MAP_LAYERS: MapLayers = STARTUP_MAP_LAYERS;
 export const MOBILE_DEFAULT_MAP_LAYERS: MapLayers = STARTUP_MOBILE_MAP_LAYERS;
+export { STARTUP_CORE_PANEL_KEYS, STARTUP_DEFAULT_PANEL_ORDER };
 
 export const LAYER_TO_SOURCE: Partial<Record<keyof MapLayers, DataSourceId[]>> = {
   outages: ['outages'],
@@ -59,22 +62,26 @@ export const LAYER_TO_SOURCE: Partial<Record<keyof MapLayers, DataSourceId[]>> =
 export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: string[]; variants?: string[] }> = {
   core: {
     labelKey: 'header.panelCatCore',
-    panelKeys: ['map', 'insights', 'top-vc-signals', 'startups', 'producthunt', 'ai', 'markets'],
+    panelKeys: ['map', 'insights', 'top-vc-signals'],
   },
   fundingRadar: {
     labelKey: 'header.panelCatFundingRadar',
-    panelKeys: ['vcblogs', 'regionalStartups', 'unicorns', 'accelerators', 'ipo'],
+    panelKeys: ['startups', 'producthunt', 'ipo', 'unicorns', 'accelerators'],
   },
   aiObservatory: {
     labelKey: 'header.panelCatAiObservatory',
     panelKeys: ['ai', 'tech', 'cloud', 'hardware', 'events', 'tech-readiness'],
   },
-  markets: {
+  investmentDecision: {
     labelKey: 'header.panelCatMarkets',
     panelKeys: ['markets', 'finance', 'fintech', 'layoffs'],
   },
-  workspace: {
-    labelKey: 'header.panelCatWorkspace',
-    panelKeys: ['monitors', 'live-news'],
+  optionalResearch: {
+    labelKey: 'header.panelCatStartupsVc',
+    panelKeys: ['live-news', 'vcblogs', 'regionalStartups'],
+  },
+  securityPolicy: {
+    labelKey: 'header.panelCatSecurityPolicy',
+    panelKeys: ['security', 'policy', 'monitors'],
   },
 };

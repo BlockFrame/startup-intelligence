@@ -14,6 +14,8 @@ import {
   getEffectivePanelConfig,
   FREE_MAX_PANELS,
   FREE_MAX_SOURCES,
+  STARTUP_CORE_PANEL_KEYS,
+  STARTUP_DEFAULT_PANEL_ORDER,
 } from '@/config/panels';
 import { SITE_VARIANT } from '@/config/variant';
 import { sanitizeLayersForVariant } from '@/config/map-layer-definitions';
@@ -679,7 +681,7 @@ export class App {
       const validKeys = new Set(Object.keys(ALL_PANELS));
       let pruned = false;
       for (const key of Object.keys(panelSettings)) {
-        if (!validKeys.has(key) && key !== 'runtime-config') {
+        if (!validKeys.has(key) && !isDynamicPanel(key)) {
           delete panelSettings[key];
           pruned = true;
         }
@@ -691,7 +693,7 @@ export class App {
           if (!raw) continue;
           const arr = JSON.parse(raw);
           if (!Array.isArray(arr)) continue;
-          const filtered = arr.filter((k: string) => validKeys.has(k));
+          const filtered = arr.filter((k: string) => validKeys.has(k) || isDynamicPanel(k));
           if (filtered.length !== arr.length) localStorage.setItem(orderKey, JSON.stringify(filtered));
         } catch { localStorage.removeItem(orderKey); }
       }
@@ -711,6 +713,43 @@ export class App {
         console.log('[App] Applied layout reset migration (v2.5): cleared panel order/spans');
       }
       localStorage.setItem(LAYOUT_RESET_MIGRATION_KEY, 'done');
+    }
+
+    // Focus the MVP on the investor decision loop after every legacy layout
+    // migration has run. Secondary research remains available from Settings,
+    // while user-created and MCP panels keep their place after the defaults.
+    const STARTUP_MVP_PANEL_FOCUS_KEY = 'startupintelligence-startup-mvp-panel-focus-v1';
+    if (SITE_VARIANT === 'startup' && !localStorage.getItem(STARTUP_MVP_PANEL_FOCUS_KEY)) {
+      const corePanels = new Set<string>(STARTUP_CORE_PANEL_KEYS);
+      for (const key of STARTUP_DEFAULT_PANEL_ORDER) {
+        const config = getEffectivePanelConfig(key, 'startup');
+        panelSettings[key] = {
+          ...config,
+          ...panelSettings[key],
+          name: config.name,
+          enabled: corePanels.has(key),
+        };
+      }
+
+      let dynamicOrder: string[] = [];
+      try {
+        const rawOrder = localStorage.getItem(PANEL_ORDER_KEY);
+        const savedOrder = rawOrder ? JSON.parse(rawOrder) : [];
+        if (Array.isArray(savedOrder)) {
+          dynamicOrder = savedOrder.filter((key): key is string =>
+            typeof key === 'string' && isDynamicPanel(key),
+          );
+        }
+      } catch { /* corrupt order, use focused defaults */ }
+
+      localStorage.setItem(
+        PANEL_ORDER_KEY,
+        JSON.stringify([...STARTUP_DEFAULT_PANEL_ORDER, ...dynamicOrder]),
+      );
+      localStorage.removeItem(PANEL_ORDER_KEY + '-bottom-set');
+      localStorage.removeItem(PANEL_ORDER_KEY + '-bottom');
+      saveToStorage(STORAGE_KEYS.panels, panelSettings);
+      localStorage.setItem(STARTUP_MVP_PANEL_FOCUS_KEY, 'done');
     }
 
     // Desktop key management panel must always remain accessible in Tauri.

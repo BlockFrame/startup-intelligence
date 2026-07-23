@@ -250,7 +250,7 @@ export class DataLoaderManager implements AppModule {
       return [];
     }
 
-    const cacheKey = `startup-news:${category}`;
+    const cacheKey = `startup-news-v2:${category}`;
     const cached = await getPersistentCache<NewsItem[]>(cacheKey).catch(() => null);
     if (cached && Date.now() - cached.updatedAt < this.cacheMaxAgeMs) {
       const freshCached = filterFreshStartupItems(cached.data);

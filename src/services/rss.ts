@@ -72,6 +72,10 @@ function extractTitleDate(title: string, now = new Date()): Date | null {
 
 function isFreshStartupItem(item: NewsItem, feedUrl = ''): boolean {
   if (SITE_VARIANT !== 'startup') return true;
+
+  // Product Hunt feeds often contain items older than 3 days, allow them through
+  if (item.source === 'Product Hunt' || feedUrl.includes('producthunt.com')) return true;
+
   const now = Date.now();
   const ageMs = now - item.pubDate.getTime();
   if (ageMs > STARTUP_MAX_ITEM_AGE_MS) return false;

@@ -416,6 +416,14 @@ const TECH_FEEDS: Record<string, Feed[]> = {
     { name: 'The Verge AI', url: rss('https://www.theverge.com/rss/ai-artificial-intelligence/index.xml') },
     { name: 'MIT Tech Review AI', url: rss('https://www.technologyreview.com/topic/artificial-intelligence/feed') },
     { name: 'MIT Research', url: rss('https://news.mit.edu/rss/research') },
+    { name: 'Google AI', url: rss('https://news.google.com/rss/search?q=site:blog.google%2Ftechnology%2Fai+OR+site:deepmind.google+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Microsoft AI', url: rss('https://news.google.com/rss/search?q=site:blogs.microsoft.com%2Fai+OR+site:microsoft.com%2Fen-us%2Fai+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Meta AI', url: rss('https://news.google.com/rss/search?q=site:ai.meta.com%2Fblog+OR+%22Meta+AI%22+model+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'NVIDIA AI', url: rss('https://news.google.com/rss/search?q=site:blogs.nvidia.com+AI+OR+NVIDIA+AI+model+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Hugging Face Blog', url: rss('https://huggingface.co/blog/feed.xml') },
+    { name: 'Mistral AI', url: rss('https://news.google.com/rss/search?q=site:mistral.ai+AI+model+OR+%22Mistral+AI%22+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Cohere AI', url: rss('https://news.google.com/rss/search?q=site:cohere.com+AI+model+OR+%22Cohere%22+LLM+when:7d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'AI Engineering', url: rss('https://news.google.com/rss/search?q=(%22AI+agent%22+OR+RAG+OR+%22LLM+gateway%22+OR+%22AI+eval%22+OR+%22model+context+protocol%22)+when:3d&hl=en-US&gl=US&ceid=US:en') },
     { name: 'ArXiv AI', url: rss('https://export.arxiv.org/rss/cs.AI') },
     { name: 'ArXiv ML', url: rss('https://export.arxiv.org/rss/cs.LG') },
     { name: 'AI Weekly', url: rss('https://news.google.com/rss/search?q="artificial+intelligence"+OR+"machine+learning"+when:3d&hl=en-US&gl=US&ceid=US:en') },
@@ -628,7 +636,9 @@ const STARTUP_FEEDS: Record<string, Feed[]> = {
   unicorns: techFeed('unicorns'),
   accelerators: techFeed('accelerators'),
   vcblogs: techFeed('vcblogs'),
-  producthunt: techFeed('producthunt'),
+  producthunt: [
+    { name: 'Product Hunt', url: rss('https://www.producthunt.com/feed') },
+  ],
   ipo: techFeed('ipo'),
   ai: techFeed('ai'),
   tech: techFeed('tech'),
@@ -926,6 +936,21 @@ export const DEFAULT_ENABLED_SOURCES: Record<string, string[]> = {
   finance: ['CNBC', 'MarketWatch', 'Yahoo Finance', 'Financial Times', 'Reuters Business'],
   layoffs: ['Layoffs.fyi', 'TechCrunch Layoffs', 'Layoffs News'],
   thinktanks: ['Foreign Policy', 'Atlantic Council', 'Foreign Affairs', 'CSIS', 'RAND', 'Brookings', 'Carnegie', 'War on the Rocks'],
+
+  // Missing defaults for Startup/Tech variant panels
+  startups: ['TechCrunch Startups', 'Crunchbase News', 'VentureBeat', 'The Information'],
+  vcblogs: ['Y Combinator Blog', 'a16z Blog', 'Sequoia Blog', 'FwdStart Newsletter'],
+  funding: ['VC News', 'Seed & Pre-Seed'],
+  regionalStartups: ['EU Startups', 'Tech in Asia', 'Startups LATAM'],
+  unicorns: ['Unicorn News', 'CB Insights Unicorn'],
+  accelerators: ['Techstars News', 'Demo Day News', 'Startup School'],
+  producthunt: ['Product Hunt'],
+  ipo: ['IPO News', 'Tech IPO News'],
+  cloud: ['InfoQ', 'The New Stack'],
+  hardware: ["Tom's Hardware", 'Semiconductor News'],
+  fintech: ['Fintech Funding', 'Fintech News'],
+  security: ['Krebs Security', 'The Hacker News', 'Dark Reading'],
+  policy: ['Politico Tech', 'AI Regulation', 'EU Digital Policy'],
 };
 
 export function getAllDefaultEnabledSources(): Set<string> {

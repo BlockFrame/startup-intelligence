@@ -10,6 +10,7 @@ import { getTheaterPostureSummaries } from '@/services/military-surge';
 import { getCachedPosture } from '@/services/cached-theater-posture';
 import { isMobileDevice } from '@/utils';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
+import { renderFormattedSummary } from '@/utils/summary-format';
 import { SITE_VARIANT } from '@/config/variant';
 import { deletePersistentCache, getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
 import { t } from '@/services/i18n';
@@ -347,7 +348,7 @@ export class InsightsPanel extends Panel {
     if (headlines.length < 2) return;
 
     const aiContext = [
-      'You are writing for a VC partner using Startup Intelligence.',
+      'You are writing for a VC partner using AI Startup Intelligence.',
       'Startup VC investor brief v2.',
       'Generate a concise investor brief, not generic news summary.',
       'Focus on investment thesis, timing, diligence questions, market map, and watchlist.',
@@ -728,7 +729,7 @@ export class InsightsPanel extends Panel {
     return `
       <div class="insights-brief">
         <div class="insights-section-title">${title}</div>
-        <div class="insights-brief-text">${escapeHtml(brief)}</div>
+        <div class="insights-brief-text">${renderFormattedSummary(brief)}</div>
       </div>
     `;
   }

@@ -6,30 +6,41 @@ export const DEFAULT_PANELS: Record<string, PanelConfig> = {
   map: { name: 'Startup Context Map', enabled: true, priority: 1 },
   insights: { name: 'Investment Brief', enabled: true, priority: 1 },
   'top-vc-signals': { name: 'Highest-Conviction Signals', enabled: true, priority: 1 },
-  startups: { name: 'Companies to Watch', enabled: true, priority: 1 },
-  producthunt: { name: 'Launch Radar', enabled: true, priority: 1 },
+  startups: { name: 'Funding & Companies to Watch', enabled: true, priority: 1 },
   ai: { name: 'AI Observatory', enabled: true, priority: 1 },
   markets: { name: 'Public Comps', enabled: true, priority: 1 },
+  'tech-readiness': { name: 'Tech Readiness Index', enabled: true, priority: 1 },
 
-  'live-news': { name: 'Live News', enabled: true, priority: 2 },
-  vcblogs: { name: 'VC Thesis Library', enabled: true, priority: 2 },
-  regionalStartups: { name: 'Ecosystem Radar', enabled: true, priority: 2 },
-  unicorns: { name: 'Valuation Watch', enabled: true, priority: 2 },
-  accelerators: { name: 'Demo Days & Accelerators', enabled: true, priority: 2 },
-  ipo: { name: 'IPO & M&A Signals', enabled: true, priority: 2 },
-  tech: { name: 'Tech Market Signals', enabled: true, priority: 2 },
-  cloud: { name: 'Cloud & AI Infrastructure', enabled: true, priority: 2 },
-  hardware: { name: 'Semiconductor & Hardware', enabled: true, priority: 2 },
-  fintech: { name: 'Fintech Watch', enabled: true, priority: 2 },
-  finance: { name: 'Market Context', enabled: true, priority: 2 },
-  layoffs: { name: 'Talent & Layoff Signals', enabled: true, priority: 2 },
+  producthunt: { name: 'Launch Radar', enabled: false, priority: 2 },
+  'live-news': { name: 'Live News', enabled: false, priority: 2 },
+  vcblogs: { name: 'VC Thesis Library', enabled: false, priority: 2 },
+  regionalStartups: { name: 'Ecosystem Radar', enabled: false, priority: 2 },
+  unicorns: { name: 'Valuation Watch', enabled: false, priority: 2 },
+  accelerators: { name: 'Demo Days & Accelerators', enabled: false, priority: 2 },
+  ipo: { name: 'IPO & M&A Signals', enabled: false, priority: 2 },
+  tech: { name: 'Tech Market Signals', enabled: false, priority: 2 },
+  cloud: { name: 'Cloud & AI Infrastructure', enabled: false, priority: 2 },
+  hardware: { name: 'Semiconductor & Hardware', enabled: false, priority: 2 },
+  fintech: { name: 'Fintech Watch', enabled: false, priority: 2 },
+  finance: { name: 'Market Context', enabled: false, priority: 2 },
+  layoffs: { name: 'Talent & Layoff Signals', enabled: false, priority: 2 },
   policy: { name: 'AI Policy & Regulation', enabled: false, priority: 2 },
   security: { name: 'Cybersecurity Watch', enabled: false, priority: 2 },
-  'tech-readiness': { name: 'Tech Readiness Index', enabled: false, priority: 2 },
   events: { name: 'Tech Events', enabled: false, priority: 2 },
   monitors: { name: 'Investment Monitors', enabled: false, priority: 2 },
 };
 
+export const STARTUP_CORE_PANEL_KEYS = Object.freeze([
+  'map',
+  'insights',
+  'top-vc-signals',
+  'startups',
+  'ai',
+  'markets',
+  'tech-readiness',
+]);
+
+export const STARTUP_DEFAULT_PANEL_ORDER = Object.freeze(Object.keys(DEFAULT_PANELS));
 export const STARTUP_PANEL_KEYS = Object.freeze(Object.keys(DEFAULT_PANELS));
 
 export const DEFAULT_MAP_LAYERS: MapLayers = {

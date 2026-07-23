@@ -60,7 +60,7 @@ This map tracks the cleanup from the original broad global-monitoring surface to
 
 ### Still Open
 
-No active World Monitor cleanup blockers remain for the Startup Intelligence app surface.
+No active cleanup blockers remain for the Startup Intelligence app surface.
 
 Current open work is now product/MVP hardening rather than legacy cleanup:
 

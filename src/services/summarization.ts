@@ -183,12 +183,19 @@ function buildRulesSummary(headlines: string[], mode: SummaryMode = 'brief'): Su
   const secondary = cleaned.slice(1, 4);
   const summary = mode === 'vc_thesis'
     ? [
-      `Key signal: ${primary}`,
-      `Why it matters: ${secondary[0] || primary}`,
-      `Investor angle: Track whether this becomes repeated customer, funding, product, or distribution evidence.`,
-      'Confidence: Early signal until confirmed by multiple sources.',
+      `**Thesis:** Weak signal from the current panel: ${primary}`,
+      `**Why now:** ${secondary[0] || primary}`,
+      '**Investor action:** Track whether this becomes repeated customer, funding, product, or distribution evidence.',
+      '**Confidence:** Early signal until confirmed by multiple sources.',
     ].join('\n\n')
-    : `${primary}. Related signals: ${secondary.join('; ')}.`;
+    : [
+      `**Key insight:** ${primary}`,
+      secondary.length
+        ? '**Why it matters:** The other current headlines may indicate a broader shift, but confirmation requires repeated evidence across independent sources.'
+        : '**Why it matters:** This is the strongest current signal in the panel.',
+      secondary.length ? ['**Evidence:**', ...secondary.map((item) => `- ${item}`)].join('\n') : '',
+      '**Next step:** Watch whether the same theme appears in funding, product adoption, customer traction, or developer activity.',
+    ].filter(Boolean).join('\n\n');
 
   return {
     summary,

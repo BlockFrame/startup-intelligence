@@ -455,7 +455,7 @@ Goal: keep `plans/startup-cleanup-map.md` aligned with reality.
 Actions:
 
 - Mark GitHub radar split as done.
-- Mark current World Monitor cleanup blockers as closed if no longer active.
+- Mark current cleanup blockers as closed if no longer active.
 - Leave open only product/MVP improvement points.
 - Separate deploy/runtime issues from legacy cleanup issues.
 

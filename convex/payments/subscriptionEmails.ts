@@ -129,7 +129,7 @@ function userWelcomeHtml(planName: string, planKey: string): string {
           <img src="https://startupintelligence.app/favico/android-chrome-192x192.png" width="40" height="40" alt="StartupIntelligence" style="border-radius: 50%; display: block;" />
         </td>
         <td style="padding-left: 12px;">
-          <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.5px;">WORLD MONITOR</div>
+          <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.5px;">AI STARTUP INTELLIGENCE</div>
         </td>
       </tr>
     </table>
@@ -194,7 +194,7 @@ export const sendSubscriptionEmails = internalAction({
     await sendEmail(
       apiKey,
       ADMIN_EMAIL,
-      `[WM] New User Subscribed to ${planName}`,
+      `[AISI] New User Subscribed to ${planName}`,
       `<div style="font-family: monospace; padding: 20px; background: #0a0a0a; color: #e0e0e0;">
         <p style="color: #4ade80; font-size: 16px; font-weight: bold;">New Subscription</p>
         <table style="font-size: 14px; line-height: 1.8;">

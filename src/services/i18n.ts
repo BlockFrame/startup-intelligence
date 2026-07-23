@@ -145,7 +145,7 @@ export function getLocale(): string {
   return map[lang] || lang;
 }
 
-export const LANGUAGES = [
+const ALL_LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
   { code: 'bg', label: 'Български', flag: '🇧🇬' },
   { code: 'ar', label: 'العربية', flag: '🇸🇦' },
@@ -168,3 +168,7 @@ export const LANGUAGES = [
   { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
   { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
 ];
+
+export const LANGUAGES = STARTUP_FORCED_LANGUAGE
+  ? ALL_LANGUAGES.filter((language) => language.code === STARTUP_FORCED_LANGUAGE)
+  : ALL_LANGUAGES;

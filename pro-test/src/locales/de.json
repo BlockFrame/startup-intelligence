@@ -122,7 +122,7 @@
   "apiSection": {
     "apiTier": "API-TARIF",
     "title": "Programmatische Intelligence",
-    "subtitle": "Für Entwickler, Analysten und Teams, die auf World-Monitor-Daten aufbauen. Unabhängig von Pro — nutzen Sie beides oder eines.",
+    "subtitle": "Für Entwickler, Analysten und Teams, die auf AI-Startup-Intelligence-Daten aufbauen. Unabhängig von Pro — nutzen Sie beides oder eines.",
     "restApi": "REST API über alle 22 Servicebereiche",
     "authenticated": "Schlüssel-authentifiziert, Rate-Limiting pro Tarif",
     "structured": "Strukturiertes JSON mit Cache-Headern und OpenAPI-3.1-Dokumentation",

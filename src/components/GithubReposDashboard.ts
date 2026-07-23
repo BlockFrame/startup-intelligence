@@ -143,6 +143,18 @@ export class GithubReposDashboard {
     return Array.from(new Set(chips)).slice(0, 5).map((chip) => `<span>${escapeHtml(chip)}</span>`).join('');
   }
 
+  private renderRepoSignalSummary(repo: GithubEnrichedRepo): string {
+    const parts = [
+      repo.themeTags[0] ? `Theme: ${label(repo.themeTags[0])}` : '',
+      repo.repoTypes[0] ? `Type: ${label(repo.repoTypes[0])}` : '',
+      repo.language ? `Language: ${repo.language}` : '',
+      repo.hasMcp ? 'Asset: MCP' : '',
+      repo.hasBenchmark ? 'Asset: benchmark' : '',
+      repo.hasPaper ? 'Asset: paper' : '',
+    ].filter(Boolean);
+    return parts.slice(0, 4).join(' · ') || sourceLabel(repo);
+  }
+
   private renderScoreTooltip(repo: GithubEnrichedRepo): string {
     const factors = [
       { name: 'Relevance', value: repo.relevanceScore, weight: '35%', desc: 'GenAI theme alignment' },
@@ -167,18 +179,21 @@ export class GithubReposDashboard {
   }
 
   private renderPriorityStack(repos: GithubEnrichedRepo[]): string {
+    const activeTrendingLabel = this.trendingWindow === 'weekly' ? 'This week' : 'Today';
     const sections = this.activeRepoTab === 'trending'
       ? [
         {
-          title: 'Trending repos',
-          description: 'Daily GitHub Trending, filtered and scored for GenAI, agentic systems, RAG, memory, observability, gateways, and security relevance.',
+          title: `Trending repos · ${activeTrendingLabel}`,
           items: repos.slice(0, 6),
+        },
+        {
+          title: 'Trending repos ranked by star activity',
+          items: [...repos].filter((repo) => (repo.starsToday ?? 0) > 0).sort((a, b) => (b.starsToday ?? 0) - (a.starsToday ?? 0)).slice(0, 6),
         },
       ].filter((section) => section.items.length > 0)
       : [
         {
           title: 'Master repos',
-          description: 'Curated reference set for durable GenAI infrastructure: frameworks, agent runtimes, memory, RAG, gateways, observability, evaluation, and security.',
           items: [...repos].sort((a, b) => b.finalScore - a.finalScore).slice(0, 6),
         },
       ].filter((section) => section.items.length > 0);
@@ -190,7 +205,6 @@ export class GithubReposDashboard {
       </div>
       ${sections.map((section) => `<div class="github-priority-group">
         <h2>${escapeHtml(section.title)}</h2>
-        <p class="github-priority-copy">${escapeHtml(section.description)}</p>
         <div class="github-carousel-shell">
           <button class="github-carousel-btn" data-github-carousel-dir="-1" aria-label="Previous repositories">‹</button>
           <div class="github-priority-grid github-priority-carousel" data-github-carousel>
@@ -198,11 +212,12 @@ export class GithubReposDashboard {
             <div class="github-priority-score score-${scoreBand(repo.finalScore)}" data-score-repo="${escapeHtml(repo.fullName)}"><b>${repo.finalScore}</b><span>Score</span>${this.renderScoreTooltip(repo)}</div>
             <div>
               <h3><a class="github-repo-link" href="${escapeHtml(repo.url)}" target="_blank" rel="noopener">${escapeHtml(repo.fullName)}</a></h3>
-              <p>${escapeHtml(repo.description || 'No description available')}</p>
+              <p>${escapeHtml(this.renderRepoSignalSummary(repo))}</p>
               <div class="github-priority-meta">
-                <span>${escapeHtml(sourceLabel(repo))}</span>
                 <span>${repo.stars.toLocaleString('en-US')} stars</span>
                 ${repo.starsToday ? `<span>${repo.starsToday.toLocaleString('en-US')} today</span>` : ''}
+                <span>${repo.forks.toLocaleString('en-US')} forks</span>
+                <a href="${escapeHtml(repo.url)}" target="_blank" rel="noopener">repo</a>
               </div>
             </div>
           </article>`).join('')}
