@@ -74,3 +74,26 @@ export interface GithubRepoDashboardState {
   repos: GithubEnrichedRepo[];
   fetchedAt: string;
 }
+
+export interface GithubRepoMarketPick {
+  fullName: string;
+  rank: number;
+  marketPotential: number;
+  agenticPotential: number;
+  generativePotential: number;
+  confidence: 'high' | 'medium' | 'low';
+  rationale: string;
+  opportunity: string;
+  risk: string;
+}
+
+export interface GithubRepoLlmInsights {
+  summary: string;
+  marketSignals: string[];
+  topRepos: GithubRepoMarketPick[];
+  watchlist: Array<{ fullName: string; reason: string }>;
+  provider: string;
+  model: string;
+  generatedAt: string;
+  cached?: boolean;
+}

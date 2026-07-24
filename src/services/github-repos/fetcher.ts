@@ -45,7 +45,7 @@ export async function fetchGithubRepoDashboardData(trendingWindow: 'daily' | 'we
   }
   const rawRepos = payload?.items || [];
   if (rawRepos.length === 0) {
-    throw new Error('GitHub rate limit or access block. Add GITHUB_TOKEN to the dev environment, then restart the server.');
+    throw new Error('GitHub Trending returned no repositories. Please try again shortly.');
   }
   const repos = dedupeGithubRepos(
     rawRepos.map((repo) => normalizeGithubRepo(repo, 'emerging', false)),

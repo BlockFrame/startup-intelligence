@@ -2,13 +2,19 @@ import { getPublicCorsHeaders } from './_cors.js';
 import { readJsonFromUpstash, setCachedData } from './_upstash-json.js';
 
 const GH = 'https://api.github.com';
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3-trending-direct';
+const GITHUB_TRENDING_URL = 'https://github.com/trending';
 const TRENDING_TTL_SECONDS = 30 * 60;
 const TRENDING_LAST_GOOD_TTL_SECONDS = 24 * 60 * 60;
 const REPO_TTL_SECONDS = 6 * 60 * 60;
 const REPO_LAST_GOOD_TTL_SECONDS = 7 * 24 * 60 * 60;
 const SEARCH_TTL_SECONDS = 2 * 60 * 60;
 const SEARCH_LAST_GOOD_TTL_SECONDS = 24 * 60 * 60;
+const GITHUB_TRENDING_HEADERS = Object.freeze({
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+});
 
 function githubHeaders() {
   const h = { Accept: 'application/vnd.github.v3+json', 'User-Agent': 'StartupIntelligence/1.0' };
@@ -72,7 +78,7 @@ function parseCompactNumber(text = '') {
   return Math.round(value);
 }
 
-function parseGithubTrending(html) {
+export function parseGithubTrending(html) {
   const today = new Date().toISOString();
   return html
     .split(/<article\b/i)
@@ -132,12 +138,11 @@ export default async function handler(req) {
       const cached = await readCachedPayload(cacheKey);
       if (cached?.items?.length) return cachedResponse(cached, headers, 'redis-hit', TRENDING_TTL_SECONDS);
 
+      let liveError = 'GitHub Trending returned no repositories';
       try {
-        const trendingFetch = fetch(`https://github.com/trending?since=${trendingSince}`, {
-          headers: {
-            Accept: 'text/html',
-            'User-Agent': 'StartupIntelligence/1.0',
-          },
+        const sourceUrl = `${GITHUB_TRENDING_URL}?since=${trendingSince}`;
+        const trendingFetch = fetch(sourceUrl, {
+          headers: GITHUB_TRENDING_HEADERS,
         });
         trendingFetch.catch(() => {});
         const trendingRes = await Promise.race([trendingFetch, timeoutPromise(8000)]);
@@ -145,52 +150,44 @@ export default async function handler(req) {
           const html = await trendingRes.text();
           const items = parseGithubTrending(html);
           if (items.length > 0) {
-            const payload = { items, isFallback: false, source: 'github-trending-live', since: trendingSince };
+            const payload = {
+              items,
+              isFallback: false,
+              source: 'github-trending-live',
+              sourceUrl,
+              since: trendingSince,
+            };
             await Promise.all([
               writeCachedPayload(cacheKey, payload, TRENDING_TTL_SECONDS),
               writeCachedPayload(lastGoodKey, payload, TRENDING_LAST_GOOD_TTL_SECONDS),
             ]);
             return cachedResponse(payload, headers, 'live-refresh', TRENDING_TTL_SECONDS);
           }
+          liveError = 'GitHub Trending HTML contained no recognizable repositories';
+        } else {
+          liveError = `GitHub Trending returned HTTP ${trendingRes.status}`;
         }
-      } catch {
-        // Fall back to curated bootstrap below when GitHub Trending blocks or times out.
+      } catch (error) {
+        liveError = error?.message || 'GitHub Trending request failed';
       }
 
       const lastGood = await readCachedPayload(lastGoodKey);
       if (lastGood?.items?.length) return cachedResponse(lastGood, headers, 'last-good', TRENDING_TTL_SECONDS);
 
-      const fallbackUrl = `${url.origin || 'https://startupintelligence.app'}/api/bootstrap?keys=curatedGithub`;
-      try {
-        const fetchPromise = fetch(fallbackUrl, { headers: { 'User-Agent': 'StartupIntelligence/1.0' } });
-        fetchPromise.catch(() => {}); // Prevent unhandled rejection
-        
-        const fallbackRes = await Promise.race([
-          fetchPromise,
-          timeoutPromise(8000)
-        ]);
-        
-        if (!fallbackRes.ok) {
-          return new Response(JSON.stringify({ items: [], error: 'Failed to fetch fallback trending data' }), {
-            status: 200,
-            headers: { ...headers, 'Content-Type': 'application/json' },
-          });
-        }
-
-        const fallbackJson = await fallbackRes.json();
-        const fallbackItems = (fallbackJson.items || []).map((item, index) => ({
-          ...item,
-          trendingRank: index + 1,
-          source: 'github-trending',
-          starsToday: Math.round(item.stargazers_count / 30),
-        }));
-
-        const payload = { items: fallbackItems, isFallback: true, source: 'curated-bootstrap-fallback' };
-        await writeCachedPayload(cacheKey, payload, TRENDING_TTL_SECONDS);
-        return cachedResponse(payload, headers, 'fallback', TRENDING_TTL_SECONDS);
-      } catch (err) {
-        return cachedResponse({ items: [], error: err.message || 'TimeoutError' }, headers, 'miss-error', 60);
-      }
+      return new Response(JSON.stringify({
+        items: [],
+        error: liveError,
+        source: 'github-trending',
+        sourceUrl: `${GITHUB_TRENDING_URL}?since=${trendingSince}`,
+      }), {
+        status: 502,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+          'X-Startup-Cache': 'miss-error',
+        },
+      });
     }
     
     if (repo) {

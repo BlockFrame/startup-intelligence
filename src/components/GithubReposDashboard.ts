@@ -1,6 +1,7 @@
-import type { GithubEnrichedRepo, GithubPopularityBucket } from '@/types/github-repos';
+import type { GithubEnrichedRepo, GithubPopularityBucket, GithubRepoLlmInsights } from '@/types/github-repos';
 import { escapeHtml } from '@/utils/sanitize';
 import { fetchGithubRepoDashboardData, loadStoredGithubRepoDashboardData } from '@/services/github-repos/fetcher';
+import { fetchGithubRepoInsights } from '@/services/github-repos/insights';
 import { intelligenceClusterViews, type IntelligenceClusterId } from '@/config/intelligence-clusters';
 
 const views = intelligenceClusterViews;
@@ -53,6 +54,10 @@ export class GithubReposDashboard {
   private trendingWindow: GithubTrendingWindow = 'daily';
   private visibleCount = PAGE_SIZE;
   private refreshSerial = 0;
+  private insights: GithubRepoLlmInsights | null = null;
+  private insightsLoading = false;
+  private insightsError = '';
+  private insightsSerial = 0;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -61,7 +66,11 @@ export class GithubReposDashboard {
     this.fetchedAt = stored.fetchedAt;
     this.render();
     this.bind();
-    if (this.repos.length === 0) void this.refresh();
+    if (this.repos.length === 0) {
+      void this.refresh();
+    } else {
+      void this.refreshInsights();
+    }
   }
 
   private filtered(): GithubEnrichedRepo[] {
@@ -184,6 +193,81 @@ export class GithubReposDashboard {
     </div>`;
   }
 
+  private renderMarketInsights(): string {
+    if (this.repos.length === 0) return '';
+    if (this.insightsLoading) {
+      return `<section class="github-ai-insights github-ai-insights-loading" aria-live="polite">
+        <div class="github-ai-insights-header">
+          <div><span>LLM market intelligence</span><h2>Agentic & generative potential</h2></div>
+        </div>
+        <div class="github-ai-loading"><span class="github-loading-spinner"></span><div><b>Analyzing market potential…</b><small>Ranking the current Trending snapshot across adoption, agentic leverage and generative use cases.</small></div></div>
+      </section>`;
+    }
+    if (this.insightsError) {
+      return `<section class="github-ai-insights github-ai-insights-error">
+        <div class="github-ai-insights-header">
+          <div><span>LLM market intelligence</span><h2>Agentic & generative potential</h2></div>
+          <button id="githubInsightsRefresh">Retry analysis</button>
+        </div>
+        <p>${escapeHtml(this.insightsError)}</p>
+      </section>`;
+    }
+    if (!this.insights) {
+      return `<section class="github-ai-insights">
+        <div class="github-ai-insights-header">
+          <div><span>LLM market intelligence</span><h2>Agentic & generative potential</h2></div>
+          <button id="githubInsightsRefresh">Generate insights</button>
+        </div>
+        <p class="github-ai-placeholder">Generate an LLM-based market summary and rank the repositories with the strongest agentic and generative AI potential.</p>
+      </section>`;
+    }
+
+    const repoByName = new Map(this.repos.map((repo) => [repo.fullName.toLowerCase(), repo]));
+    const source = [this.insights.provider, this.insights.model].filter(Boolean).join(' · ');
+    const generatedAt = new Date(this.insights.generatedAt).toLocaleString('en-US');
+    return `<section class="github-ai-insights">
+      <div class="github-ai-insights-header">
+        <div>
+          <span>LLM market intelligence</span>
+          <h2>Agentic & generative potential</h2>
+          <small>${escapeHtml(source)} · ${escapeHtml(generatedAt)}${this.insights.cached ? ' · cached' : ''}</small>
+        </div>
+        <button id="githubInsightsRefresh">Refresh analysis</button>
+      </div>
+      <div class="github-ai-summary">
+        <p>${escapeHtml(this.insights.summary)}</p>
+        ${this.insights.marketSignals.length > 0 ? `<ul>${this.insights.marketSignals.map((signal) => `<li>${escapeHtml(signal)}</li>`).join('')}</ul>` : ''}
+      </div>
+      <div class="github-ai-ranking">
+        ${this.insights.topRepos.map((pick) => {
+          const repo = repoByName.get(pick.fullName.toLowerCase());
+          const href = repo?.url || `https://github.com/${pick.fullName}`;
+          return `<article class="github-ai-pick">
+            <div class="github-ai-pick-rank">#${pick.rank}</div>
+            <div class="github-ai-pick-main">
+              <div class="github-ai-pick-title">
+                <a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(pick.fullName)}</a>
+                <span class="confidence-${pick.confidence}">${escapeHtml(pick.confidence)} confidence</span>
+              </div>
+              <p>${escapeHtml(pick.rationale)}</p>
+              <div class="github-ai-score-grid">
+                <div><span>Market</span><b>${pick.marketPotential}</b><i><i style="width:${pick.marketPotential}%"></i></i></div>
+                <div><span>Agentic</span><b>${pick.agenticPotential}</b><i><i style="width:${pick.agenticPotential}%"></i></i></div>
+                <div><span>Generative</span><b>${pick.generativePotential}</b><i><i style="width:${pick.generativePotential}%"></i></i></div>
+              </div>
+              <div class="github-ai-pick-notes">
+                <span><b>Opportunity</b>${escapeHtml(pick.opportunity)}</span>
+                <span><b>Risk</b>${escapeHtml(pick.risk)}</span>
+              </div>
+            </div>
+          </article>`;
+        }).join('')}
+      </div>
+      ${this.insights.watchlist.length > 0 ? `<div class="github-ai-watchlist"><b>Watchlist</b>${this.insights.watchlist.map((item) => `<span><strong>${escapeHtml(item.fullName)}</strong> — ${escapeHtml(item.reason)}</span>`).join('')}</div>` : ''}
+      <div class="github-ai-disclaimer">Directional LLM assessment based only on the current GitHub Trending snapshot. Not investment advice.</div>
+    </section>`;
+  }
+
   private activeFilterCount(): number {
     return [
       this.filters.view !== defaults.view,
@@ -267,6 +351,7 @@ export class GithubReposDashboard {
         ${this.loading && this.repos.length > 0 ? '<div class="github-fetch-status" role="status"><span></span>Refreshing trending repositories…</div>' : ''}
         ${this.error && this.repos.length > 0 ? `<div class="github-fetch-status github-fetch-status-error" role="alert">${escapeHtml(this.error)} <button id="githubRefreshBtnRetry">Retry</button></div>` : ''}
         ${this.renderPriorityStack(filtered)}
+        ${this.renderMarketInsights()}
         <div class="github-table-wrap">${filtered.length > 0 ? `<table class="github-table"><thead><tr><th>Repo</th><th>Description</th><th>Signals</th><th>Stars</th><th>Language</th><th>Score</th></tr></thead><tbody>
           ${visible.map((repo) => `<tr>
             <td><a class="github-table-link" href="${escapeHtml(repo.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(repo.fullName)}</strong></a><small>${escapeHtml(sourceLabel(repo))} · ${escapeHtml(repo.license || 'No license')}</small></td>
@@ -322,12 +407,17 @@ export class GithubReposDashboard {
       this.render();
       this.bind();
     });
+    this.container.querySelector<HTMLButtonElement>('#githubInsightsRefresh')?.addEventListener('click', () => {
+      void this.refreshInsights();
+    });
     this.container.querySelectorAll<HTMLButtonElement>('[data-github-trending-window]').forEach((button) => {
       button.addEventListener('click', () => {
         const nextWindow = button.dataset.githubTrendingWindow === 'weekly' ? 'weekly' : 'daily';
         if (nextWindow === this.trendingWindow || this.loading) return;
         this.trendingWindow = nextWindow;
         this.visibleCount = PAGE_SIZE;
+        this.insights = null;
+        this.insightsError = '';
         void this.refresh();
       });
     });
@@ -343,6 +433,7 @@ export class GithubReposDashboard {
 
   private async refresh(): Promise<void> {
     const refreshId = ++this.refreshSerial;
+    let shouldRefreshInsights = false;
     this.loading = true;
     this.error = '';
     this.render();
@@ -352,12 +443,39 @@ export class GithubReposDashboard {
       if (refreshId !== this.refreshSerial) return;
       this.repos = state.repos.filter((repo) => repo.source === 'github-trending');
       this.fetchedAt = state.fetchedAt;
+      this.insights = null;
+      this.insightsError = '';
+      shouldRefreshInsights = this.repos.length > 0;
     } catch (error) {
       if (refreshId !== this.refreshSerial) return;
       this.error = error instanceof Error ? error.message : 'Unable to fetch GitHub repositories';
     } finally {
       if (refreshId === this.refreshSerial) {
         this.loading = false;
+        this.render();
+        this.bind();
+      }
+    }
+    if (refreshId === this.refreshSerial && shouldRefreshInsights) void this.refreshInsights();
+  }
+
+  private async refreshInsights(): Promise<void> {
+    if (this.repos.length < 3 || this.insightsLoading) return;
+    const requestId = ++this.insightsSerial;
+    this.insightsLoading = true;
+    this.insightsError = '';
+    this.render();
+    this.bind();
+    try {
+      const insights = await fetchGithubRepoInsights(this.repos, this.trendingWindow);
+      if (requestId !== this.insightsSerial) return;
+      this.insights = insights;
+    } catch (error) {
+      if (requestId !== this.insightsSerial) return;
+      this.insightsError = error instanceof Error ? error.message : 'AI market insights are unavailable';
+    } finally {
+      if (requestId === this.insightsSerial) {
+        this.insightsLoading = false;
         this.render();
         this.bind();
       }

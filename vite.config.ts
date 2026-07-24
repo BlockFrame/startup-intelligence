@@ -613,12 +613,40 @@ function githubReposDevPlugin(): Plugin {
               sendJson(res, cached, 'memory-hit', 1800);
               return;
             }
-            const response = await fetch(`https://github.com/trending?since=${trendingSince}`, {
-              headers: { Accept: 'text/html', 'User-Agent': 'StartupIntelligence/1.0' },
+            const sourceUrl = `https://github.com/trending?since=${trendingSince}`;
+            const response = await fetch(sourceUrl, {
+              headers: {
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+              },
               signal: AbortSignal.timeout(10_000),
             });
+            if (!response.ok) {
+              const stale = lastGood.get(cacheKey);
+              if (stale) {
+                sendJson(res, stale, 'last-good', 1800);
+                return;
+              }
+              res.statusCode = 502;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ items: [], error: `GitHub Trending returned HTTP ${response.status}`, source: 'github-trending', sourceUrl }));
+              return;
+            }
             const html = await response.text();
-            const payload = { items: extractGithubTrendingRepos(html), isFallback: false, source: 'github-trending-live', since: trendingSince };
+            const items = extractGithubTrendingRepos(html);
+            if (items.length === 0) {
+              const stale = lastGood.get(cacheKey);
+              if (stale) {
+                sendJson(res, stale, 'last-good', 1800);
+                return;
+              }
+              res.statusCode = 502;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ items: [], error: 'GitHub Trending HTML contained no recognizable repositories', source: 'github-trending', sourceUrl }));
+              return;
+            }
+            const payload = { items, isFallback: false, source: 'github-trending-live', sourceUrl, since: trendingSince };
             writeCache(cacheKey, payload, 30 * 60 * 1000);
             sendJson(res, payload, 'live-refresh', 1800);
             return;
@@ -678,6 +706,51 @@ function githubReposDevPlugin(): Plugin {
           res.statusCode = 502;
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ error: error?.message || 'GitHub request failed' }));
+        }
+      });
+    },
+  };
+}
+
+function githubRepoInsightsDevPlugin(): Plugin {
+  return {
+    name: 'github-repo-insights-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url?.split('?')[0] !== '/api/github-repo-insights') return next();
+
+        try {
+          let body: string | undefined;
+          if (req.method === 'POST') {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) {
+              chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+            }
+            body = Buffer.concat(chunks).toString();
+          }
+
+          const headers: Record<string, string> = {};
+          for (const [key, value] of Object.entries(req.headers)) {
+            if (typeof value === 'string') headers[key] = value;
+            else if (Array.isArray(value)) headers[key] = value.join(', ');
+          }
+
+          const port = server.config.server.port || 3000;
+          const webRequest = new Request(new URL(req.url || '/api/github-repo-insights', `http://localhost:${port}`), {
+            method: req.method,
+            headers,
+            body,
+          });
+          const { default: handler } = await import('./api/github-repo-insights');
+          const response = await handler(webRequest);
+
+          res.statusCode = response.status;
+          response.headers.forEach((value, key) => res.setHeader(key, value));
+          res.end(await response.text());
+        } catch (error: any) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: error?.message || 'GitHub repository insights failed' }));
         }
       });
     },
@@ -943,6 +1016,7 @@ export default defineConfig(({ mode }) => {
       youtubeLivePlugin(),
       gpsjamDevPlugin(),
       githubMasterReposDevPlugin(),
+      githubRepoInsightsDevPlugin(),
       githubReposDevPlugin(),
       huggingFaceDevPlugin(),
       alphaXivDevPlugin(),
