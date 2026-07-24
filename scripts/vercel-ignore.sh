@@ -2,9 +2,10 @@
 # Vercel Ignored Build Step: exit 0 = skip, exit 1 = build
 # Only build when web-relevant files change. Skip desktop, docs, scripts, CI, etc.
 
-# Always build develop branch
-if [ "$VERCEL_GIT_COMMIT_REF" = "develop" ]; then
-  echo "Building develop branch unconditionally."
+# Always build deployed branches. Vercel can invoke this check with a stale or
+# equal previous SHA, which incorrectly skips real main deployments.
+if [ "$VERCEL_GIT_COMMIT_REF" = "develop" ] || [ "$VERCEL_GIT_COMMIT_REF" = "main" ]; then
+  echo "Building $VERCEL_GIT_COMMIT_REF branch unconditionally."
   exit 1
 fi
 
