@@ -595,7 +595,8 @@ function githubReposDevPlugin(): Plugin {
     name: 'github-repos-dev',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith('/api/github-repos')) {
+        const requestPath = req.url?.split('?')[0];
+        if (requestPath !== '/api/github-repos' && requestPath !== '/api/github-trending') {
           return next();
         }
 
@@ -603,7 +604,9 @@ function githubReposDevPlugin(): Plugin {
           const url = new URL(req.url, 'http://localhost');
           const repo = url.searchParams.get('repo');
           const search = url.searchParams.get('search');
-          const trending = url.searchParams.get('trending');
+          const trending = requestPath === '/api/github-trending'
+            ? '1'
+            : url.searchParams.get('trending');
           const trendingSince = url.searchParams.get('since') === 'weekly' ? 'weekly' : 'daily';
           let upstream = '';
           if (trending === '1') {

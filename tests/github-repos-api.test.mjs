@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import githubReposHandler, { parseGithubTrending } from '../api/github-repos.js';
+import githubTrendingHandler from '../api/github-trending.js';
 
 const originalFetch = globalThis.fetch;
 
@@ -47,6 +48,28 @@ describe('GitHub Trending API', () => {
       assert.equal(body.items[0].full_name, 'openai/example-repo');
       assert.equal(body.source, 'github-trending-live');
       assert.equal(body.isFallback, false);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test('serves trending from the dedicated endpoint without the repository cache stack', async () => {
+    const requestedUrls = [];
+    try {
+      globalThis.fetch = async (url) => {
+        requestedUrls.push(String(url));
+        return new Response(trendingHtml, { status: 200, headers: { 'Content-Type': 'text/html' } });
+      };
+
+      const response = await githubTrendingHandler(new Request(
+        'https://startupintelligence.app/api/github-trending?since=daily',
+      ));
+      const body = await response.json();
+
+      assert.equal(response.status, 200);
+      assert.deepEqual(requestedUrls, ['https://github.com/trending?since=daily']);
+      assert.equal(body.items[0].full_name, 'openai/example-repo');
+      assert.equal(body.cache, 'cdn-refresh');
     } finally {
       globalThis.fetch = originalFetch;
     }

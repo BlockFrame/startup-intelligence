@@ -38,7 +38,7 @@ async function fetchJson<T>(path: string): Promise<T | null> {
 
 export async function fetchGithubRepoDashboardData(trendingWindow: 'daily' | 'weekly' = 'daily'): Promise<GithubRepoDashboardState> {
   const payload = await fetchJson<{ items?: GithubRawRepo[]; error?: string }>(
-    `/api/github-repos?trending=1&since=${encodeURIComponent(trendingWindow)}`,
+    `/api/github-trending?since=${encodeURIComponent(trendingWindow)}`,
   );
   if (payload?.error) {
     throw new Error(`GitHub Error: ${payload.error}`);

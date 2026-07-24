@@ -14,7 +14,12 @@ const SOCIAL_PREVIEW_PATHS = new Set(['/api/story', '/api/og-story']);
 //   UptimeRobot + ops curl. Was blocked by the curl/bot UA regex before this
 //   exception landed (Vercel log 2026-04-15: "Middleware 403 Forbidden" on
 //   /api/seed-contract-probe).
-const PUBLIC_API_PATHS = new Set(['/api/version', '/api/health', '/api/seed-contract-probe']);
+const PUBLIC_API_PATHS = new Set([
+  '/api/version',
+  '/api/health',
+  '/api/seed-contract-probe',
+  '/api/github-trending',
+]);
 
 const SOCIAL_IMAGE_UA =
   /Slack-ImgProxy|Slackbot|twitterbot|facebookexternalhit|linkedinbot|telegrambot|whatsapp|discordbot|redditbot/i;
