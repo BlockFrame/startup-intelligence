@@ -1,5 +1,5 @@
-import { toApiUrl } from '@/services/runtime';
 import type { GithubEnrichedRepo, GithubRepoLlmInsights } from '@/types/github-repos';
+import { toGithubRepoApiUrl } from './api-url';
 
 const INSIGHTS_TIMEOUT_MS = 35_000;
 const MAX_REPOS = 20;
@@ -34,7 +34,7 @@ export async function fetchGithubRepoInsights(
   const timeoutId = window.setTimeout(() => controller.abort(), INSIGHTS_TIMEOUT_MS);
 
   try {
-    const response = await fetch(toApiUrl('/api/github-repo-insights'), {
+    const response = await fetch(toGithubRepoApiUrl('/api/github-repo-insights'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

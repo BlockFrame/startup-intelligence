@@ -1,5 +1,5 @@
 import type { GithubEnrichedRepo, GithubRawRepo, GithubRepoDashboardState } from '@/types/github-repos';
-import { toApiUrl } from '@/services/runtime';
+import { toGithubRepoApiUrl } from './api-url';
 import { dedupeGithubRepos, enrichGithubRepo, normalizeGithubRepo } from './enricher';
 
 const RAW_STORAGE_KEY = 'startup-github-trending-raw';
@@ -12,7 +12,7 @@ async function fetchJson<T>(path: string): Promise<T | null> {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), CLIENT_REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(toApiUrl(path), { signal: controller.signal });
+    const response = await fetch(toGithubRepoApiUrl(path), { signal: controller.signal });
     if (!response.ok) {
       try {
         const errJson = await response.json();
