@@ -1,40 +1,29 @@
-import type { GithubEnrichedRepo, GithubPopularityBucket, GithubRepoType, GithubThemeTag, GithubUpdatedWindow } from '@/types/github-repos';
+import type { GithubEnrichedRepo, GithubPopularityBucket } from '@/types/github-repos';
 import { escapeHtml } from '@/utils/sanitize';
 import { fetchGithubRepoDashboardData, loadStoredGithubRepoDashboardData } from '@/services/github-repos/fetcher';
 import { intelligenceClusterViews, type IntelligenceClusterId } from '@/config/intelligence-clusters';
 
 const views = intelligenceClusterViews;
-type GithubRepoTab = 'master' | 'trending';
 type GithubTrendingWindow = 'daily' | 'weekly';
 
 interface Filters {
   view: IntelligenceClusterId;
   query: string;
-  theme: string;
-  repoType: string;
   language: string;
-  updatedWindow: GithubUpdatedWindow;
   popularityBucket: GithubPopularityBucket;
   hasPaper: boolean;
-  hasDataset: boolean;
   hasBenchmark: boolean;
   hasMcp: boolean;
-  lane: string;
 }
 
 const defaults: Filters = {
   view: 'all',
   query: '',
-  theme: '',
-  repoType: '',
   language: '',
-  updatedWindow: 'any',
   popularityBucket: 'all',
   hasPaper: false,
-  hasDataset: false,
   hasBenchmark: false,
   hasMcp: false,
-  lane: '',
 };
 
 const PAGE_SIZE = 15;
@@ -49,10 +38,8 @@ function scoreBand(score: number): 'low' | 'mid' | 'high' {
 }
 
 function sourceLabel(repo: GithubEnrichedRepo): string {
-  if (repo.discoveryLane === 'curated') return 'Master repo';
   if (repo.source === 'github-trending') return 'GitHub trending';
-  if (repo.discoveryLane === 'emerging') return 'Emerging';
-  return 'Established';
+  return 'Trending fallback';
 }
 
 export class GithubReposDashboard {
@@ -62,48 +49,33 @@ export class GithubReposDashboard {
   private loading = false;
   private error = '';
   private fetchedAt = '';
-  private radarOpen = false;
   private queryRenderTimer: number | null = null;
-  private activeRepoTab: GithubRepoTab = 'master';
   private trendingWindow: GithubTrendingWindow = 'daily';
   private visibleCount = PAGE_SIZE;
+  private refreshSerial = 0;
 
   constructor(container: HTMLElement) {
     this.container = container;
     const stored = loadStoredGithubRepoDashboardData();
-    this.repos = stored.repos;
+    this.repos = stored.repos.filter((repo) => repo.source === 'github-trending');
     this.fetchedAt = stored.fetchedAt;
     this.render();
     this.bind();
     if (this.repos.length === 0) void this.refresh();
   }
 
-  private mergeRepos(existing: GithubEnrichedRepo[], incoming: GithubEnrichedRepo[]): GithubEnrichedRepo[] {
-    const map = new Map<string, GithubEnrichedRepo>();
-    for (const repo of existing) map.set(repo.fullName.toLowerCase(), repo);
-    for (const repo of incoming) map.set(repo.fullName.toLowerCase(), repo);
-    return Array.from(map.values());
-  }
-
   private filtered(): GithubEnrichedRepo[] {
     const view = views.find((v) => v.id === this.filters.view);
     const q = this.filters.query.trim().toLowerCase();
     const minStars = this.filters.popularityBucket === '50k' ? 50000 : this.filters.popularityBucket === '10k' ? 10000 : this.filters.popularityBucket === '5k' ? 5000 : this.filters.popularityBucket === '1k' ? 1000 : 0;
-    const maxDays = this.filters.updatedWindow === '7d' ? 7 : this.filters.updatedWindow === '30d' ? 30 : this.filters.updatedWindow === '90d' ? 90 : this.filters.updatedWindow === '365d' ? 365 : Infinity;
     return this.repos.filter((repo) => {
-      if (this.activeRepoTab === 'master' && repo.discoveryLane !== 'curated') return false;
-      if (this.activeRepoTab === 'trending' && repo.source !== 'github-trending') return false;
+      if (repo.source !== 'github-trending') return false;
       if (q && !`${repo.fullName} ${repo.description} ${repo.topics.join(' ')}`.toLowerCase().includes(q)) return false;
-      if (this.filters.theme && !repo.themeTags.includes(this.filters.theme as GithubThemeTag)) return false;
-      if (this.filters.repoType && !repo.repoTypes.includes(this.filters.repoType as GithubRepoType)) return false;
       if (this.filters.language && repo.language !== this.filters.language) return false;
-      if (repo.updatedDays > maxDays) return false;
       if (repo.stars < minStars) return false;
       if (this.filters.hasPaper && !repo.hasPaper) return false;
-      if (this.filters.hasDataset && !repo.hasDataset) return false;
       if (this.filters.hasBenchmark && !repo.hasBenchmark) return false;
       if (this.filters.hasMcp && !repo.hasMcp) return false;
-      if (this.filters.lane && repo.discoveryLane !== this.filters.lane) return false;
       if (view && (view.githubThemes?.length || view.githubTypes?.length)) {
         const themeMatch = Boolean(view.githubThemes?.some((tag) => repo.themeTags.includes(tag)));
         const typeMatch = Boolean(view.githubTypes?.some((type) => repo.repoTypes.includes(type)));
@@ -114,14 +86,8 @@ export class GithubReposDashboard {
   }
 
   private compareRepoPriority(a: GithubEnrichedRepo, b: GithubEnrichedRepo): number {
-    const aTrending = a.source === 'github-trending' ? 1 : 0;
-    const bTrending = b.source === 'github-trending' ? 1 : 0;
-    if (aTrending !== bTrending) return bTrending - aTrending;
-    if (aTrending && bTrending) return (a.trendingRank ?? 9999) - (b.trendingRank ?? 9999);
-    const aCurated = a.discoveryLane === 'curated' ? 1 : 0;
-    const bCurated = b.discoveryLane === 'curated' ? 1 : 0;
-    if (aCurated !== bCurated) return bCurated - aCurated;
-    return b.finalScore - a.finalScore;
+    const rankDifference = (a.trendingRank ?? 9999) - (b.trendingRank ?? 9999);
+    return rankDifference || b.finalScore - a.finalScore;
   }
 
   private options(values: string[], current: string, empty: string): string {
@@ -180,35 +146,18 @@ export class GithubReposDashboard {
 
   private renderPriorityStack(repos: GithubEnrichedRepo[]): string {
     const activeTrendingLabel = this.trendingWindow === 'weekly' ? 'This week' : 'Today';
-    const sections = this.activeRepoTab === 'trending'
-      ? [
-        {
-          title: `Trending repos · ${activeTrendingLabel}`,
-          items: repos.slice(0, 6),
-        },
-        {
-          title: 'Trending repos ranked by star activity',
-          items: [...repos].filter((repo) => (repo.starsToday ?? 0) > 0).sort((a, b) => (b.starsToday ?? 0) - (a.starsToday ?? 0)).slice(0, 6),
-        },
-      ].filter((section) => section.items.length > 0)
-      : [
-        {
-          title: 'Master repos',
-          items: [...repos].sort((a, b) => b.finalScore - a.finalScore).slice(0, 6),
-        },
-      ].filter((section) => section.items.length > 0);
-    if (sections.length === 0) return '';
+    const items = repos.slice(0, 6);
+    if (items.length === 0) return '';
     return `<section class="github-priority">
       <div class="github-section-heading">
-        <span>Repo priority stack</span>
+        <span>Top trending · ${activeTrendingLabel}</span>
         <span class="github-score-help" tabindex="0">Score <b>?</b><em>Single formula: 35% GenAI relevance + 20% freshness + 20% community activity + 15% stars + 10% implementation readiness + traction bonus. Red &lt; 30, yellow 30-70, green &gt; 70.</em></span>
       </div>
-      ${sections.map((section) => `<div class="github-priority-group">
-        <h2>${escapeHtml(section.title)}</h2>
+      <div class="github-priority-group">
         <div class="github-carousel-shell">
           <button class="github-carousel-btn" data-github-carousel-dir="-1" aria-label="Previous repositories">‹</button>
           <div class="github-priority-grid github-priority-carousel" data-github-carousel>
-          ${section.items.map((repo) => `<article class="github-priority-card">
+          ${items.map((repo) => `<article class="github-priority-card">
             <div class="github-priority-score score-${scoreBand(repo.finalScore)}" data-score-repo="${escapeHtml(repo.fullName)}"><b>${repo.finalScore}</b><span>Score</span>${this.renderScoreTooltip(repo)}</div>
             <div>
               <h3><a class="github-repo-link" href="${escapeHtml(repo.url)}" target="_blank" rel="noopener">${escapeHtml(repo.fullName)}</a></h3>
@@ -224,23 +173,35 @@ export class GithubReposDashboard {
           </div>
           <button class="github-carousel-btn" data-github-carousel-dir="1" aria-label="Next repositories">›</button>
         </div>
-      </div>`).join('')}
+      </div>
     </section>`;
   }
 
   private renderTrendingWindowToggle(): string {
-    if (this.activeRepoTab !== 'trending') return '';
     return `<div class="github-trending-window-tabs" role="tablist" aria-label="Trending repository window">
-      <button class="${this.trendingWindow === 'daily' ? 'active' : ''}" data-github-trending-window="daily">Today</button>
-      <button class="${this.trendingWindow === 'weekly' ? 'active' : ''}" data-github-trending-window="weekly">This week</button>
+      <button role="tab" class="${this.trendingWindow === 'daily' ? 'active' : ''}" data-github-trending-window="daily" aria-selected="${this.trendingWindow === 'daily'}">Today</button>
+      <button role="tab" class="${this.trendingWindow === 'weekly' ? 'active' : ''}" data-github-trending-window="weekly" aria-selected="${this.trendingWindow === 'weekly'}">This week</button>
     </div>`;
+  }
+
+  private activeFilterCount(): number {
+    return [
+      this.filters.view !== defaults.view,
+      this.filters.query.trim() !== '',
+      this.filters.language !== '',
+      this.filters.popularityBucket !== 'all',
+      this.filters.hasPaper,
+      this.filters.hasBenchmark,
+      this.filters.hasMcp,
+    ].filter(Boolean).length;
   }
 
   private renderEmptyState(): string {
     if (this.loading) {
       return `<div class="github-empty github-empty-loading">
-        <div class="github-empty-icon">⏳</div>
-        <p>${this.activeRepoTab === 'master' ? 'Loading curated GenAI repositories...' : 'Fetching trending repos...'}</p>
+        <div class="github-loading-spinner" aria-hidden="true"></div>
+        <p>Fetching trending repositories…</p>
+        <small>This request will stop automatically if GitHub does not respond.</small>
       </div>`;
     }
     if (this.error) {
@@ -250,9 +211,11 @@ export class GithubReposDashboard {
         <button class="github-refresh" id="githubRefreshBtnRetry">Retry</button>
       </div>`;
     }
+    const activeFilters = this.activeFilterCount();
     return `<div class="github-empty">
       <div class="github-empty-icon">📭</div>
-      <p>No matching repositories. Adjust filters or refresh data.</p>
+      <p>${activeFilters > 0 ? 'No trending repositories match these filters.' : 'No trending repositories are available right now.'}</p>
+      ${activeFilters > 0 ? '<button class="github-filter-reset" data-github-reset-filters>Clear filters</button>' : '<button class="github-refresh" id="githubRefreshBtnRetry">Try again</button>'}
     </div>`;
   }
 
@@ -260,74 +223,60 @@ export class GithubReposDashboard {
     const filtered = this.filtered();
     const visible = filtered.slice(0, this.visibleCount);
     const remaining = filtered.length - visible.length;
-    const themes = uniq(this.repos.flatMap((repo) => repo.themeTags));
-    const types = uniq(this.repos.flatMap((repo) => repo.repoTypes));
     const languages = uniq(this.repos.map((repo) => repo.language).filter(Boolean));
-    this.container.innerHTML = `<div class="github-dashboard-shell ${this.radarOpen ? 'radar-open' : 'radar-collapsed'}">
-      <aside class="github-sidebar" aria-hidden="${this.radarOpen ? 'false' : 'true'}">
-        <div class="github-sidebar-top">
-          <div class="github-sidebar-heading">Repo Radar</div>
-          <button class="github-radar-close" id="githubRadarClose" aria-label="Close repo radar">x</button>
-        </div>
-        <p class="github-sidebar-copy">Narrow repos by investment thesis, GenAI stack area, repo type, popularity, and implementation signal.</p>
-        <label>Research focus<select data-github-filter="view">${this.renderViewOptions()}</select></label>
-        <label>Search<input data-github-filter="query" value="${escapeHtml(this.filters.query)}" placeholder="repo, topic, description"></label>
-        <label>Theme<select data-github-filter="theme">${this.options(themes, this.filters.theme, 'All themes')}</select></label>
-        <label>Repo type<select data-github-filter="repoType">${this.options(types, this.filters.repoType, 'All types')}</select></label>
-        <label>Language<select data-github-filter="language">${this.options(languages, this.filters.language, 'All languages')}</select></label>
-        <label>Updated<select data-github-filter="updatedWindow">
-          <option value="any"${this.filters.updatedWindow === 'any' ? ' selected' : ''}>Any time</option>
-          <option value="7d"${this.filters.updatedWindow === '7d' ? ' selected' : ''}>7 days</option>
-          <option value="30d"${this.filters.updatedWindow === '30d' ? ' selected' : ''}>30 days</option>
-          <option value="90d"${this.filters.updatedWindow === '90d' ? ' selected' : ''}>90 days</option>
-          <option value="365d"${this.filters.updatedWindow === '365d' ? ' selected' : ''}>1 year</option>
-        </select></label>
-        <label>Popularity<select data-github-filter="popularityBucket">
-          <option value="all"${this.filters.popularityBucket === 'all' ? ' selected' : ''}>All</option>
-          <option value="1k"${this.filters.popularityBucket === '1k' ? ' selected' : ''}>1k+ stars</option>
-          <option value="5k"${this.filters.popularityBucket === '5k' ? ' selected' : ''}>5k+ stars</option>
-          <option value="10k"${this.filters.popularityBucket === '10k' ? ' selected' : ''}>10k+ stars</option>
-          <option value="50k"${this.filters.popularityBucket === '50k' ? ' selected' : ''}>50k+ stars</option>
-        </select></label>
-        <label>Source lane<select data-github-filter="lane">
-          <option value="">All lanes</option>
-          <option value="curated"${this.filters.lane === 'curated' ? ' selected' : ''}>Master repos</option>
-          <option value="established"${this.filters.lane === 'established' ? ' selected' : ''}>Established</option>
-          <option value="emerging"${this.filters.lane === 'emerging' ? ' selected' : ''}>Trending / emerging</option>
-        </select></label>
-        <label class="github-check"><input type="checkbox" data-github-filter="hasPaper"${this.filters.hasPaper ? ' checked' : ''}> Has paper</label>
-        <label class="github-check"><input type="checkbox" data-github-filter="hasDataset"${this.filters.hasDataset ? ' checked' : ''}> Has dataset</label>
-        <label class="github-check"><input type="checkbox" data-github-filter="hasBenchmark"${this.filters.hasBenchmark ? ' checked' : ''}> Has benchmark</label>
-        <label class="github-check"><input type="checkbox" data-github-filter="hasMcp"${this.filters.hasMcp ? ' checked' : ''}> Mentions MCP</label>
-        <button class="github-refresh" id="githubRefreshBtn">${this.loading ? 'Fetching...' : this.activeRepoTab === 'master' ? 'Refresh master repos' : 'Refresh trending repos'}</button>
-        ${this.error ? `<div class="github-error">${escapeHtml(this.error)}</div>` : ''}
-      </aside>
+    const activeFilters = this.activeFilterCount();
+    const updatedLabel = this.fetchedAt ? new Date(this.fetchedAt).toLocaleString('en-US') : '';
+    this.container.innerHTML = `<div class="github-dashboard-shell github-trending-only" aria-busy="${this.loading}">
       <main class="github-main">
         <div class="github-hero">
           <div>
-            <p>GenAI Open Source Radar</p>
-            <h1>${this.activeRepoTab === 'master' ? 'Master GenAI repos' : 'Trending GitHub repos'}</h1>
-            <span>${filtered.length} matching repos${this.fetchedAt ? ` · Updated ${escapeHtml(new Date(this.fetchedAt).toLocaleString('en-US'))}` : ''}</span>
+            <p>Open-source momentum</p>
+            <h1>Trending GitHub repositories</h1>
+            <span>${filtered.length} matching ${filtered.length === 1 ? 'repository' : 'repositories'}${updatedLabel ? ` · Updated ${escapeHtml(updatedLabel)}` : ''}</span>
           </div>
-          <button class="github-radar-toggle" id="githubRadarToggle"><span>Filters</span><small>${this.radarOpen ? 'Hide left panel' : 'Open left panel'}</small></button>
+          <div class="github-hero-actions">
+            ${this.renderTrendingWindowToggle()}
+            <button class="github-refresh" id="githubRefreshBtn"${this.loading ? ' disabled aria-disabled="true"' : ''}>${this.loading ? 'Fetching…' : 'Refresh'}</button>
+          </div>
         </div>
-        <div class="github-source-tabs" role="tablist" aria-label="GitHub repository source">
-          <button class="${this.activeRepoTab === 'master' ? 'active' : ''}" data-github-source-tab="master">Master repos</button>
-          <button class="${this.activeRepoTab === 'trending' ? 'active' : ''}" data-github-source-tab="trending">Trending repos</button>
-        </div>
+
+        <section class="github-filter-panel" aria-label="Filter trending repositories">
+          <div class="github-filter-grid">
+            <label class="github-filter-search"><span>Search</span><input data-github-filter="query" value="${escapeHtml(this.filters.query)}" placeholder="Repository, topic, description…" autocomplete="off"></label>
+            <label><span>Focus</span><select data-github-filter="view">${this.renderViewOptions()}</select></label>
+            <label><span>Language</span><select data-github-filter="language">${this.options(languages, this.filters.language, 'All languages')}</select></label>
+            <label><span>Minimum stars</span><select data-github-filter="popularityBucket">
+              <option value="all"${this.filters.popularityBucket === 'all' ? ' selected' : ''}>Any popularity</option>
+              <option value="1k"${this.filters.popularityBucket === '1k' ? ' selected' : ''}>1k+ stars</option>
+              <option value="5k"${this.filters.popularityBucket === '5k' ? ' selected' : ''}>5k+ stars</option>
+              <option value="10k"${this.filters.popularityBucket === '10k' ? ' selected' : ''}>10k+ stars</option>
+              <option value="50k"${this.filters.popularityBucket === '50k' ? ' selected' : ''}>50k+ stars</option>
+            </select></label>
+          </div>
+          <div class="github-filter-footer">
+            <div class="github-filter-signals" aria-label="Repository signals">
+              <span>Signals</span>
+              <label class="${this.filters.hasPaper ? 'active' : ''}"><input type="checkbox" data-github-filter="hasPaper"${this.filters.hasPaper ? ' checked' : ''}> Paper</label>
+              <label class="${this.filters.hasBenchmark ? 'active' : ''}"><input type="checkbox" data-github-filter="hasBenchmark"${this.filters.hasBenchmark ? ' checked' : ''}> Benchmark</label>
+              <label class="${this.filters.hasMcp ? 'active' : ''}"><input type="checkbox" data-github-filter="hasMcp"${this.filters.hasMcp ? ' checked' : ''}> MCP</label>
+            </div>
+            <button class="github-filter-reset" data-github-reset-filters${activeFilters === 0 ? ' disabled' : ''}>Clear${activeFilters > 0 ? ` (${activeFilters})` : ''}</button>
+          </div>
+        </section>
+
+        ${this.loading && this.repos.length > 0 ? '<div class="github-fetch-status" role="status"><span></span>Refreshing trending repositories…</div>' : ''}
+        ${this.error && this.repos.length > 0 ? `<div class="github-fetch-status github-fetch-status-error" role="alert">${escapeHtml(this.error)} <button id="githubRefreshBtnRetry">Retry</button></div>` : ''}
         ${this.renderPriorityStack(filtered)}
-        ${this.renderTrendingWindowToggle()}
-        <div class="github-table-wrap"><table class="github-table"><thead><tr><th>Repo</th><th>Description</th><th>Tags</th><th>Stars</th><th>Updated</th><th>Language</th><th>Score</th></tr></thead><tbody>
+        <div class="github-table-wrap">${filtered.length > 0 ? `<table class="github-table"><thead><tr><th>Repo</th><th>Description</th><th>Signals</th><th>Stars</th><th>Language</th><th>Score</th></tr></thead><tbody>
           ${visible.map((repo) => `<tr>
             <td><a class="github-table-link" href="${escapeHtml(repo.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(repo.fullName)}</strong></a><small>${escapeHtml(sourceLabel(repo))} · ${escapeHtml(repo.license || 'No license')}</small></td>
             <td>${escapeHtml(repo.description || 'No description available')}</td>
             <td>${this.renderSignals(repo)}</td>
             <td>${repo.stars.toLocaleString('en-US')}${repo.starsToday ? `<small>${repo.starsToday.toLocaleString('en-US')} today</small>` : ''}</td>
-            <td>${repo.updatedDays}d ago</td>
             <td>${escapeHtml(repo.language)}</td>
             <td class="github-score-cell score-${scoreBand(repo.finalScore)}"><span class="github-score-badge" data-score-repo="${escapeHtml(repo.fullName)}"><b>${repo.finalScore}</b><small>Score</small>${this.renderScoreTooltip(repo)}</span><small>Rel ${repo.relevanceScore} · Act ${Math.round(repo.activityScore)}</small></td>
           </tr>`).join('')}
-        </tbody></table>${filtered.length === 0 ? this.renderEmptyState() : ''}${remaining > 0 ? `<button class="github-show-more" id="githubShowMore">Show ${Math.min(remaining, PAGE_SIZE)} more · ${remaining} remaining</button>` : ''}</div>
+        </tbody></table>${remaining > 0 ? `<button class="github-show-more" id="githubShowMore">Show ${Math.min(remaining, PAGE_SIZE)} more · ${remaining} remaining</button>` : ''}` : this.renderEmptyState()}</div>
       </main>
     </div>`;
   }
@@ -356,24 +305,13 @@ export class GithubReposDashboard {
         this.bind();
       });
     });
-    this.container.querySelector<HTMLButtonElement>('#githubRadarToggle')?.addEventListener('click', () => {
-      this.radarOpen = !this.radarOpen;
-      this.render();
-      this.bind();
-    });
-    this.container.querySelector<HTMLButtonElement>('#githubRadarClose')?.addEventListener('click', () => {
-      this.radarOpen = false;
-      this.render();
-      this.bind();
-    });
     this.container.querySelector<HTMLButtonElement>('#githubRefreshBtn')?.addEventListener('click', () => void this.refresh());
-    this.container.querySelectorAll<HTMLButtonElement>('[data-github-source-tab]').forEach((button) => {
+    this.container.querySelectorAll<HTMLButtonElement>('[data-github-reset-filters]').forEach((button) => {
       button.addEventListener('click', () => {
-        this.activeRepoTab = button.dataset.githubSourceTab === 'trending' ? 'trending' : 'master';
+        this.filters = { ...defaults };
         this.visibleCount = PAGE_SIZE;
         this.render();
         this.bind();
-        if (this.filtered().length === 0) void this.refresh();
       });
     });
     this.container.querySelector<HTMLButtonElement>('#githubRefreshBtnRetry')?.addEventListener('click', () => {
@@ -386,7 +324,9 @@ export class GithubReposDashboard {
     });
     this.container.querySelectorAll<HTMLButtonElement>('[data-github-trending-window]').forEach((button) => {
       button.addEventListener('click', () => {
-        this.trendingWindow = button.dataset.githubTrendingWindow === 'weekly' ? 'weekly' : 'daily';
+        const nextWindow = button.dataset.githubTrendingWindow === 'weekly' ? 'weekly' : 'daily';
+        if (nextWindow === this.trendingWindow || this.loading) return;
+        this.trendingWindow = nextWindow;
         this.visibleCount = PAGE_SIZE;
         void this.refresh();
       });
@@ -402,20 +342,25 @@ export class GithubReposDashboard {
   }
 
   private async refresh(): Promise<void> {
+    const refreshId = ++this.refreshSerial;
     this.loading = true;
     this.error = '';
     this.render();
     this.bind();
     try {
-      const state = await fetchGithubRepoDashboardData(this.filters.view, this.activeRepoTab, this.trendingWindow);
-      this.repos = this.mergeRepos(this.repos, state.repos);
+      const state = await fetchGithubRepoDashboardData(this.trendingWindow);
+      if (refreshId !== this.refreshSerial) return;
+      this.repos = state.repos.filter((repo) => repo.source === 'github-trending');
       this.fetchedAt = state.fetchedAt;
     } catch (error) {
+      if (refreshId !== this.refreshSerial) return;
       this.error = error instanceof Error ? error.message : 'Unable to fetch GitHub repositories';
     } finally {
-      this.loading = false;
-      this.render();
-      this.bind();
+      if (refreshId === this.refreshSerial) {
+        this.loading = false;
+        this.render();
+        this.bind();
+      }
     }
   }
 }

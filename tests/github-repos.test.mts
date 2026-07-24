@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { dedupeGithubRepos, enrichGithubRepo, normalizeGithubRepo } from '../src/services/github-repos/enricher.ts';
 
@@ -95,5 +96,26 @@ describe('GitHub repo enrichment', () => {
     assert(pageIndex.themeTags.includes('document_intelligence'));
     assert(pageIndex.themeTags.includes('knowledge_layer'));
     assert(pageIndex.hasMcp);
+  });
+});
+
+describe('GitHub Trending dashboard guardrails', () => {
+  test('keeps the product page trending-only with compact filters', async () => {
+    const source = await readFile(new URL('../src/components/GithubReposDashboard.ts', import.meta.url), 'utf8');
+
+    assert(!source.includes('data-github-source-tab'));
+    assert(!source.includes('Master repos'));
+    assert(source.includes('fetchGithubRepoDashboardData(this.trendingWindow)'));
+    assert(source.includes('Filter trending repositories'));
+    assert(source.includes('data-github-reset-filters'));
+  });
+
+  test('bounds GitHub requests so loading cannot remain indefinite', async () => {
+    const source = await readFile(new URL('../src/services/github-repos/fetcher.ts', import.meta.url), 'utf8');
+
+    assert(source.includes('CLIENT_REQUEST_TIMEOUT_MS'));
+    assert(source.includes('new AbortController()'));
+    assert(source.includes('controller.abort()'));
+    assert(source.includes('GitHub Trending took too long to respond'));
   });
 });

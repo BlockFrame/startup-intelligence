@@ -1,121 +1,57 @@
-import sourceConfig from '@/config/github-repo-sources.json';
-import curatedFallback from '@/config/github-curated-fallback.json';
-import type { GithubDiscoveryLane, GithubEnrichedRepo, GithubRawRepo, GithubRepoDashboardState } from '@/types/github-repos';
+import type { GithubEnrichedRepo, GithubRawRepo, GithubRepoDashboardState } from '@/types/github-repos';
 import { toApiUrl } from '@/services/runtime';
 import { dedupeGithubRepos, enrichGithubRepo, normalizeGithubRepo } from './enricher';
 
-const RAW_STORAGE_KEY = 'startup-github-repos-raw';
-const RECORD_STORAGE_KEY = 'startup-github-repos-records';
-const STORAGE_VERSION_KEY = 'startup-github-repos-version';
-const STORAGE_VERSION = 'v9-supabase-master-repos';
+const RAW_STORAGE_KEY = 'startup-github-trending-raw';
+const RECORD_STORAGE_KEY = 'startup-github-trending-records';
+const STORAGE_VERSION_KEY = 'startup-github-trending-version';
+const STORAGE_VERSION = 'v10-trending-only';
+const CLIENT_REQUEST_TIMEOUT_MS = 22_000;
 
 async function fetchJson<T>(path: string): Promise<T | null> {
-  const response = await fetch(toApiUrl(path));
-  if (!response.ok) {
-    try {
-      const errJson = await response.json();
-      if (errJson && typeof errJson === 'object') {
-        const msg = (errJson as any).error || (errJson as any).message;
-        if (msg) throw new Error(msg);
-      }
-    } catch (e) {
-      if (e instanceof Error && e.message !== 'Unexpected token < in JSON at position 0') throw e;
-    }
-    return null;
-  }
-  return response.json() as Promise<T>;
-}
-
-async function fetchWithConcurrency<T>(paths: string[], concurrency = 3): Promise<Array<T | null>> {
-  const results: Array<T | null> = new Array(paths.length).fill(null);
-  let next = 0;
-  const workers = Array.from({ length: Math.min(concurrency, paths.length) }, async () => {
-    while (next < paths.length) {
-      const index = next;
-      next += 1;
-      const path = paths[index];
-      if (!path) continue;
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), CLIENT_REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(toApiUrl(path), { signal: controller.signal });
+    if (!response.ok) {
       try {
-        results[index] = await fetchJson<T>(path);
+        const errJson = await response.json();
+        if (errJson && typeof errJson === 'object') {
+          const msg = (errJson as any).error || (errJson as any).message;
+          if (msg) throw new Error(msg);
+        }
       } catch (e) {
-        if (e instanceof Error) console.error(`[GitHub Fetcher] Failed path ${path}:`, e.message);
-        results[index] = { error: e instanceof Error ? e.message : 'Unknown error' } as any;
+        if (e instanceof Error && e.message !== 'Unexpected token < in JSON at position 0') throw e;
       }
+      return null;
     }
-  });
-  await Promise.all(workers);
-  return results;
+    return response.json() as Promise<T>;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('GitHub Trending took too long to respond. Please try again.');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
 
-export async function fetchGithubRepoDashboardData(clusterId = 'all', mode: 'all' | 'master' | 'trending' = 'all', trendingWindow: 'daily' | 'weekly' = 'daily'): Promise<GithubRepoDashboardState> {
-  const clusters = sourceConfig.clusters as Record<string, { seedRepositories?: string[]; queries?: string[] }> | undefined;
-  const cluster = clusterId === 'all' ? undefined : clusters?.[clusterId];
-  if (mode === 'master') {
-    const clusterSeeds = new Set((cluster?.seedRepositories || []).map((name) => name.toLowerCase()));
-    const supabasePayload = await fetchJson<{ items?: GithubRawRepo[]; source?: string; fetchedAt?: string }>('/api/github-master-repos').catch(() => null);
-    const sourceItems = supabasePayload?.items?.length ? supabasePayload.items : curatedFallback as GithubRawRepo[];
-    const fallbackRepos = sourceItems
-      .filter((repo) => clusterId === 'all' || clusterSeeds.size === 0 || clusterSeeds.has(repo.full_name.toLowerCase()))
-      .map((repo) => normalizeGithubRepo(repo, 'curated', !supabasePayload?.items?.length));
-    const repos = dedupeGithubRepos(fallbackRepos).map(enrichGithubRepo).sort((a, b) => b.finalScore - a.finalScore);
-    const state = { rawPayload: [{ source: supabasePayload?.items?.length ? supabasePayload.source || 'supabase' : 'curated-fallback-json', items: sourceItems.length }], repos, fetchedAt: supabasePayload?.fetchedAt || new Date().toISOString() };
-    localStorage.setItem(RAW_STORAGE_KEY, JSON.stringify({ fetchedAt: state.fetchedAt, rawPayload: state.rawPayload }));
-    localStorage.setItem(RECORD_STORAGE_KEY, JSON.stringify(repos));
-    localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
-    return state;
+export async function fetchGithubRepoDashboardData(trendingWindow: 'daily' | 'weekly' = 'daily'): Promise<GithubRepoDashboardState> {
+  const payload = await fetchJson<{ items?: GithubRawRepo[]; error?: string }>(
+    `/api/github-repos?trending=1&since=${encodeURIComponent(trendingWindow)}`,
+  );
+  if (payload?.error) {
+    throw new Error(`GitHub Error: ${payload.error}`);
   }
-
-  const seedNames = Array.from(new Set([...(sourceConfig.seedRepositories || []), ...(cluster?.seedRepositories || [])]));
-  const searchQueries = Array.from(new Set([...(sourceConfig.searchQueries || []), ...(cluster?.queries || [])]));
-  const seedPaths = seedNames.map((fullName) => `/api/github-repos?repo=${encodeURIComponent(fullName)}&readme=1`);
-  const searchPaths = searchQueries.map((q) => `/api/github-repos?search=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=24`);
-  const emergingPaths = [...(sourceConfig.emergingQueries || []), ...(cluster?.queries || [])].map((q) => `/api/github-repos?search=${encodeURIComponent(q)}&sort=updated&order=desc&per_page=16`);
-  const topicPaths = sourceConfig.topics.map((topic) => `/api/github-repos?search=${encodeURIComponent(`topic:${topic}`)}&sort=stars&order=desc&per_page=16`);
-  const requests: Array<{ path: string; lane: GithubDiscoveryLane }> = [
-    { path: `/api/github-repos?trending=1&since=${encodeURIComponent(trendingWindow)}`, lane: 'emerging' as const },
-    ...(mode === 'all' ? seedPaths.map((path) => ({ path, lane: 'curated' as const })) : []),
-    ...(mode === 'all' ? emergingPaths.map((path) => ({ path, lane: 'emerging' as const })) : []),
-    ...(mode === 'all' ? searchPaths.map((path) => ({ path, lane: 'established' as const })) : []),
-    ...(mode === 'all' ? topicPaths.map((path) => ({ path, lane: 'emerging' as const })) : []),
-  ];
-  let lastError: string | null = null;
-  const payloads = await fetchWithConcurrency<{ items?: GithubRawRepo[]; repo?: GithubRawRepo }>(
-    requests.map((request) => request.path), 
-    2
-  ).catch(e => {
-    if (e instanceof Error) lastError = e.message;
-    return [];
-  });
-
-  const liveRepos = payloads.flatMap((payload, index) => {
-    if (!payload) return [];
-    if ('error' in payload && payload.error) lastError = String(payload.error);
-    const lane = requests[index]?.lane ?? 'established';
-    const repos = payload.repo ? [payload.repo] : payload.items || [];
-    return repos.map((repo) => ({ repo, lane, isFallback: false }));
-  });
-  const fallbackRepos = mode !== 'trending' ? (curatedFallback as GithubRawRepo[]).map((repo) => ({ repo, lane: 'curated' as const, isFallback: true })) : [];
-  const rawRepos = [...liveRepos, ...fallbackRepos];
-  if (rawRepos.length === 0 && lastError) {
-    throw new Error(`GitHub Error: ${lastError}`);
-  }
+  const rawRepos = payload?.items || [];
   if (rawRepos.length === 0) {
     throw new Error('GitHub rate limit or access block. Add GITHUB_TOKEN to the dev environment, then restart the server.');
   }
-  const minStars = sourceConfig.discovery.minStars;
-  const emergingMinStars = sourceConfig.discovery.emergingMinStars;
-  const establishedMinStars = sourceConfig.discovery.establishedMinStars;
   const repos = dedupeGithubRepos(
-    rawRepos
-      .filter(({ repo, lane }) => {
-        if (lane === 'curated') return true;
-        if (lane === 'emerging') return repo.stargazers_count >= emergingMinStars;
-        return repo.stargazers_count >= Math.max(minStars, establishedMinStars);
-      })
-      .map(({ repo, lane, isFallback }) => normalizeGithubRepo(repo, lane, Boolean(isFallback))),
-  ).map(enrichGithubRepo).sort((a, b) => b.finalScore - a.finalScore);
-  const state = { rawPayload: payloads, repos, fetchedAt: new Date().toISOString() };
-  localStorage.setItem(RAW_STORAGE_KEY, JSON.stringify({ fetchedAt: state.fetchedAt, rawPayload: payloads }));
+    rawRepos.map((repo) => normalizeGithubRepo(repo, 'emerging', false)),
+  ).map(enrichGithubRepo).sort((a, b) => (a.trendingRank ?? 9999) - (b.trendingRank ?? 9999));
+  const state = { rawPayload: [payload], repos, fetchedAt: new Date().toISOString() };
+  localStorage.setItem(RAW_STORAGE_KEY, JSON.stringify({ fetchedAt: state.fetchedAt, rawPayload: state.rawPayload }));
   localStorage.setItem(RECORD_STORAGE_KEY, JSON.stringify(repos));
   localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
   return state;
