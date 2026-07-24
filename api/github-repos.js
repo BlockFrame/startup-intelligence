@@ -6,6 +6,8 @@ import {
 } from './_github-trending.js';
 import { readJsonFromUpstash, setCachedData } from './_upstash-json.js';
 
+export const config = { runtime: 'edge' };
+
 const GH = 'https://api.github.com';
 const CACHE_VERSION = 'v3-trending-direct';
 const TRENDING_TTL_SECONDS = 30 * 60;

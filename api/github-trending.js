@@ -5,6 +5,8 @@ import {
   parseGithubTrending,
 } from './_github-trending.js';
 
+export const config = { runtime: 'edge' };
+
 const CDN_TTL_SECONDS = 30 * 60;
 
 function withTimeout(promise, ms, message) {
