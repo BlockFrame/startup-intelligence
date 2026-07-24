@@ -58,6 +58,7 @@ export default async function handler(req) {
         'Cache-Control': `public, max-age=60, s-maxage=${CDN_TTL_SECONDS}, stale-while-revalidate=${CDN_TTL_SECONDS}, stale-if-error=86400`,
         'CDN-Cache-Control': `public, s-maxage=${CDN_TTL_SECONDS}, stale-while-revalidate=${CDN_TTL_SECONDS}, stale-if-error=86400`,
         'X-Startup-Cache': 'cdn-refresh',
+        'X-Startup-Endpoint': 'github-trending-v1',
       },
     });
   } catch (error) {
