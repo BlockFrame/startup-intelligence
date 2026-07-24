@@ -1,11 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import nodeFetch from 'node-fetch';
 import githubReposHandler, { parseGithubTrending } from '../api/github-repos.js';
 
-const { Request, Response } = nodeFetch;
 const originalFetch = globalThis.fetch;
-globalThis.Response = Response;
 
 const trendingHtml = `
   <article class="Box-row">

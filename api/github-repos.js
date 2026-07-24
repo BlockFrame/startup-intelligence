@@ -22,21 +22,38 @@ function githubHeaders() {
   return h;
 }
 
-const timeoutPromise = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('TimeoutError')), ms));
+function withTimeout(promise, ms, message = 'TimeoutError') {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+}
 
 function cacheKeyFor(name) {
   return `github-repos:${CACHE_VERSION}:${name}`;
 }
 
 async function readCachedPayload(cacheKey) {
-  return await readJsonFromUpstash(cacheKey, 1200);
+  try {
+    return await withTimeout(readJsonFromUpstash(cacheKey, 1200), 1_500, 'Redis cache read timed out');
+  } catch {
+    // Redis is an optional cache. Never let an unavailable cache block live
+    // GitHub Trending results.
+    return null;
+  }
 }
 
 async function writeCachedPayload(cacheKey, payload, ttlSeconds) {
-  await setCachedData(cacheKey, {
-    ...payload,
-    cachedAt: new Date().toISOString(),
-  }, ttlSeconds);
+  try {
+    await withTimeout(setCachedData(cacheKey, {
+      ...payload,
+      cachedAt: new Date().toISOString(),
+    }, ttlSeconds), 1_500, 'Redis cache write timed out');
+  } catch {
+    // A failed cache write must not turn a successful upstream response into
+    // a client timeout.
+  }
 }
 
 function cachedResponse(payload, headers, cacheStatus, cdnSeconds) {
@@ -141,13 +158,11 @@ export default async function handler(req) {
       let liveError = 'GitHub Trending returned no repositories';
       try {
         const sourceUrl = `${GITHUB_TRENDING_URL}?since=${trendingSince}`;
-        const trendingFetch = fetch(sourceUrl, {
+        const trendingRes = await withTimeout(fetch(sourceUrl, {
           headers: GITHUB_TRENDING_HEADERS,
-        });
-        trendingFetch.catch(() => {});
-        const trendingRes = await Promise.race([trendingFetch, timeoutPromise(8000)]);
+        }), 8_000, 'GitHub Trending request timed out');
         if (trendingRes.ok) {
-          const html = await trendingRes.text();
+          const html = await withTimeout(trendingRes.text(), 4_000, 'GitHub Trending response timed out');
           const items = parseGithubTrending(html);
           if (items.length > 0) {
             const payload = {
@@ -212,13 +227,11 @@ export default async function handler(req) {
     const cached = await readCachedPayload(cacheKey);
     if (cached && (cached.repo || cached.items)) return cachedResponse(cached, headers, 'redis-hit', ttl);
 
-    const fetchPromise = fetch(upstream, { headers: githubHeaders() });
-    fetchPromise.catch(() => {}); // Prevent unhandled rejection
-    
-    const response = await Promise.race([
-      fetchPromise,
-      timeoutPromise(8000)
-    ]);
+    const response = await withTimeout(
+      fetch(upstream, { headers: githubHeaders() }),
+      8_000,
+      'GitHub API request timed out',
+    );
     
     if (!response.ok) {
       const errText = await response.text();
