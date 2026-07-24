@@ -5,7 +5,6 @@ const GH = 'https://api.github.com';
 const CACHE_VERSION = 'v3-trending-direct';
 const GITHUB_TRENDING_URL = 'https://github.com/trending';
 const TRENDING_TTL_SECONDS = 30 * 60;
-const TRENDING_LAST_GOOD_TTL_SECONDS = 24 * 60 * 60;
 const REPO_TTL_SECONDS = 6 * 60 * 60;
 const REPO_LAST_GOOD_TTL_SECONDS = 7 * 24 * 60 * 60;
 const SEARCH_TTL_SECONDS = 2 * 60 * 60;
@@ -150,11 +149,6 @@ export default async function handler(req) {
     let upstream = '';
     
     if (isTrending) {
-      const cacheKey = cacheKeyFor(`trending:${trendingSince}`);
-      const lastGoodKey = cacheKeyFor(`trending:${trendingSince}:last-good`);
-      const cached = await readCachedPayload(cacheKey);
-      if (cached?.items?.length) return cachedResponse(cached, headers, 'redis-hit', TRENDING_TTL_SECONDS);
-
       let liveError = 'GitHub Trending returned no repositories';
       try {
         const sourceUrl = `${GITHUB_TRENDING_URL}?since=${trendingSince}`;
@@ -172,11 +166,10 @@ export default async function handler(req) {
               sourceUrl,
               since: trendingSince,
             };
-            await Promise.all([
-              writeCachedPayload(cacheKey, payload, TRENDING_TTL_SECONDS),
-              writeCachedPayload(lastGoodKey, payload, TRENDING_LAST_GOOD_TTL_SECONDS),
-            ]);
-            return cachedResponse(payload, headers, 'live-refresh', TRENDING_TTL_SECONDS);
+            // Trending is public and already cached at Vercel's CDN. Do not
+            // depend on Upstash here: an unhealthy Redis connection must
+            // never prevent the dashboard from receiving live GitHub data.
+            return cachedResponse(payload, headers, 'cdn-refresh', TRENDING_TTL_SECONDS);
           }
           liveError = 'GitHub Trending HTML contained no recognizable repositories';
         } else {
@@ -185,9 +178,6 @@ export default async function handler(req) {
       } catch (error) {
         liveError = error?.message || 'GitHub Trending request failed';
       }
-
-      const lastGood = await readCachedPayload(lastGoodKey);
-      if (lastGood?.items?.length) return cachedResponse(lastGood, headers, 'last-good', TRENDING_TTL_SECONDS);
 
       return new Response(JSON.stringify({
         items: [],
